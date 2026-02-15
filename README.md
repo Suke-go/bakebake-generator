@@ -1,34 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 妖怪生成システム
 
-## Getting Started
+妖怪の伝承データを分析し、創造性支援に活用するプロジェクト。
 
-First, run the development server:
+## 構成
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+src/              Next.js アプリ (Gemini API 連携)
+  app/            ページ + API routes
+  components/     UI コンポーネント (Phase 0-3)
+  lib/            ユーティリティ (folklore-search, prompt-builder, etc.)
+scripts/
+  scrape-yokai-db.ts       YokaiEval データ取得
+  compute-embeddings.ts    Gemini embedding 計算
+  analysis/                BERTopic + 名前構造分解
+data/
+  raw-folklore.json        YokaiEval 1,038体
+  cluster-labels.json      BERTopic 61クラスタ
+  yokai-clusters.json      クラスタ割り当て詳細
+  analysis/                分析出力 (gitignore: .npy, .html)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## セットアップ
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm install
+cp .env.local.example .env.local  # GEMINI_API_KEY を設定
+npm run dev
+```
 
-## Learn More
+## 分析スクリプト
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+# BERTopic (Python venv 必要)
+cd scripts/analysis && ./run.sh   # or run.bat
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# 名前構造分解
+python scripts/analysis/analyze_name_structure.py
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# 日文研DB交差分析
+$env:PYTHONIOENCODING='utf-8'; python -u scripts/analysis/nichibunken_cross.py
+```
 
-## Deploy on Vercel
+## データソース
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [CyberAgentAILab/YokaiEval](https://github.com/CyberAgentAILab/YokaiEval) (Wikipedia ベース, 1,038体)
+- [怪異・妖怪伝承DB](https://www.nichibun.ac.jp/YoukaiDB/) (日文研, 35,307件)
