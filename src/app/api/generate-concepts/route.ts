@@ -1,12 +1,63 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 import { NextResponse } from 'next/server';
 import { buildConceptPrompt } from '@/lib/prompt-builder';
+import { getStatusCode, toErrorMessage, withExponentialBackoff } from '@/lib/genai-utils';
+
+const MAX_RETRY_ATTEMPTS = 3;
+const INITIAL_RETRY_DELAY_MS = 400;
+const RATE_LIMIT_COOLDOWN_MS = 45_000;
+
+let nextRequestAllowedAt = 0;
+
+function isRateLimitError(error: unknown): boolean {
+    const status = getStatusCode(error);
+    const message = toErrorMessage(error).toLowerCase();
+    return status === 429 || message.includes('resource exhausted') || message.includes('quota') || message.includes('rate limit');
+}
 
 export async function POST(req: Request) {
     try {
-        const { folklore, answers, handle } = await req.json();
+        const startedAt = Date.now();
+        let bodyText: string;
+        try {
+            bodyText = await req.text();
+        } catch {
+            return NextResponse.json(
+                { error: 'Invalid request body' },
+                { status: 400 }
+            );
+        }
 
-        if (!folklore || !answers || !handle) {
+        if (!bodyText.trim()) {
+            return NextResponse.json(
+                { error: 'Request body is empty' },
+                { status: 400 }
+            );
+        }
+
+        let payload: unknown;
+        try {
+            payload = JSON.parse(bodyText);
+        } catch {
+            return NextResponse.json(
+                { error: 'Request body must be valid JSON' },
+                { status: 400 }
+            );
+        }
+
+        const { folklore, answers, handle } = payload as {
+            folklore?: unknown;
+            answers?: unknown;
+            handle?: {
+                id: string;
+                text: string;
+            };
+        };
+
+        const validAnswers = typeof answers === 'object' && answers !== null;
+        const validHandle = handle && typeof handle.id === 'string' && typeof handle.text === 'string';
+
+        if (!folklore || !validAnswers || !validHandle) {
             return NextResponse.json(
                 { error: 'folklore, answers, and handle are required' },
                 { status: 400 }
@@ -21,58 +72,122 @@ export async function POST(req: Request) {
             );
         }
 
-        // 1. DB由来の概念（folklore結果の上位2件から）
-        const dbConcepts = folklore.slice(0, 2).map((f: {
+        const conceptInput = Array.isArray(folklore) ? folklore.slice(0, 3) : [];
+        const dbConcepts = conceptInput.slice(0, 2).map((f: {
             kaiiName: string;
             content: string;
             id: string;
         }) => ({
             source: 'db' as const,
             name: f.kaiiName,
-            reading: '', // DBにデータがあれば埋める
+            reading: '',
             description: f.content,
-            label: '伝承に残る名',
+            label: 'database',
             folkloreRef: f.id,
         }));
 
-        // 2. LLMで新しい妖怪名を生成
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-        const prompt = buildConceptPrompt(handle, answers, folklore);
-        const result = await model.generateContent(prompt);
-        const responseText = result.response.text();
+        if (Date.now() < nextRequestAllowedAt) {
+            return NextResponse.json(
+                {
+                    concepts: [
+                        ...dbConcepts,
+                        {
+                            source: 'llm' as const,
+                            name: 'Fallback Yokai',
+                            reading: '',
+                            description: 'Concept generation is temporarily paused due to service quota, using fallback mode.',
+                            label: 'rate-limit-fallback',
+                        },
+                    ],
+                },
+                {
+                    headers: {
+                        'x-generate-concepts-rate-limit': 'cooldown',
+                        'x-generate-concepts-duration-ms': `${Date.now() - startedAt}`,
+                    },
+                }
+            );
+        }
 
-        // JSON を抽出（```json ... ``` ブロック対応）
-        let llmConcept;
+        const conceptAnswers = answers as Record<string, string>;
+        const genAI = new GoogleGenAI({ apiKey });
+        const prompt = buildConceptPrompt(handle, conceptAnswers, conceptInput);
+        let responseText = '';
+
         try {
-            const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-                const parsed = JSON.parse(jsonMatch[0]);
-                llmConcept = {
-                    source: 'llm' as const,
-                    name: parsed.name || '名無し',
-                    reading: parsed.reading || '',
-                    description: parsed.description || '',
-                    label: 'あなたの体験から',
-                };
+            const result = await withExponentialBackoff(
+                async () => {
+                    const generated = await genAI.models.generateContent({
+                        model: 'gemini-2.0-flash',
+                        contents: prompt,
+                    });
+                    if (!generated?.text) {
+                        throw new Error('Empty response from Gemini');
+                    }
+                    return generated;
+                },
+                'generate-concepts',
+                MAX_RETRY_ATTEMPTS,
+                INITIAL_RETRY_DELAY_MS,
+                (error) => {
+                    if (isRateLimitError(error)) {
+                        nextRequestAllowedAt = Date.now() + RATE_LIMIT_COOLDOWN_MS;
+                        return true;
+                    }
+                    return false;
+                }
+            );
+            responseText = result.text || '';
+        } catch (error) {
+            console.warn('generate-concepts: Gemini call failed, falling back to db concept only:', toErrorMessage(error));
+        }
+
+        let llmConcept = null as {
+            source: 'llm';
+            name: string;
+            reading: string;
+            description: string;
+            label: string;
+        } | null;
+
+        if (responseText) {
+            try {
+                const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    const parsed = JSON.parse(jsonMatch[0]);
+                    llmConcept = {
+                        source: 'llm' as const,
+                        name: parsed.name || 'Untitled Yokai',
+                        reading: parsed.reading || '',
+                        description: parsed.description || '',
+                        label: 'llm-generated',
+                    };
+                }
+            } catch {
+                console.warn('Failed to parse LLM concept:', responseText);
             }
-        } catch {
-            console.warn('Failed to parse LLM concept:', responseText);
         }
 
         if (!llmConcept) {
             llmConcept = {
                 source: 'llm' as const,
-                name: '残り影',
-                reading: 'のこりかげ',
-                description: 'あなたの体験から生まれた名前。',
-                label: 'あなたの体験から',
+                name: 'Yokai Spirit',
+                reading: '',
+                description: 'LLM is currently unavailable. The concept is generated from existing folklore context.',
+                label: 'fallback',
             };
         }
 
-        return NextResponse.json({
-            concepts: [...dbConcepts, llmConcept],
-        });
+        return NextResponse.json(
+            {
+                concepts: [...dbConcepts, llmConcept],
+            },
+            {
+                headers: {
+                    'x-generate-concepts-duration-ms': `${Date.now() - startedAt}`,
+                },
+            }
+        );
     } catch (error) {
         console.error('generate-concepts error:', error);
         return NextResponse.json(
@@ -81,3 +196,4 @@ export async function POST(req: Request) {
         );
     }
 }
+

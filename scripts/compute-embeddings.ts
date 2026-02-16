@@ -9,7 +9,7 @@
  * 必要な環境変数: GEMINI_API_KEY
  */
 
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
@@ -100,8 +100,7 @@ async function main() {
     const validEntries = entries.filter(e => e.summary && e.summary.length > 5);
     console.log(`有効エントリ（要約あり）: ${validEntries.length} 件`);
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-embedding-001' });
+    const genAI = new GoogleGenAI({ apiKey });
 
     const completedIds = loadProgress();
     const pending = validEntries.filter(e => !completedIds.has(e.id));
@@ -121,21 +120,30 @@ async function main() {
 
         try {
             // Gemini embedding API (batch)
-            const batchResults = await Promise.all(
-                texts.map(async (text) => {
-                    const result = await model.embedContent(text);
-                    return result.embedding.values;
-                })
-            );
+            const batchResult = await genAI.models.embedContent({
+                model: 'gemini-embedding-001',
+                contents: texts,
+                config: {
+                    taskType: 'SEMANTIC_SIMILARITY',
+                },
+            });
+            const batchResults = batchResult.embeddings;
+            if (!batchResults || batchResults.length !== batch.length) {
+                throw new Error('Embedding batch size mismatch');
+            }
 
             for (let j = 0; j < batch.length; j++) {
+                const embedding = batchResults[j]?.values;
+                if (!embedding) {
+                    throw new Error(`Embedding is missing for entry ${batch[j].id}`);
+                }
                 results.push({
                     id: batch[j].id,
                     name: batch[j].name,
                     summary: batch[j].summary,
                     location: batch[j].location,
                     source: batch[j].source,
-                    embedding: batchResults[j],
+                    embedding,
                 });
                 completedIds.add(batch[j].id);
             }

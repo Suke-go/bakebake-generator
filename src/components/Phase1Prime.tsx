@@ -4,21 +4,6 @@ import { useState, useEffect, useRef } from 'react';
 import { useApp } from '@/lib/context';
 import ProgressDots from './ProgressDots';
 
-/**
- * Phase 1' — 深堀り質問
- *
- * 具体→抽象のグラデーション:
- *   1. event (具体的な出来事)
- *   2. where (場所)
- *   3. when (時期)
- *   4. sensory (五感で気づいたこと)
- *   5. texture (体の感覚)
- *   6. alone (関係性)
- *   7. reaction (どうしたか)
- *   8. stance (どうしたいか)
- *   9. absence (姿の予感 — 最も抽象)
- */
-
 interface StepDef {
     id: string;
     question: string;
@@ -31,125 +16,81 @@ interface StepDef {
 const STEPS: StepDef[] = [
     {
         id: 'event',
-        question: 'それは、どんなときに起きましたか？',
-        subtext: '具体的な場面を思い出してみてください',
+        question: 'その時、何が起きましたか。',
+        subtext: '最初に浮かぶ言葉を、そのまま書いてください。',
         type: 'choice+text',
-        options: [
-            '夜中に目が覚めた',
-            '誰もいない場所で',
-            'ふとした瞬間に',
-            '人混みの中で',
-            '夢の中で',
-        ],
-        placeholder: 'そのときのことを…',
+        options: ['背後に気配を感じた', '視線だけを感じた', '声を聞いた', '物の位置が変わった', '写真に違和感があった'],
+        placeholder: '自由に書く',
     },
     {
         id: 'where',
-        question: 'そのとき、どこにいましたか？',
+        question: 'どこで起きましたか。',
         type: 'choice+text',
-        options: [
-            '自分の部屋',
-            '外を歩いていた',
-            '電車やバスの中',
-            '布団の中',
-            '水の近く',
-            '知らない場所',
-        ],
-        placeholder: 'ほかの場所…',
+        options: ['自宅', '通勤・通学路', '職場・学校', '旅先', '水辺', '決まっていない'],
+        placeholder: '場所を追記',
     },
     {
         id: 'when',
-        question: 'それは、いつごろのことですか？',
+        question: 'いつ起きることが多いですか。',
         type: 'choice',
-        options: [
-            '今日のこと',
-            'ここ数日のあいだ',
-            'もうだいぶ前',
-            'いつからか、ずっと',
-        ],
+        options: ['夜', '夕方', '明け方', '時間はばらばら'],
     },
     {
         id: 'noticed',
-        question: 'そのとき、何か気づいたことはありますか？',
-        subtext: '音、匂い、光、空気の変化など',
+        question: '最初に気づいたのは何でしたか。',
+        subtext: '音・匂い・温度・光・視線など',
         type: 'choice+text',
-        options: [
-            '音がした',
-            '空気が変わった',
-            '匂いがした',
-            '温度が変わった',
-            '何もないのに、わかった',
-        ],
-        placeholder: 'そのとき気づいたこと…',
+        options: ['音', '匂い', '温度', '光', '視線'],
+        placeholder: 'ほかにあれば自由入力',
     },
     {
         id: 'texture',
-        question: '体で感じたことを、言葉にすると？',
-        subtext: '考えずに、最初に浮かんだものを',
+        question: 'その気配を質感で表すなら。',
+        subtext: '手触りや温度感の比喩でかまいません。',
         type: 'choice+text',
-        options: [
-            '冷たい',
-            '重い',
-            'なつかしい',
-            'チクチクする',
-            '漂っている',
-            '息苦しい',
-            'あたたかい',
-        ],
-        placeholder: 'ほかの言葉で…',
+        options: ['冷たい', '重い', '湿っている', 'ざらつく', '乾いている'],
+        placeholder: '自由に表現',
     },
     {
         id: 'alone',
-        question: 'そのとき、まわりに誰かいましたか？',
+        question: 'その時、あなたは一人でしたか。',
         type: 'choice',
-        options: [
-            'ひとりだった',
-            '人はいたが、気づいていない',
-            '誰かと一緒だった',
-        ],
+        options: ['一人だった', '人はいたが気づいていない', '誰かと一緒だった'],
     },
     {
         id: 'reaction',
-        question: 'そのとき、あなたはどうしましたか？',
+        question: 'その時、どうしましたか。',
         type: 'choice+text',
-        options: [
-            '動けなかった',
-            'その場を離れた',
-            'そのままじっとしていた',
-            '誰かに話した',
-            '忘れようとした',
-        ],
-        placeholder: 'そのほかに…',
+        options: ['動けなかった', 'その場を離れた', '確かめた', '誰かに話した', '見ないふりをした'],
+        placeholder: 'ほかの行動があれば入力',
     },
     {
         id: 'stance',
-        question: 'いま思い返すと、それに対してどうしたいですか？',
-        subtext: '正解はありません',
+        question: 'いま思うと、その気配にどう向き合いたいですか。',
+        subtext: '正解はありません。',
         type: 'choice+text',
-        options: [
-            '逃げたい',
-            'じっと見ていたい',
-            '話しかけたい',
-            'そっとしておきたい',
-            '触れてみたい',
-        ],
-        placeholder: 'ほかの気持ち…',
+        options: ['避けたい', '見届けたい', '話しかけたい', '忘れたい', '知りたい'],
+        placeholder: '自由に書く',
     },
     {
         id: 'absence',
-        question: 'もしそれが姿を持っているとしたら——どんなふうに見えますか？',
-        subtext: 'はっきりしなくても大丈夫です',
+        question: 'その気配は、見たと言えますか。',
+        subtext: '近い感覚を選んでください。',
         type: 'choice',
-        options: [
-            '見えない。でもいる',
-            'ぼんやりと、何かの形が',
-            'はっきりと見える',
-        ],
+        options: ['見えなかった', '輪郭だけ見えた', 'はっきり見えた'],
     },
 ];
 
 export default function Phase1Prime() {
-    const { state, goToPhase, setTexture, setStance, setAbsenceQuality, setAnswers: saveAnswersToContext } = useApp();
+    const {
+        state,
+        goToPhase,
+        setTexture,
+        setStance,
+        setAbsenceQuality,
+        setAnswers: saveAnswersToContext,
+    } = useApp();
+
     const [currentStep, setCurrentStep] = useState(0);
     const [answers, setAnswers] = useState<Record<string, string>>({});
     const [customText, setCustomText] = useState('');
@@ -158,7 +99,7 @@ export default function Phase1Prime() {
     const scrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        const t = setTimeout(() => setVisible(true), 200);
+        const t = setTimeout(() => setVisible(true), 180);
         return () => clearTimeout(t);
     }, [currentStep]);
 
@@ -170,29 +111,33 @@ export default function Phase1Prime() {
 
     const answerStep = (value: string) => {
         const step = STEPS[currentStep];
-        const newAnswers = { ...answers, [step.id]: value };
-        setAnswers(newAnswers);
+        const nextAnswers = { ...answers, [step.id]: value };
+        setAnswers(nextAnswers);
 
         if (step.id === 'texture') setTexture(value);
         if (step.id === 'stance') setStance(value);
         if (step.id === 'absence') {
-            const q = value.includes('見えない') ? 'invisible'
-                : value.includes('ぼんやり') ? 'blurry' : 'clear';
-            setAbsenceQuality(q);
+            if (value === '見えなかった') {
+                setAbsenceQuality('invisible');
+            } else if (value === '輪郭だけ見えた') {
+                setAbsenceQuality('blurry');
+            } else {
+                setAbsenceQuality('clear');
+            }
         }
 
-        setHistory(prev => [...prev, { question: step.question, answer: value }]);
+        setHistory((prev) => [...prev, { question: step.question, answer: value }]);
         setVisible(false);
         setCustomText('');
 
         setTimeout(() => {
             if (currentStep < STEPS.length - 1) {
-                setCurrentStep(currentStep + 1);
+                setCurrentStep((prev) => prev + 1);
             } else {
-                saveAnswersToContext(newAnswers);
+                saveAnswersToContext(nextAnswers);
                 goToPhase(2);
             }
-        }, 400);
+        }, 320);
     };
 
     const step = STEPS[currentStep];
@@ -204,27 +149,33 @@ export default function Phase1Prime() {
             className="phase-scrollable"
             style={{ display: 'flex', flexDirection: 'column' }}
         >
-            {/* Answered history */}
             {history.length > 0 && (
-                <div style={{ marginBottom: 28 }}>
+                <div style={{ marginBottom: 24 }}>
                     {history.map((h, i) => (
                         <div
                             key={i}
                             style={{
                                 padding: '8px 0',
-                                opacity: Math.max(0.15, 0.5 - (history.length - 1 - i) * 0.06),
+                                opacity: Math.max(0.16, 0.52 - (history.length - 1 - i) * 0.06),
                             }}
                         >
-                            <p style={{
-                                fontSize: 11, color: 'var(--text-ghost)',
-                                marginBottom: 2, letterSpacing: '0.05em',
-                            }}>
+                            <p
+                                style={{
+                                    fontSize: 11,
+                                    color: 'var(--text-ghost)',
+                                    marginBottom: 2,
+                                    letterSpacing: '0.05em',
+                                }}
+                            >
                                 {h.question}
                             </p>
-                            <p style={{
-                                fontSize: 14, color: 'var(--text-dim)',
-                                fontFamily: 'var(--font-main)',
-                            }}>
+                            <p
+                                style={{
+                                    fontSize: 14,
+                                    color: 'var(--text-dim)',
+                                    fontFamily: 'var(--font-main)',
+                                }}
+                            >
                                 {h.answer}
                             </p>
                         </div>
@@ -232,21 +183,20 @@ export default function Phase1Prime() {
                 </div>
             )}
 
-            {/* Current question */}
             <div
                 className="question-block"
                 style={{
                     opacity: visible ? 1 : 0,
                     transform: visible ? 'translateY(0)' : 'translateY(8px)',
-                    transition: 'all 0.4s ease',
+                    transition: 'all 0.35s ease',
                 }}
             >
-                {currentStep === 0 && (
+                {currentStep === 0 && handleText && (
                     <p className="question-context">
                         {handleText.split('\n').map((line, i) => (
                             <span key={i}>
                                 {line}
-                                {i === 0 && <br />}
+                                {i < handleText.split('\n').length - 1 && <br />}
                             </span>
                         ))}
                     </p>
@@ -255,33 +205,25 @@ export default function Phase1Prime() {
                 <p className="question-text">{step.question}</p>
 
                 {step.subtext && (
-                    <p style={{
-                        fontSize: 13,
-                        color: 'var(--text-dim)',
-                        marginBottom: 16,
-                        marginTop: -8,
-                        fontFamily: 'var(--font-main)',
-                    }}>
+                    <p
+                        style={{
+                            fontSize: 13,
+                            color: 'var(--text-dim)',
+                            marginBottom: 14,
+                            marginTop: -6,
+                            fontFamily: 'var(--font-main)',
+                        }}
+                    >
                         {step.subtext}
                     </p>
                 )}
 
-                {(step.type === 'choice' || step.type === 'choice+text') && step.options && (
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
-                        {step.options.map((opt) => (
-                            <button key={opt} className="chip" onClick={() => answerStep(opt)}>
-                                {opt}
-                            </button>
-                        ))}
-                    </div>
-                )}
-
                 {(step.type === 'text' || step.type === 'choice+text') && (
-                    <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <div style={{ marginTop: 8, display: 'flex', gap: 8, alignItems: 'center' }}>
                         <input
                             type="text"
                             className="text-input"
-                            placeholder={step.placeholder || '自由に入力…'}
+                            placeholder={step.placeholder || '自由入力'}
                             value={customText}
                             onChange={(e) => setCustomText(e.target.value)}
                             onKeyDown={(e) => {
@@ -297,9 +239,19 @@ export default function Phase1Prime() {
                                 style={{ padding: '10px 16px', fontSize: 13 }}
                                 onClick={() => answerStep(customText.trim())}
                             >
-                                →
+                                送信
                             </button>
                         )}
+                    </div>
+                )}
+
+                {(step.type === 'choice' || step.type === 'choice+text') && step.options && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
+                        {step.options.map((opt) => (
+                            <button key={opt} className="chip" onClick={() => answerStep(opt)}>
+                                {opt}
+                            </button>
+                        ))}
                     </div>
                 )}
             </div>

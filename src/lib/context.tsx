@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useMemo, ReactNode } from 'react';
 
 // === Types ===
 export type HandleId = 'A' | 'B' | 'C' | 'D' | 'E' | 'free';
@@ -92,84 +92,102 @@ const AppContext = createContext<AppContextType | null>(null);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(initialState);
 
-  const goToPhase = (phase: number) => {
+  const goToPhase = useCallback((phase: number) => {
     setState(prev => ({ ...prev, currentPhase: phase }));
-  };
+  }, []);
 
-  const setHandle = (handle: Handle) => {
+  const setHandle = useCallback((handle: Handle) => {
     setState(prev => ({ ...prev, selectedHandle: handle }));
-  };
+  }, []);
 
-  const setArtStyle = (style: ArtStyle) => {
+  const setArtStyle = useCallback((style: ArtStyle) => {
     setState(prev => ({ ...prev, artStyle: style }));
-  };
+  }, []);
 
-  const setTexture = (texture: string) => {
+  const setTexture = useCallback((texture: string) => {
     setState(prev => ({ ...prev, texture }));
-  };
+  }, []);
 
-  const setStance = (stance: string) => {
+  const setStance = useCallback((stance: string) => {
     setState(prev => ({ ...prev, stance }));
-  };
+  }, []);
 
-  const setAbsenceQuality = (quality: AbsenceQuality) => {
+  const setAbsenceQuality = useCallback((quality: AbsenceQuality) => {
     setState(prev => ({ ...prev, absenceQuality: quality }));
-  };
+  }, []);
 
-  const setAnswers = (answers: Record<string, string>) => {
+  const setAnswers = useCallback((answers: Record<string, string>) => {
     setState(prev => ({ ...prev, answers }));
-  };
+  }, []);
 
-  const setFolkloreResults = (results: FolkloreResult[]) => {
+  const setFolkloreResults = useCallback((results: FolkloreResult[]) => {
     setState(prev => ({ ...prev, folkloreResults: results }));
-  };
+  }, []);
 
-  const setConcepts = (concepts: YokaiConcept[]) => {
+  const setConcepts = useCallback((concepts: YokaiConcept[]) => {
     setState(prev => ({ ...prev, concepts }));
-  };
+  }, []);
 
-  const selectConcept = (concept: YokaiConcept) => {
+  const selectConcept = useCallback((concept: YokaiConcept) => {
     setState(prev => ({
       ...prev,
       selectedConcept: concept,
       yokaiName: concept.name,
     }));
-  };
+  }, []);
 
-  const setVisualInput = (input: string) => {
+  const setVisualInput = useCallback((input: string) => {
     setState(prev => ({ ...prev, visualInput: input }));
-  };
+  }, []);
 
-  const setGeneratedImage = (url: string) => {
+  const setGeneratedImage = useCallback((url: string) => {
     setState(prev => ({ ...prev, generatedImageUrl: url }));
-  };
+  }, []);
 
-  const setYokaiName = (name: string) => {
+  const setYokaiName = useCallback((name: string) => {
     setState(prev => ({ ...prev, yokaiName: name }));
-  };
+  }, []);
 
-  const setNarrative = (narrative: string) => {
+  const setNarrative = useCallback((narrative: string) => {
     setState(prev => ({ ...prev, narrative }));
-  };
+  }, []);
+
+  const contextValue = useMemo(() => ({
+    state,
+    goToPhase,
+    setHandle,
+    setArtStyle,
+    setTexture,
+    setStance,
+    setAbsenceQuality,
+    setAnswers,
+    setFolkloreResults,
+    setConcepts,
+    selectConcept,
+    setVisualInput,
+    setGeneratedImage,
+    setYokaiName,
+    setNarrative,
+  }), [
+    state,
+    goToPhase,
+    setHandle,
+    setArtStyle,
+    setTexture,
+    setStance,
+    setAbsenceQuality,
+    setAnswers,
+    setFolkloreResults,
+    setConcepts,
+    selectConcept,
+    setVisualInput,
+    setGeneratedImage,
+    setYokaiName,
+    setNarrative,
+  ]);
 
   return (
-    <AppContext.Provider value={{
-      state,
-      goToPhase,
-      setHandle,
-      setArtStyle,
-      setTexture,
-      setStance,
-      setAbsenceQuality,
-      setAnswers,
-      setFolkloreResults,
-      setConcepts,
-      selectConcept,
-      setVisualInput,
-      setGeneratedImage,
-      setYokaiName,
-      setNarrative,
-    }}>
+    <AppContext.Provider value={contextValue}>
       {children}
     </AppContext.Provider>
   );

@@ -1,47 +1,55 @@
-# 妖怪生成システム
+# 妖怪生�EシスチE��
 
-妖怪の伝承データを分析し、創造性支援に活用するプロジェクト。
-
-## 構成
+妖怪の伝承チE�Eタを�E析し、創造性支援に活用するプロジェクト、E
+## 構�E
 
 ```
 src/              Next.js アプリ (Gemini API 連携)
-  app/            ページ + API routes
-  components/     UI コンポーネント (Phase 0-3)
-  lib/            ユーティリティ (folklore-search, prompt-builder, etc.)
+  app/            ペ�Eジ + API routes
+  components/     UI コンポ�EネンチE(Phase 0-3)
+  lib/            ユーチE��リチE�� (folklore-search, prompt-builder, etc.)
 scripts/
-  scrape-yokai-db.ts       YokaiEval データ取得
-  compute-embeddings.ts    Gemini embedding 計算
-  analysis/                BERTopic + 名前構造分解
+  scrape-yokai-db.ts       YokaiEval チE�Eタ取征E  compute-embeddings.ts    Gemini embedding 計箁E  analysis/                BERTopic + 名前構造刁E��
 data/
-  raw-folklore.json        YokaiEval 1,038体
-  cluster-labels.json      BERTopic 61クラスタ
+  raw-folklore.json        YokaiEval 1,038佁E  cluster-labels.json      BERTopic 61クラスタ
   yokai-clusters.json      クラスタ割り当て詳細
-  analysis/                分析出力 (gitignore: .npy, .html)
+  analysis/                刁E��出劁E(gitignore: .npy, .html)
 ```
 
-## セットアップ
+## セチE��アチE�E
 
 ```bash
 npm install
-cp .env.local.example .env.local  # GEMINI_API_KEY を設定
-npm run dev
+cp .env.local.example .env.local  # GEMINI_API_KEY を設宁Enpm run dev
 ```
 
-## 分析スクリプト
+
+### Phase3�X���[�N�e�X�g�ienv.local���p�j
+
+`ash
+npm run dev
+
+# �ʃ^�[�~�i��
+npm run test:phase3-smoke
+`
+
+.env.local �� GEMINI_API_KEY �����̂܂܎g���A/api/search-folklore �� /api/generate-concepts �� /api/generate-image �����Ɍ��؂��܂��B
+## 刁E��スクリプト
 
 ```bash
-# BERTopic (Python venv 必要)
+# BERTopic (Python venv 忁E��E
 cd scripts/analysis && ./run.sh   # or run.bat
 
-# 名前構造分解
+# 名前構造刁E��
 python scripts/analysis/analyze_name_structure.py
 
-# 日文研DB交差分析
+# 日斁E��DB交差刁E��
 $env:PYTHONIOENCODING='utf-8'; python -u scripts/analysis/nichibunken_cross.py
 ```
 
-## データソース
+## チE�Eタソース
 
-- [CyberAgentAILab/YokaiEval](https://github.com/CyberAgentAILab/YokaiEval) (Wikipedia ベース, 1,038体)
-- [怪異・妖怪伝承DB](https://www.nichibun.ac.jp/YoukaiDB/) (日文研, 35,307件)
+- [CyberAgentAILab/YokaiEval](https://github.com/CyberAgentAILab/YokaiEval) (Wikipedia ベ�Eス, 1,038佁E
+- [怪異・妖怪伝承DB](https://www.nichibun.ac.jp/YoukaiDB/) (日斁E��E 35,307件)
+
+

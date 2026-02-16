@@ -1,46 +1,34 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useApp } from '@/lib/context';
-import { ArtStyle } from '@/lib/context';
+import { useApp, ArtStyle } from '@/lib/context';
 import ProgressDots from './ProgressDots';
 
-/**
- * Phase 3 — 画風選択 → 姿の描写
- *
- * 妖怪画の歴史に基づく選択肢:
- *
- * 1. 石燕風 — 鳥山石燕 (1776)。一体ごとの図鑑的描写。墨の線描。
- * 2. 百鬼夜行絵巻 — 平安〜室町。巻物に妖怪の行列。流れるような構図。
- * 3. 錦絵風 — 歌川国芳、月岡芳年。鮮やかな版画。劇的な構図。
- * 4. 漫画風 — 水木しげる。ペンと墨。親しみのある描写。
- * 5. 現代 — デジタル。光の粒子とノイズ。
- */
 const ART_STYLES: { id: ArtStyle; name: string; desc: string }[] = [
     {
         id: 'sumi',
-        name: '石燕風',
-        desc: '墨の線描。図鑑のように一体だけを描く。',
+        name: '水墨画',
+        desc: '余白とにじみを活かした、静かな筆致。',
     },
     {
         id: 'emaki',
-        name: '百鬼夜行絵巻',
-        desc: '巻物に描かれた妖怪の行列。平安の絵巻物のように。',
+        name: '絵巻',
+        desc: '流れる構図で、場面の連なりを描く。',
     },
     {
         id: 'ukiyoe',
-        name: '錦絵風',
-        desc: '歌川国芳や月岡芳年のような、鮮やかな版画。',
+        name: '浮世絵',
+        desc: '輪郭と平面で、くっきりとした印象に。',
     },
     {
         id: 'manga',
         name: '漫画風',
-        desc: 'ペンと墨。水木しげるのような、親しみのある描写。',
+        desc: '現代的な線と陰影で、感情を強める。',
     },
     {
         id: 'dennou',
-        name: '現代',
-        desc: 'デジタルの筆。光の粒子とノイズ。',
+        name: '電脳',
+        desc: 'ノイズや光を混ぜた、異質な質感。',
     },
 ];
 
@@ -53,27 +41,30 @@ export default function Phase3() {
     const [input, setInput] = useState('');
     const [showDescribe, setShowDescribe] = useState(false);
 
-    // Style step timing
     useEffect(() => {
         if (step === 'style') {
-            const t1 = setTimeout(() => setShowStyleIntro(true), 400);
-            const t2 = setTimeout(() => setShowStyleOptions(true), 1800);
-            return () => { clearTimeout(t1); clearTimeout(t2); };
+            const t1 = setTimeout(() => setShowStyleIntro(true), 260);
+            const t2 = setTimeout(() => setShowStyleOptions(true), 900);
+            return () => {
+                clearTimeout(t1);
+                clearTimeout(t2);
+            };
         }
+        return undefined;
     }, [step]);
 
-    // Describe step timing
     useEffect(() => {
         if (step === 'describe') {
-            const t = setTimeout(() => setShowDescribe(true), 300);
+            const t = setTimeout(() => setShowDescribe(true), 240);
             return () => clearTimeout(t);
         }
+        return undefined;
     }, [step]);
 
     const handleStyleSelect = (style: ArtStyle) => {
         setSelectedStyle(style);
         setArtStyle(style);
-        setTimeout(() => setStep('describe'), 800);
+        setTimeout(() => setStep('describe'), 420);
     };
 
     const handleSubmit = () => {
@@ -81,10 +72,9 @@ export default function Phase3() {
             setVisualInput(input.trim());
         }
         setShowDescribe(false);
-        setTimeout(() => goToPhase(3.5), 400);
+        setTimeout(() => goToPhase(3.5), 260);
     };
 
-    // === Step: Art Style ===
     if (step === 'style') {
         return (
             <div className="phase-scrollable phase-enter">
@@ -92,14 +82,11 @@ export default function Phase3() {
                     <>
                         <p className="voice float-up" style={{ marginBottom: 12 }}>
                             {state.selectedConcept?.name || ''}
-                            ——
+                            {' / '}
                             {state.selectedConcept?.reading || ''}
                         </p>
-                        <p className="voice float-up" style={{
-                            marginBottom: 40,
-                            animationDelay: '0.3s',
-                        }}>
-                            どんな画風で描きましょうか。
+                        <p className="voice float-up" style={{ marginBottom: 34, animationDelay: '0.25s' }}>
+                            どの画風で姿を結びますか。
                         </p>
                     </>
                 )}
@@ -109,26 +96,29 @@ export default function Phase3() {
                         {ART_STYLES.map((s, i) => (
                             <button
                                 key={s.id}
-                                className={`handle-option fade-in ${selectedStyle && selectedStyle !== s.id ? 'dimmed' : ''
-                                    } ${selectedStyle === s.id ? 'selected' : ''}`}
-                                style={{ animationDelay: `${i * 0.15}s` }}
+                                className={`handle-option fade-in ${selectedStyle && selectedStyle !== s.id ? 'dimmed' : ''} ${selectedStyle === s.id ? 'selected' : ''}`}
+                                style={{ animationDelay: `${i * 0.1}s` }}
                                 onClick={() => !selectedStyle && handleStyleSelect(s.id)}
                             >
-                                <span style={{
-                                    fontSize: 18,
-                                    color: 'var(--text-bright)',
-                                    letterSpacing: '0.12em',
-                                }}>
+                                <span
+                                    style={{
+                                        fontSize: 18,
+                                        color: 'var(--text-bright)',
+                                        letterSpacing: '0.12em',
+                                    }}
+                                >
                                     {s.name}
                                 </span>
                                 <br />
-                                <span style={{
-                                    fontSize: 13,
-                                    color: 'var(--text-dim)',
-                                    letterSpacing: '0.04em',
-                                    marginTop: 4,
-                                    display: 'inline-block',
-                                }}>
+                                <span
+                                    style={{
+                                        fontSize: 13,
+                                        color: 'var(--text-dim)',
+                                        letterSpacing: '0.04em',
+                                        marginTop: 4,
+                                        display: 'inline-block',
+                                    }}
+                                >
                                     {s.desc}
                                 </span>
                             </button>
@@ -142,32 +132,33 @@ export default function Phase3() {
         );
     }
 
-    // === Step: Describe Appearance ===
     return (
         <div
             className="phase"
             style={{
                 opacity: showDescribe ? 1 : 0,
-                transition: 'opacity 0.6s ease',
+                transition: 'opacity 0.5s ease',
             }}
         >
-            <p className="question-text" style={{ marginBottom: 20 }}>
-                あなたが見たそれは、どんな姿をしていましたか？
+            <p className="question-text" style={{ marginBottom: 16 }}>
+                見えた姿を、ひとこと添えてください。
             </p>
 
-            <p style={{
-                fontSize: 13,
-                color: 'var(--text-dim)',
-                marginBottom: 16,
-                fontFamily: 'var(--font-main)',
-            }}>
-                色、形、大きさ、印象…なんでも
+            <p
+                style={{
+                    fontSize: 13,
+                    color: 'var(--text-dim)',
+                    marginBottom: 14,
+                    fontFamily: 'var(--font-main)',
+                }}
+            >
+                体格、距離感、光、動きなど自由に。
             </p>
 
             <textarea
                 className="text-input"
                 style={{ minHeight: 100, resize: 'none' }}
-                placeholder="たとえば：黒い影のような、人の形をしたもの…"
+                placeholder="例: 霧の奥で、輪郭だけが揺れていた"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
             />
@@ -179,7 +170,7 @@ export default function Phase3() {
                 <button
                     className="button button-primary"
                     onClick={handleSubmit}
-                    style={{ opacity: input.trim() ? 1 : 0.3 }}
+                    style={{ opacity: input.trim() ? 1 : 0.5 }}
                 >
                     つづける
                 </button>

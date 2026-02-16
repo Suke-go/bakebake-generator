@@ -3,22 +3,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useApp } from '@/lib/context';
 
-/**
- * Phase 0: 儀式的な入口
- * 
- * 1. 完全な暗闇（2.5秒）
- * 2. テキストがゆっくり浮かぶ
- * 3. タッチで文字が溶けて消える → 遷移
- */
 export default function Phase0() {
     const { goToPhase } = useApp();
     const [stage, setStage] = useState(0);
 
     useEffect(() => {
         const timers = [
-            setTimeout(() => setStage(1), 2500),
-            setTimeout(() => setStage(2), 5500),
-            setTimeout(() => setStage(3), 8000),
+            setTimeout(() => setStage(1), 1800),
+            setTimeout(() => setStage(2), 4200),
+            setTimeout(() => setStage(3), 6400),
         ];
         return () => timers.forEach(clearTimeout);
     }, []);
@@ -26,7 +19,7 @@ export default function Phase0() {
     const handleTouch = useCallback(() => {
         if (stage < 3) return;
         setStage(4);
-        setTimeout(() => goToPhase(1), 1200);
+        setTimeout(() => goToPhase(1), 900);
     }, [stage, goToPhase]);
 
     return (
@@ -40,50 +33,56 @@ export default function Phase0() {
                 textAlign: 'center',
             }}
         >
-            <p style={{
-                fontFamily: 'var(--font-main)',
-                fontSize: 20,
-                letterSpacing: '0.10em',
-                lineHeight: 2.4,
-                color: 'var(--text-bright)',
-                opacity: stage >= 1 && stage < 4 ? 1 : 0,
-                transform: stage >= 1 && stage < 4 ? 'none' : 'translateY(4px)',
-                transition: stage === 4
-                    ? 'opacity 0.8s ease, transform 0.8s ease'
-                    : 'opacity 2.0s ease, transform 2.0s ease',
-            }}>
-                最近、
+            <p
+                style={{
+                    fontFamily: 'var(--font-main)',
+                    fontSize: 26,
+                    letterSpacing: '0.12em',
+                    lineHeight: 2.1,
+                    color: 'var(--text-bright)',
+                    opacity: stage >= 1 && stage < 4 ? 1 : 0,
+                    transform: stage >= 1 && stage < 4 ? 'none' : 'translateY(4px)',
+                    transition: stage === 4
+                        ? 'opacity 0.6s ease, transform 0.6s ease'
+                        : 'opacity 1.6s ease, transform 1.6s ease',
+                }}
+            >
+                ばけばけ発生器
+            </p>
+
+            <p
+                style={{
+                    fontFamily: 'var(--font-main)',
+                    fontSize: 17,
+                    letterSpacing: '0.08em',
+                    lineHeight: 2.0,
+                    color: 'var(--text-bright)',
+                    marginTop: 14,
+                    opacity: stage >= 2 && stage < 4 ? 1 : 0,
+                    transform: stage >= 2 && stage < 4 ? 'none' : 'translateY(4px)',
+                    transition: stage === 4
+                        ? 'opacity 0.5s ease, transform 0.5s ease'
+                        : 'opacity 1.4s ease, transform 1.4s ease',
+                }}
+            >
+                あなたの体験から
                 <br />
-                なんとなく気になっていること
+                まだ名前のない気配を編む
             </p>
 
-            <p style={{
-                fontFamily: 'var(--font-main)',
-                fontSize: 20,
-                letterSpacing: '0.10em',
-                lineHeight: 2.4,
-                color: 'var(--text-bright)',
-                marginTop: 20,
-                opacity: stage >= 2 && stage < 4 ? 1 : 0,
-                transform: stage >= 2 && stage < 4 ? 'none' : 'translateY(4px)',
-                transition: stage === 4
-                    ? 'opacity 0.6s ease, transform 0.6s ease'
-                    : 'opacity 1.8s ease, transform 1.8s ease',
-            }}>
-                ——ありませんか？
-            </p>
-
-            <p style={{
-                fontFamily: 'var(--font-main)',
-                fontSize: 12,
-                letterSpacing: '0.15em',
-                color: 'var(--text-ghost)',
-                marginTop: 60,
-                opacity: stage === 3 ? 1 : 0,
-                transition: 'opacity 1.5s ease',
-                animation: stage === 3 ? 'breathe 4s ease-in-out infinite' : 'none',
-            }}>
-                タッチして始める
+            <p
+                style={{
+                    fontFamily: 'var(--font-main)',
+                    fontSize: 12,
+                    letterSpacing: '0.15em',
+                    color: 'var(--text-ghost)',
+                    marginTop: 56,
+                    opacity: stage === 3 ? 1 : 0,
+                    transition: 'opacity 1.2s ease',
+                    animation: stage === 3 ? 'breathe 4s ease-in-out infinite' : 'none',
+                }}
+            >
+                画面をタップしてはじめる
             </p>
         </div>
     );

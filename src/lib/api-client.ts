@@ -1,5 +1,5 @@
 /**
- * フロントエンド → API 呼び出しクライアント
+ * Client helper for API endpoints.
  */
 
 import type { SearchResult } from './folklore-search';
@@ -24,55 +24,399 @@ export interface ImageResponse {
     imageBase64: string;
     imageMimeType: string;
     narrative: string;
+    usedModel?: string;
+    warnings?: string[];
+}
+
+const NERF_OLD_MEMORY_SEARCH = process.env.NEXT_PUBLIC_DISABLE_OLD_MEMORY_SEARCH === 'true';
+
+type SearchCacheEntry = {
+    value: FolkloreSearchResponse;
+    expiresAt: number;
+};
+
+const SEARCH_CACHE_TTL_MS = 60_000;
+const SEARCH_CLIENT_CACHE_SIZE = 64;
+const CONCEPT_CACHE_TTL_MS = 60_000;
+const CONCEPT_CLIENT_CACHE_SIZE = 64;
+const IMAGE_CACHE_TTL_MS = 60_000;
+const IMAGE_CLIENT_CACHE_SIZE = 24;
+const IMAGE_CACHE_KEY_SEPARATOR = '||';
+const SEARCH_CACHE_KEY_SEPARATOR = '|';
+
+const searchClientCache = new Map<string, SearchCacheEntry>();
+const searchClientInFlight = new Map<string, Promise<FolkloreSearchResponse>>();
+const conceptClientCache = new Map<string, { value: ConceptResponse; expiresAt: number }>();
+const conceptClientInFlight = new Map<string, Promise<ConceptResponse>>();
+const imageClientCache = new Map<string, { value: ImageResponse; expiresAt: number }>();
+const imageClientInFlight = new Map<string, Promise<ImageResponse>>();
+
+function makeFallbackFolklore(
+    handle: { id: string; text: string },
+    answers: Record<string, string>
+): SearchResult[] {
+    const sortedAnswerKeys = Object.keys(answers).sort();
+    const seedBase = `${handle.id}|${sortedAnswerKeys.map((key) => `${key}:${answers[key] ?? ''}`).join('|')}`;
+    const seed = Math.abs(seedBase.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0));
+    const themes = [
+        '蜿､縺・ｨ倬鹸縺ｮ谿狗・',
+        '蠢伜唆縺ｮ蠅・阜',
+        '螟憺悸縺ｫ貅ｶ縺代◆險俶・',
+        '譛ｧ縺ｮ陦梧婿',
+        '譏疲律縺ｮ蝗√″',
+    ];
+
+    return themes.map((theme, index) => ({
+        id: `fallback-${handle.id}-${index}-${(seed + index) % 997}`,
+        kaiiName: `${handle.text} / ${theme}`,
+        content: `譌ｧ縺・ｨ俶・讀懃ｴ｢繧堤ｰ｡譏灘喧繝｢繝ｼ繝峨〒繧ｹ繧ｭ繝・・縺励∵圻螳壹ョ繝ｼ繧ｿ縺ｧ蛟呵｣懊ｒ菴懈・縺励※縺・∪縺吶・${index + 1})`,
+        location: '邁｡譏灘盾辣ｧ',
+        similarity: 0.98 - index * 0.08,
+        source: 'fallback',
+    }));
+}
+
+function buildSearchCacheKey(handle: { id: string; text: string }, answers: Record<string, string>): string {
+    const normalizedAnswers = Object.keys(answers)
+        .sort()
+        .map((key) => `${key}:${answers[key] ?? ''}`)
+        .join('|');
+    return `${handle.id}|${normalizedAnswers}`;
+}
+
+function setSearchCache(key: string, value: FolkloreSearchResponse) {
+    if (searchClientCache.size >= SEARCH_CLIENT_CACHE_SIZE) {
+        const oldestKey = searchClientCache.keys().next().value;
+        if (oldestKey) {
+            searchClientCache.delete(oldestKey);
+        }
+    }
+    searchClientCache.set(key, { value, expiresAt: Date.now() + SEARCH_CACHE_TTL_MS });
+}
+
+function getSearchCache(key: string): FolkloreSearchResponse | null {
+    const entry = searchClientCache.get(key);
+    if (!entry) return null;
+    if (entry.expiresAt < Date.now()) {
+        searchClientCache.delete(key);
+        return null;
+    }
+    return entry.value;
+}
+
+function buildConceptCacheKey(
+    folklore: SearchResult[],
+    answers: Record<string, string>,
+    handle: { id: string; text: string }
+): string {
+    const sortedAnswerKeys = Object.keys(answers).sort();
+    const normalizedAnswers = sortedAnswerKeys.map((key) => `${key}:${answers[key] ?? ''}`).join(SEARCH_CACHE_KEY_SEPARATOR);
+    const folkloreSignature = folklore
+        .slice(0, 5)
+        .map((item) => item.id)
+        .join(SEARCH_CACHE_KEY_SEPARATOR);
+    return `${handle.id}|${normalizedAnswers}|${folkloreSignature}`;
+}
+
+function getConceptCache(key: string): ConceptResponse | null {
+    const entry = conceptClientCache.get(key);
+    if (!entry) return null;
+    if (entry.expiresAt < Date.now()) {
+        conceptClientCache.delete(key);
+        return null;
+    }
+    return entry.value;
+}
+
+function setConceptCache(key: string, value: ConceptResponse) {
+    if (conceptClientCache.size >= CONCEPT_CLIENT_CACHE_SIZE) {
+        const oldestKey = conceptClientCache.keys().next().value;
+        if (oldestKey) {
+            conceptClientCache.delete(oldestKey);
+        }
+    }
+    conceptClientCache.set(key, { value, expiresAt: Date.now() + CONCEPT_CACHE_TTL_MS });
+}
+
+function buildImageCacheKey(
+    concept: { name: string; reading: string; description: string },
+    artStyle: string,
+    visualInput: string,
+    answers: Record<string, string>
+): string {
+    const sortedAnswerKeys = Object.keys(answers).sort();
+    const answerSig = sortedAnswerKeys.map((key) => `${key}:${answers[key] ?? ''}`).join(IMAGE_CACHE_KEY_SEPARATOR);
+    return `${concept.name}${IMAGE_CACHE_KEY_SEPARATOR}${concept.reading}${IMAGE_CACHE_KEY_SEPARATOR}${concept.description}${IMAGE_CACHE_KEY_SEPARATOR}${artStyle}${IMAGE_CACHE_KEY_SEPARATOR}${answerSig}${IMAGE_CACHE_KEY_SEPARATOR}${visualInput}`;
+}
+
+function getImageCache(key: string): ImageResponse | null {
+    const entry = imageClientCache.get(key);
+    if (!entry) return null;
+    if (entry.expiresAt < Date.now()) {
+        imageClientCache.delete(key);
+        return null;
+    }
+    return entry.value;
+}
+
+function setImageCache(key: string, value: ImageResponse) {
+    if (imageClientCache.size >= IMAGE_CLIENT_CACHE_SIZE) {
+        const oldestKey = imageClientCache.keys().next().value;
+        if (oldestKey) {
+            imageClientCache.delete(oldestKey);
+        }
+    }
+    imageClientCache.set(key, { value, expiresAt: Date.now() + IMAGE_CACHE_TTL_MS });
+}
+
+const API_RETRY_MAX_ATTEMPTS = 3;
+const API_RETRY_BASE_MS = 600;
+
+type ApiError = Error & {
+    status?: number;
+};
+
+function sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function createAbortError(reason?: unknown): Error {
+    const message =
+        typeof reason === 'string' && reason.trim().length > 0
+            ? reason
+            : 'The request was aborted';
+
+    try {
+        return new DOMException(message, 'AbortError');
+    } catch {
+        const error = new Error(message);
+        error.name = 'AbortError';
+        return error;
+    }
+}
+
+function isAbortError(error: unknown): boolean {
+    if (!(error instanceof Error)) return false;
+    return error.name === 'AbortError';
+}
+
+function throwIfAborted(signal?: AbortSignal): void {
+    if (!signal?.aborted) return;
+    throw createAbortError(signal.reason);
+}
+
+function withAbortSignal<T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> {
+    if (!signal) return promise;
+    if (signal.aborted) {
+        return Promise.reject(createAbortError(signal.reason));
+    }
+
+    return new Promise<T>((resolve, reject) => {
+        const onAbort = () => {
+            cleanup();
+            reject(createAbortError(signal.reason));
+        };
+
+        const cleanup = () => {
+            signal.removeEventListener('abort', onAbort);
+        };
+
+        signal.addEventListener('abort', onAbort, { once: true });
+
+        promise.then(
+            (value) => {
+                cleanup();
+                resolve(value);
+            },
+            (error) => {
+                cleanup();
+                reject(error);
+            }
+        );
+    });
+}
+
+function isRetryableError(error: unknown): boolean {
+    if (isAbortError(error)) return false;
+    if (error && typeof error === 'object' && 'status' in error) {
+        const status = Number((error as { status?: unknown }).status);
+        if (Number.isFinite(status)) {
+            return (
+                (status >= 500 && status < 600) ||
+                status === 408 ||
+                status === 409
+                ||
+                status === 429
+            );
+        }
+    }
+
+    if (error instanceof Error) {
+        const message = error.message.toLowerCase();
+        return message.includes('failed to fetch') || message.includes('network');
+    }
+
+    return false;
+}
+
+function shouldLogRequestError(error: unknown): error is ApiError {
+    return error instanceof Error;
+}
+
+async function requestJsonInternal<T>(
+    pathname: string,
+    body: unknown,
+    attempt = 1
+): Promise<T> {
+    const init: RequestInit = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+    };
+
+    try {
+        const res = await fetch(pathname, init);
+        if (!res.ok) {
+            const payload = await res.json().catch(() => null);
+            const message = typeof payload === 'object' && payload && typeof (payload as { error?: unknown }).error === 'string'
+                ? (payload as { error: string }).error
+                : `Request failed: ${res.status}`;
+            const err = new Error(message) as ApiError;
+            err.status = res.status;
+            throw err;
+        }
+
+        return (await res.json()) as T;
+    } catch (error) {
+        if (attempt < API_RETRY_MAX_ATTEMPTS && isRetryableError(error)) {
+            const delay = API_RETRY_BASE_MS * attempt + Math.random() * API_RETRY_BASE_MS;
+            console.warn(
+                `[${pathname}] retryable error, attempt ${attempt}/${API_RETRY_MAX_ATTEMPTS}: ${shouldLogRequestError(error) ? error.message : String(error)}`
+            );
+            await sleep(delay);
+            return requestJsonInternal<T>(pathname, body, attempt + 1);
+        }
+
+        const message = shouldLogRequestError(error) ? error.message : 'Request failed';
+        throw new Error(message);
+    }
 }
 
 /**
- * Phase 1' 完了後: 類似伝承を検索
+ * Phase 1' 縺九ｉ縺ｮ莨晄価讀懃ｴ｢ API
  */
 export async function searchFolklore(
     handle: { id: string; text: string },
-    answers: Record<string, string>
+    answers: Record<string, string>,
+    signal?: AbortSignal
 ): Promise<FolkloreSearchResponse> {
-    const res = await fetch('/api/search-folklore', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ handle, answers }),
+    throwIfAborted(signal);
+
+    if (NERF_OLD_MEMORY_SEARCH) {
+        const fallback = makeFallbackFolklore(handle, answers);
+        return { folklore: fallback, searchQuery: 'legacy-search-disabled' };
+    }
+
+    const cacheKey = buildSearchCacheKey(handle, answers);
+    const cached = getSearchCache(cacheKey);
+    if (cached) {
+        return cached;
+    }
+
+    const inFlight = searchClientInFlight.get(cacheKey);
+    if (inFlight) {
+        return withAbortSignal(inFlight, signal);
+    }
+
+    const sharedRequest = requestJsonInternal<FolkloreSearchResponse>('/api/search-folklore', { handle, answers })
+        .then((result) => {
+            setSearchCache(cacheKey, result);
+            return result;
+        });
+
+    const trackedRequest = sharedRequest.finally(() => {
+        if (searchClientInFlight.get(cacheKey) === trackedRequest) {
+            searchClientInFlight.delete(cacheKey);
+        }
     });
-    if (!res.ok) throw new Error(`Search failed: ${res.status}`);
-    return res.json();
+    searchClientInFlight.set(cacheKey, trackedRequest);
+
+    return withAbortSignal(trackedRequest, signal);
 }
 
 /**
- * 伝承結果から概念候補を生成
+ * 莨晄価陦ｨ遉ｺ 竊・讎ょｿｵ逕滓・ API
  */
 export async function generateConcepts(
     folklore: SearchResult[],
     answers: Record<string, string>,
-    handle: { id: string; text: string }
+    handle: { id: string; text: string },
+    signal?: AbortSignal
 ): Promise<ConceptResponse> {
-    const res = await fetch('/api/generate-concepts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ folklore, answers, handle }),
+    throwIfAborted(signal);
+
+    const cacheKey = buildConceptCacheKey(folklore, answers, handle);
+    const cached = getConceptCache(cacheKey);
+    if (cached) {
+        return cached;
+    }
+
+    const inFlight = conceptClientInFlight.get(cacheKey);
+    if (inFlight) {
+        return withAbortSignal(inFlight, signal);
+    }
+
+    const sharedRequest = requestJsonInternal<ConceptResponse>('/api/generate-concepts', { folklore, answers, handle })
+        .then((result) => {
+            setConceptCache(cacheKey, result);
+            return result;
+        });
+
+    const trackedRequest = sharedRequest.finally(() => {
+        if (conceptClientInFlight.get(cacheKey) === trackedRequest) {
+            conceptClientInFlight.delete(cacheKey);
+        }
     });
-    if (!res.ok) throw new Error(`Concept generation failed: ${res.status}`);
-    return res.json();
+    conceptClientInFlight.set(cacheKey, trackedRequest);
+
+    return withAbortSignal(trackedRequest, signal);
 }
 
 /**
- * 画像 + ナラティブ生成
+ * Phase 3 逕ｻ蜒冗函謌・API
  */
 export async function generateImage(
     concept: { name: string; reading: string; description: string },
     artStyle: string,
     visualInput: string,
-    answers: Record<string, string>
+    answers: Record<string, string>,
+    signal?: AbortSignal
 ): Promise<ImageResponse> {
-    const res = await fetch('/api/generate-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ concept, artStyle, visualInput, answers }),
+    throwIfAborted(signal);
+
+    const cacheKey = buildImageCacheKey(concept, artStyle, visualInput, answers);
+    const cached = getImageCache(cacheKey);
+    if (cached) {
+        return cached;
+    }
+
+    const inFlight = imageClientInFlight.get(cacheKey);
+    if (inFlight) {
+        return withAbortSignal(inFlight, signal);
+    }
+
+    const sharedRequest = requestJsonInternal<ImageResponse>('/api/generate-image', { concept, artStyle, visualInput, answers })
+        .then((result) => {
+            setImageCache(cacheKey, result);
+            return result;
+        });
+
+    const trackedRequest = sharedRequest.finally(() => {
+        if (imageClientInFlight.get(cacheKey) === trackedRequest) {
+            imageClientInFlight.delete(cacheKey);
+        }
     });
-    if (!res.ok) throw new Error(`Image generation failed: ${res.status}`);
-    return res.json();
+    imageClientInFlight.set(cacheKey, trackedRequest);
+
+    return withAbortSignal(trackedRequest, signal);
 }

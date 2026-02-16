@@ -1,17 +1,9 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useApp, YokaiConcept } from '@/lib/context';
 import { searchFolklore, generateConcepts } from '@/lib/api-client';
 import ProgressDots from './ProgressDots';
-
-/**
- * Phase 2 — 伝承との共鳴
- *
- * 1. API で類似伝承を検索 (search-folklore)
- * 2. 伝承表示 → 概念候補を生成 (generate-concepts)
- * 3. 妖怪名の選択 → Phase 3 へ
- */
 
 const SCATTER_POSITIONS = [
     { left: '5%', top: '0px' },
@@ -20,6 +12,13 @@ const SCATTER_POSITIONS = [
     { right: '8%', top: '350px' },
     { left: '2%', top: '470px' },
 ];
+
+const RETRY_MAX = 2;
+const RETRY_BASE_MS = 900;
+const ANIM_INTRO_TO_FOLKLORE_MS = 700;
+const ANIM_FOLKLORE_TO_CONCEPT_MS = 600;
+const ANIM_FOLKLORE_STEP_MS = 180;
+const ANIM_CONCEPT_STEP_MS = 120;
 
 export default function Phase2() {
     const { state, goToPhase, setFolkloreResults, setConcepts, selectConcept } = useApp();
@@ -31,85 +30,252 @@ export default function Phase2() {
     const [visibleConcepts, setVisibleConcepts] = useState(0);
     const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
     const [errorMsg, setErrorMsg] = useState('');
+    const [retryMsg, setRetryMsg] = useState('');
+    const [isFetching, setIsFetching] = useState(false);
+    const [isGeneratingConcepts, setIsGeneratingConcepts] = useState(false);
 
-    // API results (local, before setting to context)
     const [folkloreData, setFolkloreData] = useState<Array<{
-        id: string; kaiiName: string; content: string; location: string; similarity: number;
+        id: string;
+        kaiiName: string;
+        content: string;
+        location: string;
+        similarity: number;
     }>>([]);
     const [conceptData, setConceptData] = useState<YokaiConcept[]>([]);
+
+    const inFlightRef = useRef(false);
+    const mountedRef = useRef(false);
+    const abortRef = useRef<AbortController | null>(null);
+    const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const requestSeqRef = useRef(0);
+
+    const abortCurrentRequest = useCallback((reason: string) => {
+        const controller = abortRef.current;
+        if (!controller || controller.signal.aborted) {
+            return;
+        }
+
+        try {
+            controller.abort(new DOMException(reason, 'AbortError'));
+        } catch {
+            controller.abort(reason);
+        }
+    }, []);
 
     const fieldHeight = useMemo(() => {
         if (visibleFolklore === 0) return 0;
         const lastPos = SCATTER_POSITIONS[Math.min(visibleFolklore - 1, SCATTER_POSITIONS.length - 1)];
-        const topVal = parseInt(lastPos.top) || 0;
+        const topVal = parseInt(lastPos.top, 10) || 0;
         return topVal + 180;
     }, [visibleFolklore]);
 
-    // 1. Mount: 伝承検索 API 呼び出し
-    const fetchData = useCallback(async () => {
-        if (!state.selectedHandle) return;
+    const isRetryableError = useCallback((message: string) => {
+        const normalized = message.toLowerCase();
+        const retryHints = [
+            '429',
+            'resource exhausted',
+            'rate limit',
+            'quota',
+            'too many requests',
+            'retry',
+            'failed to fetch',
+            'network',
+        ];
+        return retryHints.some((hint) => normalized.includes(hint));
+    }, []);
+
+    const resetAnimationState = useCallback(() => {
+        setShowLine1(false);
+        setShowLine2(false);
+        setVisibleFolklore(0);
+        setShowConceptIntro(false);
+        setVisibleConcepts(0);
+        setSelectedIdx(null);
+    }, []);
+
+    const fetchData = useCallback(async (retryCount = 0) => {
+        if (!state.selectedHandle) {
+            setErrorMsg('選択された手がかりがありません。');
+            setStage('error');
+            return;
+        }
+        if (inFlightRef.current) return;
+
+        const requestId = ++requestSeqRef.current;
+        const controller = new AbortController();
+        abortCurrentRequest('phase2 request superseded');
+        abortRef.current = controller;
+
+        inFlightRef.current = true;
+        setIsFetching(true);
+        resetAnimationState();
+        setErrorMsg('');
+        setRetryMsg('');
+        setIsGeneratingConcepts(false);
+        setStage('loading');
+
+        if (retryCount > 0) {
+            setRetryMsg(`バックオフ付き再試行 (${retryCount}/${RETRY_MAX})`);
+        }
+
+        if (retryTimerRef.current) {
+            clearTimeout(retryTimerRef.current);
+            retryTimerRef.current = null;
+        }
 
         try {
-            // 伝承検索
             const searchResult = await searchFolklore(
                 { id: state.selectedHandle.id, text: state.selectedHandle.text },
-                state.answers
+                state.answers,
+                controller.signal
             );
             const folklore = searchResult.folklore;
+            const localFallbackConcepts = folklore.slice(0, 3).map((entry) => ({
+                source: 'db' as const,
+                name: entry.kaiiName,
+                reading: '',
+                description: entry.content,
+                label: 'fallback',
+                folkloreRef: entry.id,
+            }));
+
             setFolkloreData(folklore);
             setFolkloreResults(folklore);
-
-            // 概念生成
-            const conceptResult = await generateConcepts(
-                folklore,
-                state.answers,
-                { id: state.selectedHandle.id, text: state.selectedHandle.text }
-            );
-            setConceptData(conceptResult.concepts as YokaiConcept[]);
-            setConcepts(conceptResult.concepts as YokaiConcept[]);
-
-            // 成功 → intro 表示開始
+            setRetryMsg('概念候補を生成しています...');
+            setIsGeneratingConcepts(true);
             setStage('intro');
+
+            try {
+                const conceptResult = await generateConcepts(
+                    folklore,
+                    state.answers,
+                    { id: state.selectedHandle.id, text: state.selectedHandle.text },
+                    controller.signal
+                );
+                setConceptData(conceptResult.concepts as YokaiConcept[]);
+                setConcepts(conceptResult.concepts as YokaiConcept[]);
+            } catch (conceptErr) {
+                console.warn('Phase 2 concept error, fallback applied:', conceptErr);
+                const conceptFallback = [
+                    ...localFallbackConcepts,
+                    {
+                        source: 'llm' as const,
+                        name: '補助候補',
+                        reading: '',
+                        description: '生成が不安定なため、ローカル候補を補助表示しています。',
+                        label: 'local-fallback',
+                    },
+                ];
+                setConceptData(conceptFallback as YokaiConcept[]);
+                setConcepts(conceptFallback as YokaiConcept[]);
+                setRetryMsg('概念APIが不安定なため、補助候補で続行します。');
+            }
+
+            setIsGeneratingConcepts(false);
+            setRetryMsg('');
+
+            if (!mountedRef.current || requestId !== requestSeqRef.current || controller.signal.aborted) {
+                return;
+            }
         } catch (err) {
-            console.error('Phase 2 API error:', err);
-            setErrorMsg(err instanceof Error ? err.message : '検索に失敗しました');
+            if (err instanceof Error && err.name === 'AbortError') {
+                setIsGeneratingConcepts(false);
+                return;
+            }
+
+            if (!mountedRef.current || requestId !== requestSeqRef.current || controller.signal.aborted) {
+                return;
+            }
+
+            const message = err instanceof Error ? err.message : 'Request failed';
+            setIsGeneratingConcepts(false);
+            console.error('Phase 2 API error:', message);
+
+            if (isRetryableError(message) && retryCount < RETRY_MAX) {
+                const delayMs = RETRY_BASE_MS * 2 ** retryCount;
+                const isNetworkIssue =
+                    message.toLowerCase().includes('failed to fetch') ||
+                    message.toLowerCase().includes('network');
+                setRetryMsg(
+                    isNetworkIssue
+                        ? `通信が不安定です。${(delayMs / 1000).toFixed(1)}秒後に再試行します...`
+                        : `混み合っています。${(delayMs / 1000).toFixed(1)}秒後に再試行します...`
+                );
+
+                retryTimerRef.current = setTimeout(() => {
+                    if (!mountedRef.current || inFlightRef.current) return;
+                    void fetchData(retryCount + 1);
+                }, delayMs);
+                return;
+            }
+
+            setErrorMsg(message);
+            setRetryMsg('');
             setStage('error');
+        } finally {
+            if (requestId === requestSeqRef.current) {
+                inFlightRef.current = false;
+                setIsFetching(false);
+                setIsGeneratingConcepts(false);
+            }
         }
-    }, [state.selectedHandle, state.answers, setFolkloreResults, setConcepts]);
+    }, [
+        state.selectedHandle,
+        state.answers,
+        setConcepts,
+        setFolkloreResults,
+        abortCurrentRequest,
+        isRetryableError,
+        resetAnimationState,
+    ]);
 
     useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+        mountedRef.current = true;
+        void fetchData();
 
-    // 2. Intro sequence (after API success)
+        return () => {
+            mountedRef.current = false;
+            inFlightRef.current = false;
+            abortCurrentRequest('phase2 unmount');
+            if (retryTimerRef.current) {
+                clearTimeout(retryTimerRef.current);
+                retryTimerRef.current = null;
+            }
+        };
+    }, [fetchData, abortCurrentRequest]);
+
     useEffect(() => {
         if (stage !== 'intro') return;
         const t1 = setTimeout(() => setShowLine1(true), 600);
-        const t2 = setTimeout(() => setShowLine2(true), 2500);
-        const t3 = setTimeout(() => setStage('folklore'), 4000);
-        return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+        const t2 = setTimeout(() => setShowLine2(true), 1800);
+        const t3 = setTimeout(() => setStage('folklore'), ANIM_INTRO_TO_FOLKLORE_MS);
+        return () => {
+            clearTimeout(t1);
+            clearTimeout(t2);
+            clearTimeout(t3);
+        };
     }, [stage]);
 
-    // 3. Folklore reveal (one by one)
     useEffect(() => {
         if (stage !== 'folklore') return;
+        if (isGeneratingConcepts) return;
+
         if (visibleFolklore < folkloreData.length) {
-            const t = setTimeout(() => setVisibleFolklore((v: number) => v + 1), 2000);
-            return () => clearTimeout(t);
-        } else {
-            const t = setTimeout(() => {
-                setStage('concepts');
-                setTimeout(() => setShowConceptIntro(true), 500);
-            }, 2500);
+            const t = setTimeout(() => setVisibleFolklore((v: number) => v + 1), ANIM_FOLKLORE_STEP_MS);
             return () => clearTimeout(t);
         }
-    }, [stage, visibleFolklore, folkloreData.length]);
 
-    // 4. Concept reveal
+        const t = setTimeout(() => {
+            setStage('concepts');
+            setTimeout(() => setShowConceptIntro(true), 200);
+        }, ANIM_FOLKLORE_TO_CONCEPT_MS);
+        return () => clearTimeout(t);
+    }, [stage, visibleFolklore, folkloreData.length, isGeneratingConcepts]);
+
     useEffect(() => {
         if (stage !== 'concepts' || !showConceptIntro) return;
         if (visibleConcepts < conceptData.length) {
-            const t = setTimeout(() => setVisibleConcepts((v: number) => v + 1), 1200);
+            const t = setTimeout(() => setVisibleConcepts((v: number) => v + 1), ANIM_CONCEPT_STEP_MS);
             return () => clearTimeout(t);
         }
     }, [stage, showConceptIntro, visibleConcepts, conceptData.length]);
@@ -120,29 +286,45 @@ export default function Phase2() {
         setTimeout(() => goToPhase(3), 1000);
     };
 
-    // Loading state
+    const handleRetry = useCallback(() => {
+        void fetchData(0);
+    }, [fetchData]);
+
     if (stage === 'loading') {
         return (
             <div className="phase" style={{ justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
                 <p className="voice" style={{ animation: 'breathe 3s ease-in-out infinite' }}>
-                    古い記録を探しています……
+                    古い記録を探しています...
                 </p>
+                {retryMsg && (
+                    <p style={{ fontSize: 12, color: 'var(--text-ghost)', marginTop: 12 }}>
+                        {retryMsg}
+                    </p>
+                )}
             </div>
         );
     }
 
-    // Error state
     if (stage === 'error') {
         return (
             <div className="phase" style={{ justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
                 <p className="voice" style={{ marginBottom: 16 }}>
-                    記録にたどり着けませんでした
+                    記録にたどり着けませんでした。
                 </p>
                 <p style={{ fontSize: 12, color: 'var(--text-ghost)', marginBottom: 24 }}>
                     {errorMsg}
                 </p>
-                <button className="button button-primary" onClick={() => { setStage('loading'); fetchData(); }}>
-                    もう一度探す
+                {retryMsg && (
+                    <p style={{ fontSize: 12, color: 'var(--text-ghost)', marginBottom: 16 }}>
+                        {retryMsg}
+                    </p>
+                )}
+                <button
+                    className="button button-primary"
+                    onClick={handleRetry}
+                    disabled={isFetching}
+                >
+                    {isFetching ? '再試行中...' : '再試行'}
                 </button>
             </div>
         );
@@ -150,32 +332,29 @@ export default function Phase2() {
 
     return (
         <div className="phase-scrollable">
-
-            {/* Narrator */}
             {showLine1 && (
                 <p className="voice float-up" style={{ marginBottom: 12 }}>
                     あなたの体験を、古い記録のなかに探しました。
                 </p>
             )}
             {showLine2 && (
-                <p className="voice float-up" style={{
-                    marginBottom: 48,
-                    animationDelay: '0.2s',
-                }}>
-                    似たような体験が、各地に残っていました。
+                <p className="voice float-up" style={{ marginBottom: 48, animationDelay: '0.2s' }}>
+                    似た語りが、各地に残っていました。
                 </p>
             )}
 
-            {/* Folklore — scattered across space */}
+            {isGeneratingConcepts && stage !== 'concepts' && (
+                <p className="label" style={{ marginBottom: 24 }}>
+                    概念候補をまとめています...
+                </p>
+            )}
+
             {(stage === 'folklore' || stage === 'concepts') && visibleFolklore > 0 && (
                 <>
                     <p className="label fade-in" style={{ marginBottom: 16 }}>
-                        似た伝承
+                        関連する伝承
                     </p>
-                    <div
-                        className="folklore-field"
-                        style={{ minHeight: fieldHeight }}
-                    >
+                    <div className="folklore-field" style={{ minHeight: fieldHeight }}>
                         {folkloreData.slice(0, visibleFolklore).map((f, i) => {
                             const pos = SCATTER_POSITIONS[i % SCATTER_POSITIONS.length];
                             return (
@@ -197,20 +376,17 @@ export default function Phase2() {
                 </>
             )}
 
-            {/* Concepts */}
             {stage === 'concepts' && (
                 <>
-                    <div className="jp-separator float-up">◇</div>
+                    <div className="jp-separator float-up" />
 
                     {showConceptIntro && (
                         <>
                             <p className="voice float-up" style={{ marginBottom: 8 }}>
-                                昔の人は、似たものにこんな名前をつけていました。
+                                昔の人は、似た気配に名を与えてきました。
                             </p>
-                            <p className="label float-up" style={{
-                                animationDelay: '0.4s', marginTop: 32, marginBottom: 8,
-                            }}>
-                                あなたの体験に近いものは
+                            <p className="label float-up" style={{ animationDelay: '0.4s', marginTop: 32, marginBottom: 8 }}>
+                                あなたの体験に近いもの
                             </p>
                         </>
                     )}
@@ -219,8 +395,7 @@ export default function Phase2() {
                         {conceptData.slice(0, visibleConcepts).map((c, i) => (
                             <button
                                 key={i}
-                                className={`concept-card float-up ${selectedIdx !== null && selectedIdx !== i ? 'dimmed' : ''
-                                    } ${selectedIdx === i ? 'selected' : ''}`}
+                                className={`concept-card float-up ${selectedIdx !== null && selectedIdx !== i ? 'dimmed' : ''} ${selectedIdx === i ? 'selected' : ''}`}
                                 style={{ animationDelay: `${i * 0.15}s` }}
                                 onClick={() => selectedIdx === null && handleSelect(i)}
                             >

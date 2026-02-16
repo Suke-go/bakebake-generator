@@ -3,42 +3,41 @@ import { Handle } from './context';
 export const HANDLES: Handle[] = [
     {
         id: 'A',
-        text: '同じ道を歩いているのに、\n今日だけ空気が変わった気がする',
-        shortText: '空気が変わった',
+        text: '夜道を歩いているのに\n背後に足音だけがする',
+        shortText: '背後に足音',
     },
     {
         id: 'B',
-        text: 'しずかな部屋で気配がして、\n息をひそめる',
-        shortText: '気配がする',
+        text: '静かな部屋で視線だけがして\n振り向いても誰もいない',
+        shortText: '視線だけがする',
     },
     {
         id: 'C',
-        text: 'ずっと聞こえていた音が止まって、\n静けさが重くなる',
-        shortText: '音が止まる',
+        text: '寝入りばなに声を聞いた\n目覚めると静かだった',
+        shortText: '声を聞いた',
     },
     {
         id: 'D',
-        text: 'なくしたはずのものの手触りが、\nまだ指に残っている',
-        shortText: '手触りが残る',
+        text: 'なくした物が戻るのに\n置いた覚えがない',
+        shortText: '物の位置が変わる',
     },
     {
         id: 'E',
-        text: '画面を閉じたあとも、\n画面の中のことが頭から離れない',
-        shortText: '頭から離れない',
+        text: '写真を見返したあと\n写っていないものを感じる',
+        shortText: '写真に違和感',
     },
 ];
 
-export const TEXTURE_OPTIONS = ['冷たい', '重い', 'なつかしい', 'ぬるい'];
+export const TEXTURE_OPTIONS = ['冷たい', '重い', '湿っている', 'ざらつく'];
 
-export const STANCE_OPTIONS = ['逃げたい', 'じっと見ている', '話しかけたい', 'そっとしておく'];
+export const STANCE_OPTIONS = ['避けたい', '近づいてみたい', '話しかけたい', '見届けたい'];
 
 export const ABSENCE_OPTIONS = [
-    { value: 'invisible' as const, label: '見えない' },
-    { value: 'blurry' as const, label: 'ぼんやりと' },
-    { value: 'clear' as const, label: 'はっきりと' },
+    { value: 'invisible' as const, label: '見えなかった' },
+    { value: 'blurry' as const, label: '輪郭だけ見えた' },
+    { value: 'clear' as const, label: 'はっきり見えた' },
 ];
 
-// Mock folklore results for prototype
 export const MOCK_FOLKLORE: Array<{
     id: string;
     kaiiName: string;
@@ -46,49 +45,49 @@ export const MOCK_FOLKLORE: Array<{
     location: string;
     similarity: number;
 }> = [
-        {
-            id: 'f001',
-            kaiiName: '送り狼',
-            content: '夜、山道を歩いていると後ろから足音がついてくる。振り返ると誰もいない。',
-            location: '岩手県遠野',
-            similarity: 0.82,
-        },
-        {
-            id: 'f002',
-            kaiiName: '枕返し',
-            content: '寝ていると枕元に何かが立つ気配がする。目を開けても何もいない。',
-            location: '長野県',
-            similarity: 0.76,
-        },
-        {
-            id: 'f003',
-            kaiiName: '家鳴り',
-            content: '夜中に家の中で音がする。柱が鳴り、天井がきしむ。誰もいないのに。',
-            location: '京都府',
-            similarity: 0.71,
-        },
-    ];
+    {
+        id: 'f001',
+        kaiiName: '背追い',
+        content: '夜道で足音だけが追ってくるという語り。振り向くたびに静まる。',
+        location: '東北',
+        similarity: 0.82,
+    },
+    {
+        id: 'f002',
+        kaiiName: '視返し',
+        content: '人の気配を感じるが誰もいない。家の角や廊下で起こるとされる。',
+        location: '近畿',
+        similarity: 0.76,
+    },
+    {
+        id: 'f003',
+        kaiiName: '間の声',
+        content: '寝入り際に呼びかけられる現象。返事をしないほうが良いとされる。',
+        location: '関東',
+        similarity: 0.71,
+    },
+];
 
 export const MOCK_CONCEPTS = [
     {
         source: 'db' as const,
-        name: '枕返し',
-        reading: 'まくらがえし',
-        description: '眠りの中に現れる存在。寝ている人の枕をひっくり返す。',
-        label: '伝承に残る名',
+        name: '視返し',
+        reading: 'みかえし',
+        description: '角や廊下で人の気配だけを残し、視線のように寄り添う。',
+        label: '伝承に近い',
     },
     {
         source: 'db' as const,
-        name: '座敷わらし',
-        reading: 'ざしきわらし',
-        description: '家の中に棲む気配。姿は見えないが、いることがわかる。',
-        label: '伝承に残る名',
+        name: '背追い',
+        reading: 'せおい',
+        description: '足音だけで距離を縮め、振り向くと遠ざかる。',
+        label: '伝承に近い',
     },
     {
         source: 'llm' as const,
-        name: '残り影',
-        reading: 'のこりかげ',
-        description: 'あなたの体験から生まれた名前。',
+        name: '残気',
+        reading: 'ざんき',
+        description: 'あなたの体験から編まれた新しい気配の名。',
         label: 'あなたの体験から',
     },
 ];
