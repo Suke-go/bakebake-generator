@@ -71,14 +71,14 @@ export const MOCK_FOLKLORE: Array<{
 
 export const MOCK_CONCEPTS = [
     {
-        source: 'db1' as const,
+        source: 'db' as const,
         name: '枕返し',
         reading: 'まくらがえし',
         description: '眠りの中に現れる存在。寝ている人の枕をひっくり返す。',
         label: '伝承に残る名',
     },
     {
-        source: 'db2' as const,
+        source: 'db' as const,
         name: '座敷わらし',
         reading: 'ざしきわらし',
         description: '家の中に棲む気配。姿は見えないが、いることがわかる。',

@@ -1,16 +1,16 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
-import { useApp } from '@/lib/context';
-import { MOCK_FOLKLORE, MOCK_CONCEPTS } from '@/lib/data';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useApp, YokaiConcept } from '@/lib/context';
+import { searchFolklore, generateConcepts } from '@/lib/api-client';
 import ProgressDots from './ProgressDots';
 
 /**
  * Phase 2 — 伝承との共鳴
  *
- * 1. ナレーター導入（古い記録のなかに探した）
- * 2. 類似伝承が空間に散らばって現れる
- * 3. 概念（妖怪名）の選択
+ * 1. API で類似伝承を検索 (search-folklore)
+ * 2. 伝承表示 → 概念候補を生成 (generate-concepts)
+ * 3. 妖怪名の選択 → Phase 3 へ
  */
 
 const SCATTER_POSITIONS = [
@@ -22,14 +22,21 @@ const SCATTER_POSITIONS = [
 ];
 
 export default function Phase2() {
-    const { goToPhase, setFolkloreResults, setConcepts, selectConcept } = useApp();
-    const [stage, setStage] = useState<'intro' | 'folklore' | 'concepts'>('intro');
+    const { state, goToPhase, setFolkloreResults, setConcepts, selectConcept } = useApp();
+    const [stage, setStage] = useState<'loading' | 'intro' | 'folklore' | 'concepts' | 'error'>('loading');
     const [showLine1, setShowLine1] = useState(false);
     const [showLine2, setShowLine2] = useState(false);
     const [visibleFolklore, setVisibleFolklore] = useState(0);
     const [showConceptIntro, setShowConceptIntro] = useState(false);
     const [visibleConcepts, setVisibleConcepts] = useState(0);
     const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+    const [errorMsg, setErrorMsg] = useState('');
+
+    // API results (local, before setting to context)
+    const [folkloreData, setFolkloreData] = useState<Array<{
+        id: string; kaiiName: string; content: string; location: string; similarity: number;
+    }>>([]);
+    const [conceptData, setConceptData] = useState<YokaiConcept[]>([]);
 
     const fieldHeight = useMemo(() => {
         if (visibleFolklore === 0) return 0;
@@ -38,47 +45,108 @@ export default function Phase2() {
         return topVal + 180;
     }, [visibleFolklore]);
 
-    // Intro sequence
+    // 1. Mount: 伝承検索 API 呼び出し
+    const fetchData = useCallback(async () => {
+        if (!state.selectedHandle) return;
+
+        try {
+            // 伝承検索
+            const searchResult = await searchFolklore(
+                { id: state.selectedHandle.id, text: state.selectedHandle.text },
+                state.answers
+            );
+            const folklore = searchResult.folklore;
+            setFolkloreData(folklore);
+            setFolkloreResults(folklore);
+
+            // 概念生成
+            const conceptResult = await generateConcepts(
+                folklore,
+                state.answers,
+                { id: state.selectedHandle.id, text: state.selectedHandle.text }
+            );
+            setConceptData(conceptResult.concepts as YokaiConcept[]);
+            setConcepts(conceptResult.concepts as YokaiConcept[]);
+
+            // 成功 → intro 表示開始
+            setStage('intro');
+        } catch (err) {
+            console.error('Phase 2 API error:', err);
+            setErrorMsg(err instanceof Error ? err.message : '検索に失敗しました');
+            setStage('error');
+        }
+    }, [state.selectedHandle, state.answers, setFolkloreResults, setConcepts]);
+
     useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    // 2. Intro sequence (after API success)
+    useEffect(() => {
+        if (stage !== 'intro') return;
         const t1 = setTimeout(() => setShowLine1(true), 600);
         const t2 = setTimeout(() => setShowLine2(true), 2500);
-        const t3 = setTimeout(() => {
-            setFolkloreResults(MOCK_FOLKLORE);
-            setStage('folklore');
-        }, 4000);
+        const t3 = setTimeout(() => setStage('folklore'), 4000);
         return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
-    }, [setFolkloreResults]);
+    }, [stage]);
 
-    // Folklore reveal
+    // 3. Folklore reveal (one by one)
     useEffect(() => {
         if (stage !== 'folklore') return;
-        if (visibleFolklore < MOCK_FOLKLORE.length) {
+        if (visibleFolklore < folkloreData.length) {
             const t = setTimeout(() => setVisibleFolklore((v: number) => v + 1), 2000);
             return () => clearTimeout(t);
         } else {
             const t = setTimeout(() => {
-                setConcepts(MOCK_CONCEPTS);
                 setStage('concepts');
                 setTimeout(() => setShowConceptIntro(true), 500);
             }, 2500);
             return () => clearTimeout(t);
         }
-    }, [stage, visibleFolklore, setConcepts]);
+    }, [stage, visibleFolklore, folkloreData.length]);
 
-    // Concept reveal
+    // 4. Concept reveal
     useEffect(() => {
         if (stage !== 'concepts' || !showConceptIntro) return;
-        if (visibleConcepts < MOCK_CONCEPTS.length) {
+        if (visibleConcepts < conceptData.length) {
             const t = setTimeout(() => setVisibleConcepts((v: number) => v + 1), 1200);
             return () => clearTimeout(t);
         }
-    }, [stage, showConceptIntro, visibleConcepts]);
+    }, [stage, showConceptIntro, visibleConcepts, conceptData.length]);
 
     const handleSelect = (idx: number) => {
         setSelectedIdx(idx);
-        selectConcept(MOCK_CONCEPTS[idx]);
+        selectConcept(conceptData[idx]);
         setTimeout(() => goToPhase(3), 1000);
     };
+
+    // Loading state
+    if (stage === 'loading') {
+        return (
+            <div className="phase" style={{ justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
+                <p className="voice" style={{ animation: 'breathe 3s ease-in-out infinite' }}>
+                    古い記録を探しています……
+                </p>
+            </div>
+        );
+    }
+
+    // Error state
+    if (stage === 'error') {
+        return (
+            <div className="phase" style={{ justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
+                <p className="voice" style={{ marginBottom: 16 }}>
+                    記録にたどり着けませんでした
+                </p>
+                <p style={{ fontSize: 12, color: 'var(--text-ghost)', marginBottom: 24 }}>
+                    {errorMsg}
+                </p>
+                <button className="button button-primary" onClick={() => { setStage('loading'); fetchData(); }}>
+                    もう一度探す
+                </button>
+            </div>
+        );
+    }
 
     return (
         <div className="phase-scrollable">
@@ -108,7 +176,7 @@ export default function Phase2() {
                         className="folklore-field"
                         style={{ minHeight: fieldHeight }}
                     >
-                        {MOCK_FOLKLORE.slice(0, visibleFolklore).map((f, i) => {
+                        {folkloreData.slice(0, visibleFolklore).map((f, i) => {
                             const pos = SCATTER_POSITIONS[i % SCATTER_POSITIONS.length];
                             return (
                                 <div
@@ -119,6 +187,7 @@ export default function Phase2() {
                                         animationDelay: `${i * 0.3}s`,
                                     }}
                                 >
+                                    <p className="folklore-name">{f.kaiiName}</p>
                                     <p className="folklore-content">{f.content}</p>
                                     <p className="folklore-meta">{f.location}</p>
                                 </div>
@@ -147,7 +216,7 @@ export default function Phase2() {
                     )}
 
                     <div>
-                        {MOCK_CONCEPTS.slice(0, visibleConcepts).map((c, i) => (
+                        {conceptData.slice(0, visibleConcepts).map((c, i) => (
                             <button
                                 key={i}
                                 className={`concept-card float-up ${selectedIdx !== null && selectedIdx !== i ? 'dimmed' : ''

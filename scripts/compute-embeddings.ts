@@ -28,7 +28,6 @@ const DELAY_MS = 1000;     // レート制限対策
 interface RawEntry {
     id: string;
     name: string;
-    kanji: string;
     summary: string;
     location: string;
     source: string;
@@ -72,10 +71,9 @@ function saveProgress(completedIds: string[]): void {
 function buildEmbeddingText(entry: RawEntry): string {
     const parts: string[] = [];
 
-    if (entry.kanji) parts.push(entry.kanji);
-    if (entry.name && entry.name !== entry.kanji) parts.push(`（${entry.name}）`);
+    if (entry.name) parts.push(entry.name);
     if (entry.summary) parts.push(entry.summary);
-    if (entry.location) parts.push(`地域: ${entry.location}`);
+    if (entry.location && entry.location !== '日本各地') parts.push(`地域: ${entry.location}`);
 
     return parts.join(' ').trim();
 }
@@ -133,7 +131,7 @@ async function main() {
             for (let j = 0; j < batch.length; j++) {
                 results.push({
                     id: batch[j].id,
-                    name: batch[j].kanji || batch[j].name,
+                    name: batch[j].name,
                     summary: batch[j].summary,
                     location: batch[j].location,
                     source: batch[j].source,

@@ -149,7 +149,7 @@ const STEPS: StepDef[] = [
 ];
 
 export default function Phase1Prime() {
-    const { state, goToPhase, setTexture, setStance, setAbsenceQuality } = useApp();
+    const { state, goToPhase, setTexture, setStance, setAbsenceQuality, setAnswers: saveAnswersToContext } = useApp();
     const [currentStep, setCurrentStep] = useState(0);
     const [answers, setAnswers] = useState<Record<string, string>>({});
     const [customText, setCustomText] = useState('');
@@ -189,6 +189,7 @@ export default function Phase1Prime() {
             if (currentStep < STEPS.length - 1) {
                 setCurrentStep(currentStep + 1);
             } else {
+                saveAnswersToContext(newAnswers);
                 goToPhase(2);
             }
         }, 400);

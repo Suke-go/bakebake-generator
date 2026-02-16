@@ -37,6 +37,8 @@ next-env.d.ts
 
 # ── generated data (large / binary) ──
 /data/*.npy
+/data/folklore-embeddings.json
+/data/embedding-progress.json
 /data/analysis/*.npy
 /data/analysis/*.html
 /data/analysis/nichibunken-cache.json

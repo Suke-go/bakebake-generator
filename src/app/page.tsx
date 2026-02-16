@@ -28,11 +28,15 @@ function PhaseTransition({ phaseKey }: { phaseKey: number }) {
 
     // Phase changed — fade out, swap, fade in
     setVisible(false);
+    let showTimer: ReturnType<typeof setTimeout> | null = null;
     const t = setTimeout(() => {
       setDisplayedPhase(phaseKey);
-      setTimeout(() => setVisible(true), 150);
+      showTimer = setTimeout(() => setVisible(true), 150);
     }, 500);
-    return () => clearTimeout(t);
+    return () => {
+      clearTimeout(t);
+      if (showTimer) clearTimeout(showTimer);
+    };
   }, [phaseKey]);
 
   const content = (() => {

@@ -1,9 +1,12 @@
 /**
  * ベクトル検索ユーティリティ
  *
- * Vercel Blob に保存された事前計算済みembeddings を
- * インメモリで cosine similarity 検索する。
+ * ローカルファイルまたは Vercel Blob から
+ * 事前計算済みembeddings を読み込み、cosine similarity 検索する。
  */
+
+import * as fs from 'fs';
+import * as path from 'path';
 
 export interface FolkloreEntry {
     id: string;
@@ -11,7 +14,7 @@ export interface FolkloreEntry {
     summary: string;     // 要約
     location: string;    // 地域
     source: string;      // 出典
-    embedding: number[]; // 768次元 (gemini-embedding-001)
+    embedding: number[]; // 3072次元 (gemini-embedding-001)
 }
 
 export interface SearchResult {
@@ -45,26 +48,38 @@ function cosineSimilarity(a: number[], b: number[]): number {
 let cachedEntries: FolkloreEntry[] | null = null;
 
 /**
- * Vercel Blob から embedding データを読み込み（キャッシュ付き）
+ * embedding データを読み込み（キャッシュ付き）
+ * - ローカルファイル (data/folklore-embeddings.json) を優先
+ * - FOLKLORE_BLOB_URL があればそこからフェッチ（本番用）
  */
 export async function loadEmbeddings(): Promise<FolkloreEntry[]> {
     if (cachedEntries) return cachedEntries;
 
+    // 1. ローカルファイルを試す
+    const localPath = path.join(process.cwd(), 'data', 'folklore-embeddings.json');
+    if (fs.existsSync(localPath)) {
+        const raw = fs.readFileSync(localPath, 'utf-8');
+        const data = JSON.parse(raw);
+        cachedEntries = data.entries as FolkloreEntry[];
+        console.log(`Loaded ${cachedEntries.length} folklore entries (local file)`);
+        return cachedEntries;
+    }
+
+    // 2. Vercel Blob からフェッチ（本番用）
     const blobUrl = process.env.FOLKLORE_BLOB_URL;
-    if (!blobUrl) {
-        console.warn('FOLKLORE_BLOB_URL not set, using empty dataset');
-        return [];
+    if (blobUrl) {
+        const res = await fetch(blobUrl);
+        if (!res.ok) {
+            throw new Error(`Failed to load embeddings from Blob: ${res.status}`);
+        }
+        const data = await res.json();
+        cachedEntries = data.entries as FolkloreEntry[];
+        console.log(`Loaded ${cachedEntries.length} folklore entries (Blob)`);
+        return cachedEntries;
     }
 
-    const res = await fetch(blobUrl);
-    if (!res.ok) {
-        throw new Error(`Failed to load embeddings: ${res.status}`);
-    }
-
-    const data = await res.json();
-    cachedEntries = data.entries as FolkloreEntry[];
-    console.log(`Loaded ${cachedEntries.length} folklore entries`);
-    return cachedEntries;
+    console.warn('No embedding data found (local or Blob). Using empty dataset.');
+    return [];
 }
 
 /**

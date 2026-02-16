@@ -5,7 +5,7 @@ import { createContext, useContext, useState, ReactNode } from 'react';
 // === Types ===
 export type HandleId = 'A' | 'B' | 'C' | 'D' | 'E' | 'free';
 export type AbsenceQuality = 'invisible' | 'blurry' | 'clear' | null;
-export type ConceptSource = 'db1' | 'db2' | 'llm';
+export type ConceptSource = 'db' | 'llm';
 export type ArtStyle = 'sumi' | 'emaki' | 'ukiyoe' | 'manga' | 'dennou' | null;
 
 export interface Handle {
@@ -40,6 +40,7 @@ export interface AppState {
   texture: string;
   stance: string;
   absenceQuality: AbsenceQuality;
+  answers: Record<string, string>;
   // Phase 2
   folkloreResults: FolkloreResult[];
   concepts: YokaiConcept[];
@@ -59,6 +60,7 @@ interface AppContextType {
   setTexture: (texture: string) => void;
   setStance: (stance: string) => void;
   setAbsenceQuality: (quality: AbsenceQuality) => void;
+  setAnswers: (answers: Record<string, string>) => void;
   setFolkloreResults: (results: FolkloreResult[]) => void;
   setConcepts: (concepts: YokaiConcept[]) => void;
   selectConcept: (concept: YokaiConcept) => void;
@@ -75,6 +77,7 @@ const initialState: AppState = {
   texture: '',
   stance: '',
   absenceQuality: null,
+  answers: {},
   folkloreResults: [],
   concepts: [],
   selectedConcept: null,
@@ -111,6 +114,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const setAbsenceQuality = (quality: AbsenceQuality) => {
     setState(prev => ({ ...prev, absenceQuality: quality }));
+  };
+
+  const setAnswers = (answers: Record<string, string>) => {
+    setState(prev => ({ ...prev, answers }));
   };
 
   const setFolkloreResults = (results: FolkloreResult[]) => {
@@ -154,6 +161,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setTexture,
       setStance,
       setAbsenceQuality,
+      setAnswers,
       setFolkloreResults,
       setConcepts,
       selectConcept,

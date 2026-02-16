@@ -48,17 +48,22 @@ export async function POST(req: Request) {
         let imageMimeType = 'image/png';
 
         const candidates = imageResult.response.candidates;
-        if (candidates && candidates[0]) {
+        if (candidates && candidates[0]?.content?.parts) {
             for (const part of candidates[0].content.parts) {
-                // @ts-expect-error - inlineData exists on image parts
-                if (part.inlineData) {
-                    // @ts-expect-error - inlineData structure
-                    imageBase64 = part.inlineData.data;
-                    // @ts-expect-error - inlineData structure
-                    imageMimeType = part.inlineData.mimeType || 'image/png';
+                const inlineData = (part as { inlineData?: { data?: string; mimeType?: string } }).inlineData;
+                if (inlineData?.data) {
+                    imageBase64 = inlineData.data;
+                    imageMimeType = inlineData.mimeType || 'image/png';
                     break;
                 }
             }
+        }
+
+        if (!imageBase64) {
+            return NextResponse.json(
+                { error: 'Image generation produced no image content' },
+                { status: 500 }
+            );
         }
 
         // 2. ナラティブ生成（並行して実行可能だが、逐次で安全に）

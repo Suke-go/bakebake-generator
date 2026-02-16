@@ -6,11 +6,6 @@ import ProgressDots from './ProgressDots';
 
 /**
  * Fog Generation Effect
- * Phase 1: fog rushes in from edges, intensifies, fills the screen
- * Phase 2: a silhouette forms in the center as fog begins to clear
- * Phase 3: fog recedes revealing the void again
- *
- * Uses the same noise system as FogBackground for visual consistency
  */
 function FogGenerationCanvas({ onComplete }: { onComplete: () => void }) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -38,7 +33,6 @@ function FogGenerationCanvas({ onComplete }: { onComplete: () => void }) {
         const startTime = performance.now();
         let active = true;
 
-        // Fog particles — drift inward from all edges
         type Mote = {
             x: number; y: number;
             vx: number; vy: number;
@@ -50,16 +44,14 @@ function FogGenerationCanvas({ onComplete }: { onComplete: () => void }) {
         const motes: Mote[] = [];
 
         const spawnMote = () => {
-            // Spawn from random edge
             const edge = Math.floor(Math.random() * 4);
             let x: number, y: number;
             switch (edge) {
-                case 0: x = Math.random() * w; y = -20; break;      // top
-                case 1: x = w + 20; y = Math.random() * h; break;    // right
-                case 2: x = Math.random() * w; y = h + 20; break;    // bottom
-                default: x = -20; y = Math.random() * h; break;       // left
+                case 0: x = Math.random() * w; y = -20; break;
+                case 1: x = w + 20; y = Math.random() * h; break;
+                case 2: x = Math.random() * w; y = h + 20; break;
+                default: x = -20; y = Math.random() * h; break;
             }
-            // Drift toward center with some randomness
             const angle = Math.atan2(cy - y, cx - x) + (Math.random() - 0.5) * 1.2;
             const speed = 0.4 + Math.random() * 0.8;
             motes.push({
@@ -81,22 +73,15 @@ function FogGenerationCanvas({ onComplete }: { onComplete: () => void }) {
 
             ctx.clearRect(0, 0, w, h);
 
-            // Phase timing:
-            // 0.0-0.5: fog rushes in (intensity rises)
-            // 0.5-0.75: fog fully engulfs, silhouette forms
-            // 0.75-1.0: fog starts to thin, presence remains
-
-            // Overall fog intensity curve
             let intensity: number;
             if (progress < 0.5) {
-                intensity = progress * 2; // 0 -> 1
+                intensity = progress * 2;
             } else if (progress < 0.75) {
                 intensity = 1.0;
             } else {
-                intensity = 1.0 - (progress - 0.75) * 2.5; // 1 -> ~0.4
+                intensity = 1.0 - (progress - 0.75) * 2.5;
             }
 
-            // Spawn fog motes — faster during buildup
             const spawnRate = progress < 0.6 ? 4 : 1;
             for (let i = 0; i < spawnRate; i++) {
                 if (Math.random() < 0.5 + intensity * 0.5) {
@@ -104,7 +89,6 @@ function FogGenerationCanvas({ onComplete }: { onComplete: () => void }) {
                 }
             }
 
-            // Draw fog motes as soft radial gradients
             for (let i = motes.length - 1; i >= 0; i--) {
                 const m = motes[i];
                 m.x += m.vx;
@@ -113,7 +97,6 @@ function FogGenerationCanvas({ onComplete }: { onComplete: () => void }) {
                 m.vx *= 0.998;
                 m.vy *= 0.998;
 
-                // Fade based on life and overall intensity
                 const fadeIn = Math.min(m.life * 3, 1);
                 const a = m.alpha * fadeIn * intensity;
 
@@ -126,13 +109,11 @@ function FogGenerationCanvas({ onComplete }: { onComplete: () => void }) {
                     ctx.fillRect(m.x - m.size, m.y - m.size, m.size * 2, m.size * 2);
                 }
 
-                // Remove dead motes
                 if (m.life > 3 || m.x < -200 || m.x > w + 200 || m.y < -200 || m.y > h + 200) {
                     motes.splice(i, 1);
                 }
             }
 
-            // Central presence — forms during peak fog
             if (progress > 0.3) {
                 const presenceAlpha = Math.min((progress - 0.3) * 2, 1) * intensity * 0.15;
                 const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 120);
@@ -143,7 +124,6 @@ function FogGenerationCanvas({ onComplete }: { onComplete: () => void }) {
                 ctx.fillRect(cx - 200, cy - 200, 400, 400);
             }
 
-            // Overall screen fog wash
             const washAlpha = intensity * 0.06;
             ctx.fillStyle = `rgba(100, 95, 85, ${washAlpha})`;
             ctx.fillRect(0, 0, w, h);
@@ -174,20 +154,71 @@ function FogGenerationCanvas({ onComplete }: { onComplete: () => void }) {
 }
 
 export default function Phase3Reveal() {
-    const { state, setNarrative, setGeneratedImage } = useApp();
+    const { state, goToPhase, setNarrative, setGeneratedImage } = useApp();
     const [generating, setGenerating] = useState(true);
+    const [fogDone, setFogDone] = useState(false);
     const [showImage, setShowImage] = useState(false);
     const [showName, setShowName] = useState(false);
     const [showNarrative, setShowNarrative] = useState(false);
     const [showActions, setShowActions] = useState(false);
+    const [imageDataUrl, setImageDataUrl] = useState('');
+    const [apiDone, setApiDone] = useState(false);
+    const [error, setError] = useState('');
 
-    const handleComplete = useCallback(() => {
-        setGeneratedImage('/api/placeholder-yokai');
-        setNarrative(
-            '\u305d\u306e\u6c17\u914d\u306e\u4e2d\u306b\u3001\u305f\u3060\u9759\u304b\u306b\u305d\u3053\u306b\u3044\u305f\u3002\u540d\u524d\u3092\u4e0e\u3048\u3089\u308c\u308b\u306e\u3092\u3001\u5f85\u3063\u3066\u3044\u305f\u306e\u304b\u3082\u3057\u308c\u306a\u3044\u3002'
-        );
-        setGenerating(false);
-    }, [setGeneratedImage, setNarrative]);
+    // Call generate-image API on mount
+    useEffect(() => {
+        if (!state.selectedConcept) return;
+
+        const callApi = async () => {
+            try {
+                const res = await fetch('/api/generate-image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        concept: {
+                            name: state.selectedConcept!.name,
+                            reading: state.selectedConcept!.reading,
+                            description: state.selectedConcept!.description,
+                        },
+                        artStyle: state.artStyle,
+                        visualInput: state.visualInput,
+                        answers: state.answers,
+                    }),
+                });
+
+                if (!res.ok) throw new Error(`API error: ${res.status}`);
+                const data = await res.json();
+
+                if (data.imageBase64) {
+                    const dataUrl = `data:${data.imageMimeType};base64,${data.imageBase64}`;
+                    setImageDataUrl(dataUrl);
+                    setGeneratedImage(dataUrl);
+                }
+                if (data.narrative) {
+                    setNarrative(data.narrative);
+                }
+                setApiDone(true);
+            } catch (err) {
+                console.error('Generate image error:', err);
+                setError(err instanceof Error ? err.message : '生成に失敗しました');
+                setApiDone(true);
+            }
+        };
+
+        callApi();
+    }, [state.selectedConcept, state.artStyle, state.visualInput, state.answers, setGeneratedImage, setNarrative]);
+
+    // Fog animation completion
+    const handleFogComplete = useCallback(() => {
+        setFogDone(true);
+    }, []);
+
+    // Reveal when both fog and API are done
+    useEffect(() => {
+        if (fogDone && apiDone) {
+            setGenerating(false);
+        }
+    }, [fogDone, apiDone]);
 
     useEffect(() => {
         if (!generating) {
@@ -201,16 +232,32 @@ export default function Phase3Reveal() {
     if (generating) {
         return (
             <>
-                <FogGenerationCanvas onComplete={handleComplete} />
+                <FogGenerationCanvas onComplete={handleFogComplete} />
                 <div className="phase" style={{
                     justifyContent: 'center', alignItems: 'center', textAlign: 'center',
                     position: 'relative', zIndex: 11,
                 }}>
                     <p className="generation-wait">
-                        {'\u59ff\u3092\u4e0e\u3048\u3066\u3044\u307e\u3059'}
+                        姿を与えています
                     </p>
                 </div>
             </>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="phase" style={{ justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
+                <p className="voice" style={{ marginBottom: 16 }}>
+                    姿を描くことができませんでした
+                </p>
+                <p style={{ fontSize: 12, color: 'var(--text-ghost)', marginBottom: 24 }}>
+                    {error}
+                </p>
+                <button className="button button-primary" onClick={() => goToPhase(3)}>
+                    やり直す
+                </button>
+            </div>
         );
     }
 
@@ -219,15 +266,28 @@ export default function Phase3Reveal() {
             <div className="reveal-container">
                 {showImage && (
                     <div className="reveal-image-frame float-up">
-                        <div style={{
-                            width: '100%', height: '100%',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            background: 'var(--bg-surface)',
-                        }}>
-                            <p style={{ color: 'var(--text-ghost)', fontSize: 12 }}>
-                                [ ]
-                            </p>
-                        </div>
+                        {imageDataUrl ? (
+                            <img
+                                src={imageDataUrl}
+                                alt={state.yokaiName || '妖怪'}
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'contain',
+                                    borderRadius: 2,
+                                }}
+                            />
+                        ) : (
+                            <div style={{
+                                width: '100%', height: '100%',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                background: 'var(--bg-surface)',
+                            }}>
+                                <p style={{ color: 'var(--text-ghost)', fontSize: 12 }}>
+                                    画像を生成できませんでした
+                                </p>
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -248,8 +308,8 @@ export default function Phase3Reveal() {
                     <div className="float-up" style={{
                         marginTop: 32, display: 'flex', gap: 12, animationDelay: '0.2s',
                     }}>
-                        <button className="button">{'\u3082\u3046\u4e00\u5ea6'}</button>
-                        <button className="button button-primary">{'\u4fdd\u5b58\u3059\u308b'}</button>
+                        <button className="button" onClick={() => goToPhase(0)}>もう一度</button>
+                        <button className="button button-primary">保存する</button>
                     </div>
                 )}
             </div>

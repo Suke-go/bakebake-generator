@@ -27,6 +27,14 @@ const STYLE_THEMES = {
         textBright: 'hsl(40, 10%, 85%)',
         textMid: 'hsl(40, 5%, 58%)',
     },
+    emaki: {
+        // Emaki scroll: earthy gold-brown tones, aged parchment feel
+        accent: 'hsl(35, 40%, 45%)',
+        accentGlow: 'hsla(35, 40%, 45%, 0.07)',
+        fogR: 0.46, fogG: 0.42, fogB: 0.36, // warm golden-brown
+        textBright: 'hsl(38, 20%, 86%)',
+        textMid: 'hsl(35, 12%, 58%)',
+    },
     ukiyoe: {
         // Woodblock: rich indigo accent, warm tones
         accent: 'hsl(240, 30%, 45%)',
@@ -34,6 +42,14 @@ const STYLE_THEMES = {
         fogR: 0.44, fogG: 0.42, fogB: 0.48, // slightly purple-tinged
         textBright: 'hsl(45, 18%, 88%)',
         textMid: 'hsl(40, 10%, 62%)',
+    },
+    manga: {
+        // Manga ink: high-contrast black and white, slight warmth
+        accent: 'hsl(0, 0%, 65%)',
+        accentGlow: 'hsla(0, 0%, 65%, 0.05)',
+        fogR: 0.40, fogG: 0.40, fogB: 0.40, // neutral gray
+        textBright: 'hsl(0, 0%, 90%)',
+        textMid: 'hsl(0, 0%, 55%)',
     },
     dennou: {
         // Cyber: cool blue-green, sharp
