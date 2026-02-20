@@ -325,7 +325,7 @@ export default function Phase2() {
         return (
             <div className="phase" style={{ justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
                 <p className="voice" style={{ animation: 'breathe 3s ease-in-out infinite' }}>
-                    古い記録を探しています...
+                    伝承データベースと照合中...
                 </p>
                 {retryMsg && (
                     <p style={{ fontSize: 12, color: 'var(--text-ghost)', marginTop: 12 }}>
@@ -340,7 +340,7 @@ export default function Phase2() {
         return (
             <div className="phase" style={{ justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
                 <p className="voice" style={{ marginBottom: 16 }}>
-                    記録にたどり着けませんでした。
+                    記録の照合に失敗しました。
                 </p>
                 <p style={{ fontSize: 12, color: 'var(--text-ghost)', marginBottom: 24 }}>
                     {errorMsg}
@@ -365,25 +365,25 @@ export default function Phase2() {
         <div className="phase-scrollable">
             {showLine1 && (
                 <p className="voice float-up" style={{ marginBottom: 12 }}>
-                    あなたの体験を、古い記録のなかに探しました。
+                    入力された体験をもとに、怪異・妖怪伝承データベースを検索しました。
                 </p>
             )}
             {showLine2 && (
                 <p className="voice float-up" style={{ marginBottom: 48, animationDelay: '0.2s' }}>
-                    似た語りが、各地に残っていました。
+                    意味論的に類似する伝承記録を抽出しました。
                 </p>
             )}
 
             {isGeneratingConcepts && stage !== 'concepts' && (
                 <p className="label" style={{ marginBottom: 24 }}>
-                    概念候補をまとめています...
+                    命名規則群を生成中...
                 </p>
             )}
 
             {(stage === 'folklore' || stage === 'concepts') && visibleFolklore > 0 && (
                 <>
                     <p className="label fade-in" style={{ marginBottom: 16 }}>
-                        関連する伝承
+                        抽出された関連伝承
                     </p>
                     <div className="folklore-field" style={{ minHeight: isMobile ? 'auto' : fieldHeight }}>
                         {folkloreData.slice(0, visibleFolklore).map((f, i) => {
@@ -415,10 +415,10 @@ export default function Phase2() {
                     {showConceptIntro && (
                         <>
                             <p className="voice float-up" style={{ marginBottom: 8 }}>
-                                昔の人は、似た気配に名を与えてきました。
+                                柳田國男の妖怪命名分類に基づき、名称候補を生成しました。
                             </p>
                             <p className="label float-up" style={{ animationDelay: '0.4s', marginTop: 32, marginBottom: 8 }}>
-                                名前の候補
+                                命名候補
                             </p>
                         </>
                     )}
@@ -452,11 +452,11 @@ export default function Phase2() {
                                     style={{ textAlign: 'center', opacity: 0.8 }}
                                     onClick={() => setShowCustomInput(true)}
                                 >
-                                    <div className="yokai-desc">自分で名付ける</div>
+                                    <div className="yokai-desc">任意名称の入力</div>
                                 </button>
                             ) : (
                                 <div className="concept-card" style={{ padding: '16px' }}>
-                                    <p className="label" style={{ marginBottom: 8 }}>あなたが感じた名前を入力してください</p>
+                                    <p className="label" style={{ marginBottom: 8 }}>任意の名称を入力してください</p>
                                     <input
                                         type="text"
                                         value={customName}
@@ -481,7 +481,7 @@ export default function Phase2() {
                                         disabled={!customName.trim()}
                                         style={{ width: '100%' }}
                                     >
-                                        この名前で決める
+                                        決定
                                     </button>
                                 </div>
                             )}

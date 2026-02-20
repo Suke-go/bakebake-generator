@@ -47,7 +47,7 @@ export default function Phase0() {
                         : 'opacity 1.6s ease, transform 1.6s ease',
                 }}
             >
-                ばけばけ発生器
+                妖怪生成装置
             </p>
 
             <p
@@ -65,9 +65,9 @@ export default function Phase0() {
                         : 'opacity 1.4s ease, transform 1.4s ease',
                 }}
             >
-                あなたの体験から
+                入力された不可解な体験から
                 <br />
-                まだ名前のない気配を編む
+                新たな妖怪を生成します
             </p>
 
             <p
@@ -82,7 +82,7 @@ export default function Phase0() {
                     animation: stage === 3 ? 'breathe 4s ease-in-out infinite' : 'none',
                 }}
             >
-                画面にふれて、はじめる
+                画面に触れて開始
             </p>
         </div>
     );

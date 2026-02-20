@@ -524,7 +524,7 @@ export default function Phase3Reveal() {
                     position: 'relative',
                     zIndex: 11,
                 }}>
-                    <p className="generation-wait">いま、あなたの気配に姿を与えています。</p>
+                    <p className="generation-wait">指定されたパラメータに基づき、妖怪の視覚的表現を生成中...</p>
                     {warning && (
                         <p style={{ fontSize: 12, color: 'var(--text-ghost)' }}>
                             {warning}
@@ -539,7 +539,7 @@ export default function Phase3Reveal() {
         return (
             <div className="phase" style={{ justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
                 <p className="voice" style={{ marginBottom: 16 }}>
-                    姿を結ぶことができませんでした。
+                    画像の生成処理に失敗しました。
                 </p>
                 <p style={{ fontSize: 12, color: 'var(--text-ghost)', marginBottom: 24 }}>
                     {error}
@@ -551,7 +551,7 @@ export default function Phase3Reveal() {
                 )}
                 <div style={{ display: 'flex', gap: 12 }}>
                     <button className="button" onClick={handleRetry}>
-                        もう一度試す
+                        再生成
                     </button>
                     <button className="button button-primary" onClick={() => goToPhase(3)}>
                         画風選択へ戻る
@@ -584,7 +584,7 @@ export default function Phase3Reveal() {
                                 background: 'var(--bg-surface)',
                             }}>
                                 <p style={{ color: 'var(--text-ghost)', fontSize: 12 }}>
-                                    画像は生成されませんでした。
+                                    画像の生成処理に失敗しました。
                                 </p>
                             </div>
                         )}
@@ -618,13 +618,13 @@ export default function Phase3Reveal() {
                         animationDelay: '0.2s',
                     }}>
                         <button className="button" onClick={() => goToPhase(2)}>
-                            やり直す
+                            再生成
                         </button>
                         <button className="button" onClick={() => goToPhase(0)}>
-                            最初から
+                            初期画面へ戻る
                         </button>
                         <button className="button button-primary" onClick={() => setIsScanning(true)}>
-                            QRに記録する (カメラ読取)
+                            記録を保存 (QR読取)
                         </button>
                     </div>
                 )}
@@ -640,7 +640,7 @@ export default function Phase3Reveal() {
                         border: '1px solid rgba(255,255,255,0.2)'
                     }}>
                         <p style={{ textAlign: 'center', marginBottom: '1rem', color: '#fff' }}>
-                            【スマートフォンのQRコードをカメラに見せてください】
+                            【QRコードをカメラにかざしてください】
                         </p>
                         <div id="generator-qr-reader" style={{ width: '100%', background: '#fff' }}></div>
                         <button className="button" style={{ marginTop: '1rem', width: '100%' }} onClick={() => setIsScanning(false)}>
@@ -651,7 +651,7 @@ export default function Phase3Reveal() {
 
                 {isSaving && (
                     <div className="float-up" style={{ marginTop: 32, textAlign: 'center' }}>
-                        <p>あなたの観測データを定着させています...</p>
+                        <p>保存中…</p>
                     </div>
                 )}
 

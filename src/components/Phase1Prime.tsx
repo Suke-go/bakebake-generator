@@ -16,8 +16,8 @@ interface StepDef {
 const STEPS: StepDef[] = [
     {
         id: 'event',
-        question: 'その時、何が起きましたか。',
-        subtext: '最初に浮かぶ言葉を、そのまま書いてください。',
+        question: 'どのような体験でしたか。',
+        subtext: '最も近いものを選ぶか、自由に記述してください。',
         type: 'choice+text',
         options: ['背後に気配を感じた', '視線だけを感じた', '声を聞いた', '物の位置が変わった', '写真に違和感があった'],
         placeholder: '自由に入力する',
@@ -45,8 +45,8 @@ const STEPS: StepDef[] = [
     },
     {
         id: 'texture',
-        question: 'その気配を質感で表すなら。',
-        subtext: '手触りや温度感の比喩でかまいません。',
+        question: 'その体験の質感に近いものは。',
+        subtext: '身体感覚として最も近いものを選んでください。',
         type: 'choice+text',
         options: ['冷たい', '重い', '湿っている', 'ざらつく', '乾いている'],
         placeholder: '自由に入力する',
@@ -66,8 +66,8 @@ const STEPS: StepDef[] = [
     },
     {
         id: 'stance',
-        question: 'いま思うと、その気配にどう向き合いたいですか。',
-        subtext: '正解はありません。',
+        question: 'その体験に対して、どのような態度をとりますか。',
+        subtext: '',
         type: 'choice+text',
         options: ['避けたい', '見届けたい', '話しかけたい', '忘れたい', '知りたい'],
         placeholder: '自由に入力する',
