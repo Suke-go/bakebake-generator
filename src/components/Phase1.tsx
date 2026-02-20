@@ -45,7 +45,7 @@ export default function Phase1() {
         <div className="phase-scrollable phase-enter">
             {showIntro && (
                 <p className="voice float-up" style={{ marginBottom: 28, textAlign: 'left' }}>
-                    本装置に入力する怪異体験を記述、または選択してください。
+                    あなたの体験を記録、または近いものから選択してください。
                 </p>
             )}
 
@@ -79,7 +79,7 @@ export default function Phase1() {
                                 style={{ opacity: freeText.trim() && !selectedId ? 1 : 0.4 }}
                                 disabled={!freeText.trim() || !!selectedId}
                             >
-                                入力
+                                次へ
                             </button>
                         </div>
                     </div>
@@ -88,7 +88,7 @@ export default function Phase1() {
                         className="label"
                         style={{ marginBottom: 10, marginTop: 6 }}
                     >
-                        データベースから類似体験を選択する
+                        近い体験から選択する
                     </p>
 
                     {HANDLES.map((handle, i) => (

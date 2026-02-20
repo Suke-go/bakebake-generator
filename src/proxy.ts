@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
     // Only protect /generator and /admin paths
     const url = req.nextUrl.pathname;
     if (!url.startsWith('/generator') && !url.startsWith('/admin')) {
@@ -31,7 +31,7 @@ export function middleware(req: NextRequest) {
     });
 }
 
-// Config to limit middleware to specific paths
+// Config to limit proxy to specific paths
 export const config = {
     matcher: ['/generator/:path*', '/admin/:path*'],
 };

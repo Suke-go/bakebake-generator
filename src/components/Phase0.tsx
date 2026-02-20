@@ -65,9 +65,9 @@ export default function Phase0() {
                         : 'opacity 1.4s ease, transform 1.4s ease',
                 }}
             >
-                入力された不可解な体験から
+                あなたの体験から
                 <br />
-                新たな妖怪を生成します
+                新たな妖怪の記録を生成します
             </p>
 
             <p

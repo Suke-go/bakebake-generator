@@ -524,7 +524,7 @@ export default function Phase3Reveal() {
                     position: 'relative',
                     zIndex: 11,
                 }}>
-                    <p className="generation-wait">指定されたパラメータに基づき、妖怪の視覚的表現を生成中...</p>
+                    <p className="generation-wait">気配の記録を視覚化しています...</p>
                     {warning && (
                         <p style={{ fontSize: 12, color: 'var(--text-ghost)' }}>
                             {warning}

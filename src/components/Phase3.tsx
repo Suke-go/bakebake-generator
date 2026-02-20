@@ -85,7 +85,7 @@ export default function Phase3() {
                             {state.selectedConcept?.reading ? ` / ${state.selectedConcept.reading}` : ''}
                         </p>
                         <p className="voice float-up" style={{ marginBottom: 34, animationDelay: '0.25s' }}>
-                            視覚化のスタイル（画風）を選択してください。
+                            記録に残すための画風を選択してください。
                         </p>
                     </>
                 )}
@@ -140,7 +140,7 @@ export default function Phase3() {
             }}
         >
             <p className="question-text" style={{ marginBottom: 16 }}>
-                外見に関する追加の言語プロンプトがあれば入力してください。
+                外見の補足があれば入力してください。
             </p>
 
             <p
@@ -151,7 +151,7 @@ export default function Phase3() {
                     fontFamily: 'var(--font-main)',
                 }}
             >
-                （例：体格、距離感、光源、動きの特徴など）
+                体格、距離感、光、動きなど。
             </p>
 
             <textarea
@@ -165,7 +165,7 @@ export default function Phase3() {
             <div style={{ marginTop: 20, display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
                 {!input.trim() ? (
                     <button className="button" onClick={handleSubmit}>
-                        自動生成
+                        おまかせで記録する
                     </button>
                 ) : (
                     <button
