@@ -415,7 +415,7 @@ export default function Phase2() {
                     {showConceptIntro && (
                         <>
                             <p className="voice float-up" style={{ marginBottom: 8 }}>
-                                柳田國男の分類に基づき、名前候補を生成しました。
+                                名前の候補を生成しました。
                             </p>
                             <p className="label float-up" style={{ animationDelay: '0.4s', marginTop: 32, marginBottom: 8 }}>
                                 名前の候補

@@ -60,18 +60,18 @@ function makeFallbackFolklore(
     const seedBase = `${handle.id}|${sortedAnswerKeys.map((key) => `${key}:${answers[key] ?? ''}`).join('|')}`;
     const seed = Math.abs(seedBase.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0));
     const themes = [
-        '蜿､縺・ｨ倬鹸縺ｮ谿狗・',
-        '蠢伜唆縺ｮ蠅・阜',
-        '螟憺悸縺ｫ貅ｶ縺代◆險俶・',
-        '譛ｧ縺ｮ陦梧婿',
-        '譏疲律縺ｮ蝗√″',
+        '古い記憶の残滓',
+        '心象の境界',
+        '夜闇に溶けた記録',
+        '幻の行方',
+        '昨日の嘆き',
     ];
 
     return themes.map((theme, index) => ({
         id: `fallback-${handle.id}-${index}-${(seed + index) % 997}`,
         kaiiName: `${handle.text} / ${theme}`,
-        content: `譌ｧ縺・ｨ俶・讀懃ｴ｢繧堤ｰ｡譏灘喧繝｢繝ｼ繝峨〒繧ｹ繧ｭ繝・・縺励∵圻螳壹ョ繝ｼ繧ｿ縺ｧ蛟呵｣懊ｒ菴懈・縺励※縺・∪縺吶・${index + 1})`,
-        location: '邁｡譏灘盾辣ｧ',
+        content: `旧世代の伝承検索を軽量化モードでスキップし、暫定データで候補を作成しています。(${index + 1})`,
+        location: '簡易参照',
         similarity: 0.98 - index * 0.08,
         source: 'fallback',
     }));

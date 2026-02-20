@@ -1,0 +1,40 @@
+/* === QR Scanner Overrides === */
+#generator-qr-reader {
+  border: none !important;
+  background: transparent !important;
+}
+
+#generator-qr-reader a {
+  color: var(--text-dim) !important;
+  text-decoration: none !important;
+}
+
+#generator-qr-reader button {
+  font-family: var(--font-main) !important;
+  font-size: 13px !important;
+  padding: 8px 16px !important;
+  background: hsla(230, 10%, 8%, 0.8) !important;
+  border: 1px solid hsla(40, 5%, 40%, 0.3) !important;
+  color: var(--text-bright) !important;
+  border-radius: var(--radius) !important;
+  cursor: pointer !important;
+  margin: 4px !important;
+}
+
+#generator-qr-reader button:hover {
+  border-color: var(--accent) !important;
+}
+
+#generator-qr-reader__scan_region {
+  border: 1px solid hsla(40, 5%, 40%, 0.15) !important;
+  background: var(--bg-surface) !important;
+  border-radius: 4px !important;
+}
+
+#generator-qr-reader__dashboard_section_csr span {
+  color: var(--text-bright) !important;
+}
+
+#generator-qr-reader img {
+  filter: invert(1) opacity(0.7);
+}

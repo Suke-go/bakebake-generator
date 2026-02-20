@@ -642,7 +642,7 @@ export default function Phase3Reveal() {
                         <p style={{ textAlign: 'center', marginBottom: '1rem', color: '#fff' }}>
                             【QRコードをカメラにかざしてください】
                         </p>
-                        <div id="generator-qr-reader" style={{ width: '100%', background: '#fff' }}></div>
+                        <div id="generator-qr-reader" style={{ width: '100%' }}></div>
                         <button className="button" style={{ marginTop: '1rem', width: '100%' }} onClick={() => setIsScanning(false)}>
                             キャンセル
                         </button>
