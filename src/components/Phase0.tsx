@@ -9,11 +9,11 @@ export default function Phase0() {
 
     useEffect(() => {
         const timers = [
-            setTimeout(() => setStage(1), 1800),
-            setTimeout(() => setStage(2), 4200),
-            setTimeout(() => setStage(3), 6400),
+            setTimeout(() => setStage(1), 2200),
+            setTimeout(() => setStage(2), 5200),
+            setTimeout(() => setStage(3), 8500),
         ];
-        return () => timers.forEach(clearTimeout);
+        return () => timers.forEach(id => clearTimeout(id));
     }, []);
 
     const handleTouch = useCallback(() => {
@@ -36,15 +36,16 @@ export default function Phase0() {
             <p
                 style={{
                     fontFamily: 'var(--font-main)',
-                    fontSize: 26,
-                    letterSpacing: '0.12em',
+                    fontSize: 28,
+                    letterSpacing: '0.24em',
                     lineHeight: 2.1,
+                    textIndent: '0.24em',
                     color: 'var(--text-bright)',
                     opacity: stage >= 1 && stage < 4 ? 1 : 0,
-                    transform: stage >= 1 && stage < 4 ? 'none' : 'translateY(4px)',
+                    transform: stage >= 1 && stage < 4 ? 'none' : 'translateY(12px)',
                     transition: stage === 4
                         ? 'opacity 0.6s ease, transform 0.6s ease'
-                        : 'opacity 1.6s ease, transform 1.6s ease',
+                        : 'opacity 2.2s var(--ease), transform 2.2s var(--ease)',
                 }}
             >
                 妖怪生成装置
@@ -53,9 +54,10 @@ export default function Phase0() {
             <p
                 style={{
                     fontFamily: 'var(--font-main)',
-                    fontSize: 17,
-                    letterSpacing: '0.08em',
-                    lineHeight: 2.0,
+                    fontSize: 16,
+                    letterSpacing: '0.12em',
+                    lineHeight: 2.2,
+                    textIndent: '0.12em',
                     color: 'var(--text-bright)',
                     marginTop: 14,
                     opacity: stage >= 2 && stage < 4 ? 1 : 0,

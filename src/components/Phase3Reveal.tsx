@@ -259,6 +259,7 @@ export default function Phase3Reveal() {
     const [saveSuccess, setSaveSuccess] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+    const [isTransitioning, setIsTransitioning] = useState(false);
 
     const abortCurrentRequest = useCallback((reason: string) => {
         const controller = abortRef.current;
@@ -409,15 +410,13 @@ export default function Phase3Reveal() {
             mountedRef.current = false;
             abortCurrentRequest('phase3 unmount');
             if (scannerRef.current) {
-                scannerRef.current.clear().catch(console.error);
+                try {
+                    scannerRef.current.clear().catch(() => { });
+                } catch (e) { }
                 scannerRef.current = null;
             }
         };
     }, [abortCurrentRequest]);
-
-    const handleRetry = useCallback(() => {
-        void callApi();
-    }, [callApi]);
 
     useEffect(() => {
         void Promise.resolve().then(() => callApi());
@@ -445,7 +444,9 @@ export default function Phase3Reveal() {
                     setScanError('');
                     try {
                         if (scannerRef.current) {
-                            scannerRef.current.clear().catch(console.error);
+                            try {
+                                scannerRef.current.clear().catch(() => { });
+                            } catch (e) { }
                             scannerRef.current = null;
                         }
 
@@ -489,7 +490,9 @@ export default function Phase3Reveal() {
         return () => {
             // Cleanup scanner when scanning state becomes false
             if (!isScanning && scannerRef.current) {
-                scannerRef.current.clear().catch(console.error);
+                try {
+                    scannerRef.current.clear().catch(() => { });
+                } catch (e) { }
                 scannerRef.current = null;
             }
         };
@@ -550,10 +553,17 @@ export default function Phase3Reveal() {
                     </p>
                 )}
                 <div style={{ display: 'flex', gap: 12 }}>
-                    <button className="button" onClick={handleRetry}>
+                    <button className="button" onClick={() => {
+                        if (isTransitioning) return;
+                        void callApi();
+                    }} disabled={isTransitioning}>
                         再生成
                     </button>
-                    <button className="button button-primary" onClick={() => goToPhase(3)}>
+                    <button className="button button-primary" onClick={() => {
+                        if (isTransitioning) return;
+                        setIsTransitioning(true);
+                        goToPhase(3);
+                    }} disabled={isTransitioning}>
                         画風選択へ戻る
                     </button>
                 </div>
@@ -617,13 +627,21 @@ export default function Phase3Reveal() {
                         gap: 12,
                         animationDelay: '0.2s',
                     }}>
-                        <button className="button" onClick={() => goToPhase(2)}>
+                        <button className="button" onClick={() => {
+                            if (isTransitioning) return;
+                            setIsTransitioning(true);
+                            goToPhase(2);
+                        }} disabled={isTransitioning}>
                             再生成
                         </button>
-                        <button className="button" onClick={() => goToPhase(0)}>
+                        <button className="button" onClick={() => {
+                            if (isTransitioning) return;
+                            setIsTransitioning(true);
+                            goToPhase(0);
+                        }} disabled={isTransitioning}>
                             初期画面へ戻る
                         </button>
-                        <button className="button button-primary" onClick={() => setIsScanning(true)}>
+                        <button className="button button-primary" onClick={() => setIsScanning(true)} disabled={isTransitioning}>
                             記録を保存 (QR読取)
                         </button>
                     </div>

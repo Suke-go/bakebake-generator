@@ -75,6 +75,14 @@ const TEXTURE_SHIFTS: Record<string, { hueShift: number; satBoost: number }> = {
 export default function ThemeEngine() {
     const { state } = useApp();
 
+    // フェーズをdata属性として公開（FogBackgroundのシェーダーが参照）
+    useEffect(() => {
+        document.documentElement.dataset.phase = String(state.currentPhase);
+        return () => {
+            delete document.documentElement.dataset.phase;
+        };
+    }, [state.currentPhase]);
+
     useEffect(() => {
         const root = document.documentElement;
         const style = state.artStyle;

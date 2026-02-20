@@ -5,22 +5,23 @@
 @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;500;600&family=Noto+Sans+JP:wght@300;400&display=swap');
 
 :root {
-  --bg-void: hsl(230, 15%, 3%);
-  --bg-surface: hsla(230, 10%, 8%, 0.5);
+  --bg-void: hsl(230, 20%, 4%);
+  --bg-surface: hsla(230, 15%, 9%, 0.6);
 
-  --text-bright: hsl(40, 15%, 88%);
-  --text-mid: hsl(40, 8%, 62%);
-  --text-dim: hsl(40, 5%, 42%);
-  --text-ghost: hsl(40, 3%, 28%);
+  --text-bright: hsl(40, 20%, 92%);
+  --text-mid: hsl(40, 12%, 68%);
+  --text-dim: hsl(40, 8%, 48%);
+  --text-ghost: hsl(40, 5%, 32%);
 
-  --accent: hsl(12, 35%, 48%);
-  --accent-glow: hsla(12, 35%, 48%, 0.06);
+  --accent: hsl(12, 45%, 52%);
+  --accent-glow: hsla(12, 45%, 52%, 0.12);
+  --accent-shadow: hsla(12, 45%, 52%, 0.25);
 
   --font-main: 'Shippori Mincho B1', serif;
   --font-label: 'Noto Sans JP', sans-serif;
 
-  --radius: 2px;
-  --ease: cubic-bezier(0.25, 0, 0.25, 1);
+  --radius: 3px;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 * {
@@ -34,7 +35,7 @@ body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: transparent;
+  background: radial-gradient(circle at 50% 40%, hsl(230, 15%, 8%) 0%, hsl(230, 24%, 2%) 100%);
   color: var(--text-bright);
   font-family: var(--font-main);
   font-weight: 400;
@@ -85,12 +86,13 @@ body {
 /* Voice — narrator speaking */
 .voice {
   font-family: var(--font-main);
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 400;
-  letter-spacing: 0.08em;
-  line-height: 2.2;
+  letter-spacing: 0.12em;
+  line-height: 2.3;
   color: var(--text-bright);
   text-align: center;
+  text-shadow: 0 0 12px hsla(40, 20%, 80%, 0.04);
 }
 
 /* Label — tiny structural marker (only place gothic is used) */
@@ -212,13 +214,13 @@ body {
   font-family: var(--font-main);
   font-size: 14px;
   font-weight: 400;
-  padding: 8px 18px;
+  padding: 8px 20px;
   border-radius: var(--radius);
-  background: transparent;
-  border: 1px solid hsla(40, 5%, 40%, 0.15);
+  background: hsla(230, 10%, 12%, 0.2);
+  border: 1px solid hsla(40, 5%, 40%, 0.18);
   color: var(--text-mid);
   cursor: pointer;
-  transition: all 0.3s var(--ease);
+  transition: all 0.4s var(--ease);
   min-height: 40px;
   display: inline-flex;
   align-items: center;
@@ -226,7 +228,9 @@ body {
 
 .chip:hover {
   color: var(--text-bright);
-  border-color: hsla(40, 5%, 40%, 0.22);
+  border-color: hsla(40, 15%, 60%, 0.35);
+  background: hsla(230, 15%, 20%, 0.25);
+  box-shadow: 0 4px 12px hsla(0, 0%, 0%, 0.2);
 }
 
 /* === Text Input === */
@@ -234,19 +238,22 @@ body {
   font-family: var(--font-main);
   font-size: 15px;
   font-weight: 400;
-  background: hsla(230, 10%, 8%, 0.3);
-  border: 1px solid hsla(40, 5%, 40%, 0.12);
+  background: hsla(230, 15%, 8%, 0.4);
+  border: 1px solid hsla(40, 5%, 40%, 0.18);
   border-radius: var(--radius);
   color: var(--text-bright);
-  padding: 14px 16px;
+  padding: 16px 18px;
   width: 100%;
   outline: none;
-  transition: border-color 0.3s ease;
+  transition: all 0.4s var(--ease);
   line-height: 2.0;
+  box-shadow: inset 0 2px 8px hsla(0, 0%, 0%, 0.2);
 }
 
 .text-input:focus {
-  border-color: hsla(12, 35%, 48%, 0.25);
+  border-color: hsla(12, 45%, 52%, 0.4);
+  background: hsla(230, 15%, 10%, 0.6);
+  box-shadow: 0 0 16px var(--accent-glow), inset 0 2px 4px hsla(0, 0%, 0%, 0.1);
 }
 
 .text-input::placeholder {
@@ -258,28 +265,34 @@ body {
   font-family: var(--font-main);
   font-size: 13px;
   font-weight: 400;
-  padding: 10px 28px;
-  background: transparent;
-  border: 1px solid hsla(40, 5%, 40%, 0.15);
+  padding: 12px 32px;
+  background: hsla(230, 10%, 12%, 0.2);
+  border: 1px solid hsla(40, 5%, 40%, 0.2);
   color: var(--text-dim);
   border-radius: var(--radius);
-  letter-spacing: 0.06em;
+  letter-spacing: 0.1em;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.4s var(--ease);
 }
 
 .button:hover {
-  color: var(--text-mid);
-  border-color: hsla(40, 5%, 40%, 0.22);
+  color: var(--text-bright);
+  border-color: hsla(40, 10%, 50%, 0.35);
+  background: hsla(230, 15%, 20%, 0.25);
+  box-shadow: 0 4px 12px hsla(0, 0%, 0%, 0.2);
 }
 
 .button-primary {
-  border-color: hsla(12, 35%, 48%, 0.15);
+  border-color: hsla(12, 45%, 52%, 0.3);
   color: var(--accent);
+  background: hsla(12, 45%, 52%, 0.04);
 }
 
 .button-primary:hover {
   border-color: var(--accent);
+  background: hsla(12, 45%, 52%, 0.08);
+  box-shadow: 0 0 16px var(--accent-glow);
+  color: hsl(12, 55%, 65%);
 }
 
 /* === Question Block (Phase 1') === */
@@ -293,7 +306,9 @@ body {
   color: var(--text-bright);
   line-height: 2.2;
   margin-bottom: 20px;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
+  text-indent: 1em;
+  text-shadow: 0 0 10px hsla(40, 15%, 75%, 0.03);
 }
 
 .question-context {
@@ -337,19 +352,23 @@ body {
 
 /* === Concept Card (Phase 2b) === */
 .concept-card {
-  padding: 24px 0;
+  padding: 28px 24px;
+  margin: 0 -24px;
+  border-radius: 4px;
   cursor: pointer;
-  border: none;
-  border-bottom: 1px solid hsla(40, 5%, 30%, 0.04);
+  border: 1px solid transparent;
   background: transparent;
   text-align: left;
-  width: 100%;
+  width: calc(100% + 48px);
   transition: all 0.4s var(--ease);
   display: block;
 }
 
 .concept-card:hover {
-  background: var(--accent-glow);
+  background: hsla(230, 15%, 12%, 0.4);
+  border-color: hsla(40, 5%, 40%, 0.1);
+  box-shadow: 0 8px 24px hsla(0, 0%, 0%, 0.3);
+  transform: translateY(-2px);
 }
 
 .concept-card .yokai-name {
@@ -407,15 +426,33 @@ body {
 
 .reveal-image-frame {
   width: 100%;
-  max-width: 340px;
+  max-width: 360px;
   aspect-ratio: 3 / 4;
   background: var(--bg-surface);
-  border: 1px solid hsla(40, 5%, 30%, 0.06);
-  border-radius: var(--radius);
+  border: 1px solid hsla(40, 10%, 40%, 0.15);
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  box-shadow: 0 12px 40px hsla(0, 0%, 0%, 0.5), inset 0 0 60px hsla(0, 0%, 0%, 0.4);
+  position: relative;
+}
+
+.reveal-image-frame::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  box-shadow: inset 0 0 120px hsla(0, 0%, 0%, 0.6);
+  pointer-events: none;
+}
+
+.reveal-image-frame img {
+  filter: contrast(1.06) saturate(0.85);
+  transition: filter 2s var(--ease);
 }
 
 .reveal-name {
@@ -440,12 +477,13 @@ body {
 .reveal-narrative {
   font-family: var(--font-main);
   font-size: 14px;
-  letter-spacing: 0.04em;
-  line-height: 2.4;
+  letter-spacing: 0.06em;
+  line-height: 2.6;
   color: var(--text-mid);
-  margin-top: 28px;
+  margin-top: 32px;
   text-align: center;
-  max-width: 400px;
+  max-width: 380px;
+  text-shadow: 0 0 8px hsla(40, 15%, 70%, 0.03);
 }
 
 /* === Generation Wait === */
@@ -454,19 +492,19 @@ body {
   font-size: 14px;
   color: var(--text-dim);
   text-align: center;
-  animation: breathe 4s ease-in-out infinite;
-  letter-spacing: 0.12em;
+  animation: breathe 6s ease-in-out infinite;
+  letter-spacing: 0.18em;
 }
 
 @keyframes breathe {
 
   0%,
   100% {
-    opacity: 0.2;
+    opacity: 0.15;
   }
 
   50% {
-    opacity: 0.55;
+    opacity: 0.45;
   }
 }
 

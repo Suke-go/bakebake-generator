@@ -124,6 +124,9 @@ export async function POST(req: Request) {
                         const generated = await genAI.models.generateContent({
                             model: 'gemini-2.0-flash',
                             contents: prompt,
+                            config: {
+                                responseMimeType: 'application/json',
+                            }
                         });
                         if (!generated?.text) {
                             throw new Error('Empty response from Gemini');
@@ -134,6 +137,7 @@ export async function POST(req: Request) {
                     MAX_RETRY_ATTEMPTS,
                     INITIAL_RETRY_DELAY_MS,
                     (error) => {
+                        if (req.signal.aborted) return true;
                         if (isRateLimitError(error)) {
                             nextRequestAllowedAt = Date.now() + RATE_LIMIT_COOLDOWN_MS;
                             return true;

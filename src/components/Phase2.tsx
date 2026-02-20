@@ -289,6 +289,7 @@ export default function Phase2() {
     }, [stage, showConceptIntro, visibleConcepts, conceptData.length]);
 
     const handleSelect = (idx: number) => {
+        if (selectedIdx !== null) return;
         setSelectedIdx(idx);
         setShowCustomInput(false);
         selectConcept(conceptData[idx]);
@@ -296,7 +297,10 @@ export default function Phase2() {
     };
 
     const handleCustomName = () => {
-        if (!customName.trim()) return;
+        if (!customName.trim() || selectedIdx !== null) return;
+        if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur();
+        }
         const custom: YokaiConcept = {
             source: 'llm',
             name: customName.trim(),

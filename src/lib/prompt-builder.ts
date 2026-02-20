@@ -45,15 +45,15 @@ export function buildSearchQuery(handle: HandleInfo, answers: UserAnswers): stri
     // 体験の要約
     parts.push(handle.text.replace('\n', ''));
 
-    if (answers.event) parts.push(`${answers.event}とき`);
-    if (answers.where) parts.push(`${answers.where}で`);
-    if (answers.when) parts.push(`（${answers.when}）`);
-    if (answers.noticed) parts.push(`${answers.noticed}`);
-    if (answers.texture) parts.push(`体の感覚は${answers.texture}`);
-    if (answers.alone) parts.push(answers.alone);
-    if (answers.reaction) parts.push(`そのとき${answers.reaction}`);
-    if (answers.stance) parts.push(`いまは${answers.stance}`);
-    if (answers.absence) parts.push(`姿は${answers.absence}`);
+    if (answers.event?.trim()) parts.push(`${answers.event}とき`);
+    if (answers.where?.trim()) parts.push(`${answers.where}で`);
+    if (answers.when?.trim()) parts.push(`（${answers.when}）`);
+    if (answers.noticed?.trim()) parts.push(`${answers.noticed}`);
+    if (answers.texture?.trim()) parts.push(`体の感覚は${answers.texture}`);
+    if (answers.alone?.trim()) parts.push(answers.alone);
+    if (answers.reaction?.trim()) parts.push(`そのとき${answers.reaction}`);
+    if (answers.stance?.trim()) parts.push(`いまは${answers.stance}`);
+    if (answers.absence?.trim()) parts.push(`姿は${answers.absence}`);
 
     return parts.join('。') + '。';
 }

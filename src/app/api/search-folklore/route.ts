@@ -53,94 +53,111 @@ function buildFallbackFolklore(entries: Array<{
 }
 
 type SearchCacheEntry = {
-  value: {
-    folklore: SearchResult[];
-    searchQuery: string;
-  };
-  expiresAt: number;
+    value: {
+        folklore: SearchResult[];
+        searchQuery: string;
+    };
+    expiresAt: number;
 };
 
 const searchCache = new Map<string, SearchCacheEntry>();
 const inFlightSearch = new Map<string, Promise<{ folklore: SearchResult[]; searchQuery: string }>>();
+let cacheAddCount = 0;
+
+function sweepCache() {
+    const now = Date.now();
+    for (const [key, entry] of searchCache.entries()) {
+        if (entry.expiresAt < now) {
+            searchCache.delete(key);
+        }
+    }
+}
 
 function buildSearchCacheKey(handleId: string, answers: Record<string, string>): string {
-  const sortedAnswers = Object.keys(answers)
-    .sort()
-    .map((key) => `${key}:${answers[key] ?? ''}`)
-    .join('|');
-  return `${handleId}|${sortedAnswers}`;
+    const sortedAnswers = Object.keys(answers)
+        .sort()
+        .map((key) => `${key}:${answers[key] ?? ''}`)
+        .join('|');
+    return `${handleId}|${sortedAnswers}`;
 }
 
 function setSearchCache(key: string, value: { folklore: SearchResult[]; searchQuery: string }) {
-  if (searchCache.size >= SEARCH_RESULT_CACHE_SIZE) {
-    const oldestKey = searchCache.keys().next().value;
-    if (oldestKey) {
-      searchCache.delete(oldestKey);
+    if (searchCache.size >= SEARCH_RESULT_CACHE_SIZE) {
+        const oldestKey = searchCache.keys().next().value;
+        if (oldestKey) {
+            searchCache.delete(oldestKey);
+        }
     }
-  }
-  searchCache.set(key, { value, expiresAt: Date.now() + SEARCH_CACHE_TTL_MS });
+    searchCache.set(key, { value, expiresAt: Date.now() + SEARCH_CACHE_TTL_MS });
+
+    cacheAddCount++;
+    if (cacheAddCount % 50 === 0) {
+        sweepCache();
+    }
 }
 
 function getSearchCache(key: string): { folklore: SearchResult[]; searchQuery: string } | null {
-  const entry = searchCache.get(key);
-  if (!entry) return null;
-  if (entry.expiresAt < Date.now()) {
-    searchCache.delete(key);
-    return null;
-  }
-  return entry.value;
+    const entry = searchCache.get(key);
+    if (!entry) return null;
+    if (entry.expiresAt < Date.now()) {
+        searchCache.delete(key);
+        return null;
+    }
+    return entry.value;
 }
 
 async function runSearchFallback(
-  searchQuery: string,
-  apiKey: string,
-  handleId: string,
-  answers: Record<string, string>
+    searchQuery: string,
+    apiKey: string,
+    handleId: string,
+    answers: Record<string, string>,
+    signal: AbortSignal
 ) {
-  const genAI = new GoogleGenAI({ apiKey });
-  let queryEmbedding: number[] | null = null;
+    const genAI = new GoogleGenAI({ apiKey });
+    let queryEmbedding: number[] | null = null;
 
-  try {
-      const embeddingResult = await withExponentialBackoff(
-        async () => {
-        return genAI.models.embedContent({
-        model: 'gemini-embedding-001',
-        contents: searchQuery,
-        config: {
-          taskType: 'SEMANTIC_SIMILARITY',
-        },
-      });
-    },
-        'search-folklore',
-        MAX_RETRY_ATTEMPTS,
-        INITIAL_RETRY_DELAY_MS,
-        (error) => {
-          if (isRateLimitError(error)) {
-            searchRateLimitUntil = Date.now() + RATE_LIMIT_COOLDOWN_MS;
-            return true;
-          }
-          return false;
+    try {
+        const embeddingResult = await withExponentialBackoff(
+            async () => {
+                return genAI.models.embedContent({
+                    model: 'gemini-embedding-001',
+                    contents: searchQuery,
+                    config: {
+                        taskType: 'SEMANTIC_SIMILARITY',
+                    },
+                });
+            },
+            'search-folklore',
+            MAX_RETRY_ATTEMPTS,
+            INITIAL_RETRY_DELAY_MS,
+            (error) => {
+                if (signal.aborted) return true;
+                if (isRateLimitError(error)) {
+                    searchRateLimitUntil = Date.now() + RATE_LIMIT_COOLDOWN_MS;
+                    return true;
+                }
+                return false;
+            }
+        );
+
+        const values = embeddingResult.embeddings?.[0]?.values;
+        if (!values) {
+            throw new Error('Failed to generate query embedding');
         }
-      );
-
-    const values = embeddingResult.embeddings?.[0]?.values;
-    if (!values) {
-      throw new Error('Failed to generate query embedding');
+        queryEmbedding = values;
+    } catch (error) {
+        console.warn('search-folklore: embedding failed, fallback to local order:', toErrorMessage(error));
     }
-    queryEmbedding = values;
-  } catch (error) {
-    console.warn('search-folklore: embedding failed, fallback to local order:', toErrorMessage(error));
-  }
 
-  const entries = await loadEmbeddings();
+    const entries = await loadEmbeddings();
 
-  if (!queryEmbedding) {
-    const fallback = buildFallbackFolklore(entries, handleId, answers);
-    return { folklore: fallback, searchQuery };
-  }
+    if (!queryEmbedding) {
+        const fallback = buildFallbackFolklore(entries, handleId, answers);
+        return { folklore: fallback, searchQuery };
+    }
 
-  const results = searchByEmbedding(queryEmbedding, entries, 5);
-  return { folklore: results, searchQuery };
+    const results = searchByEmbedding(queryEmbedding, entries, 5);
+    return { folklore: results, searchQuery };
 }
 
 export async function POST(req: Request) {
@@ -249,8 +266,8 @@ export async function POST(req: Request) {
             );
         }
 
-         const promise = runSearchFallback(searchQuery, apiKey, handle.id, answersNormalized);
-         inFlightSearch.set(cacheKey, promise);
+        const promise = runSearchFallback(searchQuery, apiKey, handle.id, answersNormalized, req.signal);
+        inFlightSearch.set(cacheKey, promise);
 
         try {
             const result = await promise;

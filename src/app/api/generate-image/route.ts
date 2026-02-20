@@ -72,6 +72,16 @@ type ImageRequestState = {
 
 const imageRequestCache = new Map<string, ImageRequestState>();
 const imageRequestInFlight = new Map<string, Promise<ImageApiResponse>>();
+let imageCacheAddCount = 0;
+
+function sweepImageCache() {
+    const now = Date.now();
+    for (const [key, entry] of imageRequestCache.entries()) {
+        if (entry.expiresAt < now) {
+            imageRequestCache.delete(key);
+        }
+    }
+}
 
 function isRateLimitError(error: unknown): boolean {
     const status = getStatusCode(error);
@@ -99,6 +109,11 @@ function setImageCache(key: string, value: ImageApiResponse) {
         value,
         expiresAt: Date.now() + IMAGE_CACHE_TTL_MS,
     });
+
+    imageCacheAddCount++;
+    if (imageCacheAddCount % 50 === 0) {
+        sweepImageCache();
+    }
 }
 
 function buildImageRequestKey(
@@ -214,7 +229,8 @@ async function generateImageWithFallback(
     genAI: GoogleGenAI | null,
     openai: OpenAI | null,
     sdApiUrl: string | undefined,
-    imagePrompt: string
+    imagePrompt: string,
+    signal: AbortSignal
 ): Promise<{ base64: string; mimeType: string; usedModel: string }> {
     const warnings: string[] = [];
     let lastError = new Error('Image generation unavailable');
@@ -231,6 +247,7 @@ async function generateImageWithFallback(
                         config: request.config,
                     }) as Promise<ImageGenerationResponse>;
                 }, model, MAX_RETRY_ATTEMPTS, INITIAL_RETRY_DELAY_MS, (error) => {
+                    if (signal.aborted) return true;
                     if (isRateLimitError(error)) {
                         imageRequestAllowedAt = Date.now() + (getRetryDelayMs(error) ?? RATE_LIMIT_COOLDOWN_MS);
                         return true;
@@ -281,7 +298,8 @@ async function generateImageWithFallback(
 async function generateNarrativeWithFallback(
     genAI: GoogleGenAI | null,
     openai: OpenAI | null,
-    narrativePrompt: string
+    narrativePrompt: string,
+    signal: AbortSignal
 ): Promise<string> {
     let narrativeText = '';
     let geminiFailed = false;
@@ -294,6 +312,7 @@ async function generateNarrativeWithFallback(
                     contents: narrativePrompt,
                 }) as Promise<ImageGenerationResponse>;
             }, TEXT_MODEL, MAX_RETRY_ATTEMPTS, INITIAL_RETRY_DELAY_MS, (error) => {
+                if (signal.aborted) return true;
                 if (isRateLimitError(error)) {
                     imageRequestAllowedAt = Date.now() + (getRetryDelayMs(error) ?? RATE_LIMIT_COOLDOWN_MS);
                     return true;
@@ -461,11 +480,11 @@ export async function POST(req: Request) {
             );
             const warnings: string[] = [];
 
-            const imageResultPromise = generateImageWithFallback(genAI, openaiClient, sdApiUrl, imagePromptText).catch((error: unknown) => {
+            const imageResultPromise = generateImageWithFallback(genAI, openaiClient, sdApiUrl, imagePromptText, req.signal).catch((error: unknown) => {
                 warnings.push(`Image generation: ${toErrorMessage(error)}`);
                 throw error;
             });
-            const narrativeResultPromise = generateNarrativeWithFallback(genAI, openaiClient, narrativePrompt).catch((error: unknown) => {
+            const narrativeResultPromise = generateNarrativeWithFallback(genAI, openaiClient, narrativePrompt, req.signal).catch((error: unknown) => {
                 warnings.push(`Narrative generation: ${toErrorMessage(error)}`);
                 return '';
             });

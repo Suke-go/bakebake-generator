@@ -40,6 +40,7 @@ export default function Phase3() {
     const [showStyleOptions, setShowStyleOptions] = useState(false);
     const [input, setInput] = useState('');
     const [showDescribe, setShowDescribe] = useState(false);
+    const [isTransitioning, setIsTransitioning] = useState(false);
 
     useEffect(() => {
         if (step === 'style') {
@@ -62,12 +63,22 @@ export default function Phase3() {
     }, [step]);
 
     const handleStyleSelect = (style: ArtStyle) => {
+        if (isTransitioning) return;
+        setIsTransitioning(true);
         setSelectedStyle(style);
         setArtStyle(style);
-        setTimeout(() => setStep('describe'), 420);
+        setTimeout(() => {
+            setStep('describe');
+            setIsTransitioning(false);
+        }, 420);
     };
 
     const handleSubmit = () => {
+        if (isTransitioning) return;
+        setIsTransitioning(true);
+        if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur();
+        }
         if (input.trim()) {
             setVisualInput(input.trim());
         }

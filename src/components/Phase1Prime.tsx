@@ -110,6 +110,10 @@ export default function Phase1Prime() {
     }, [history, currentStep]);
 
     const answerStep = (value: string) => {
+        if (!value.trim()) return;
+        if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur();
+        }
         const step = STEPS[currentStep];
         const nextAnswers = { ...answers, [step.id]: value };
         setAnswers(nextAnswers);

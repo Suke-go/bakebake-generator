@@ -12,6 +12,7 @@ export default function Phase1() {
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [freeText, setFreeText] = useState('');
     const inputRef = useRef<HTMLTextAreaElement>(null);
+    const [isTransitioning, setIsTransitioning] = useState(false);
 
     useEffect(() => {
         const t1 = setTimeout(() => setShowIntro(true), 300);
@@ -29,13 +30,19 @@ export default function Phase1() {
     }, [showOptions, selectedId]);
 
     const handleSelect = (handle: (typeof HANDLES)[0]) => {
+        if (isTransitioning) return;
+        setIsTransitioning(true);
         setSelectedId(handle.id);
         setHandle(handle);
         setTimeout(() => goToPhase(1.5), 700);
     };
 
     const handleFreeSubmit = () => {
-        if (!freeText.trim()) return;
+        if (!freeText.trim() || isTransitioning) return;
+        setIsTransitioning(true);
+        if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur();
+        }
         setSelectedId('free');
         setHandle({ id: 'free', text: freeText.trim(), shortText: '自由入力' });
         setTimeout(() => goToPhase(1.5), 700);
