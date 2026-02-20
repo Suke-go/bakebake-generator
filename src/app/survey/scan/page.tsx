@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import '@/app/globals.css';
@@ -9,31 +9,32 @@ export default function SurveyScanPage() {
     const router = useRouter();
     const [scanResult, setScanResult] = useState<string | null>(null);
     const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+    const hasScanned = useRef(false);
+
+    const handleDecode = useCallback((decodedText: string) => {
+        if (hasScanned.current) return;
+        hasScanned.current = true;
+        setScanResult(decodedText);
+        if (scannerRef.current) {
+            scannerRef.current.clear().catch(console.error);
+            scannerRef.current = null;
+        }
+    }, []);
 
     useEffect(() => {
-        // Initialize scanner
-        if (!scannerRef.current) {
-            scannerRef.current = new Html5QrcodeScanner(
-                "qr-reader",
-                { fps: 10, qrbox: { width: 250, height: 250 } },
-                false
-            );
+        if (scannerRef.current || hasScanned.current) return;
 
-            scannerRef.current.render(
-                (decodedText) => {
-                    // Stop scanning if we get a result
-                    if (!scanResult) {
-                        setScanResult(decodedText);
-                        if (scannerRef.current) {
-                            scannerRef.current.clear().catch(console.error);
-                        }
-                    }
-                },
-                (errorMessage) => {
-                    // parse errors can be ignored safely
-                }
-            );
-        }
+        const scanner = new Html5QrcodeScanner(
+            "qr-reader",
+            { fps: 10, qrbox: { width: 250, height: 250 } },
+            false
+        );
+        scannerRef.current = scanner;
+
+        scanner.render(
+            (decodedText) => handleDecode(decodedText),
+            () => { /* ignore parse errors */ }
+        );
 
         return () => {
             if (scannerRef.current) {
@@ -41,19 +42,17 @@ export default function SurveyScanPage() {
                 scannerRef.current = null;
             }
         };
-    }, [scanResult]);
+    }, [handleDecode]);
 
     useEffect(() => {
         if (scanResult) {
-            // Found a QR code, presumably the session ID
-            // Optional: validate it's a UUID here, but for now just redirect
             router.push(`/survey/exit?id=${scanResult}`);
         }
     }, [scanResult, router]);
 
     return (
         <div style={{
-            minHeight: '100vh',
+            minHeight: '100dvh',
             padding: '2rem',
             display: 'flex',
             flexDirection: 'column',
@@ -86,7 +85,10 @@ export default function SurveyScanPage() {
             )}
 
             <button
-                onClick={() => setScanResult(null)}
+                onClick={() => {
+                    hasScanned.current = false;
+                    setScanResult(null);
+                }}
                 className="interactive-button"
                 style={{ marginTop: '3rem', padding: '0.8rem 1.5rem', opacity: 0.6 }}
             >

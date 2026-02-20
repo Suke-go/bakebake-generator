@@ -360,7 +360,7 @@ function getRateLimitState(): 'active' | 'inactive' {
     return Date.now() < imageRequestAllowedAt ? 'active' : 'inactive';
 }
 
-export const maxDuration = 120;
+export const maxDuration = 60;
 
 export async function POST(req: Request) {
     const startedAt = Date.now();

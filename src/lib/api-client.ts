@@ -304,7 +304,7 @@ async function requestJsonInternal<T>(
 }
 
 /**
- * Phase 1' 縺九ｉ縺ｮ莨晄価讀懃ｴ｢ API
+ * Phase 1' からの伝承検索 API
  */
 export async function searchFolklore(
     handle: { id: string; text: string },
@@ -346,7 +346,7 @@ export async function searchFolklore(
 }
 
 /**
- * 莨晄価陦ｨ遉ｺ 竊・讎ょｿｵ逕滓・ API
+ * 伝承表示 → 概念生成 API
  */
 export async function generateConcepts(
     folklore: SearchResult[],
@@ -384,7 +384,7 @@ export async function generateConcepts(
 }
 
 /**
- * Phase 3 逕ｻ蜒冗函謌・API
+ * Phase 3 画像生成 API
  */
 export async function generateImage(
     concept: { name: string; reading: string; description: string },

@@ -97,7 +97,8 @@ function ExitSurveyForm() {
                     post_theme: theme.trim(),
                     post_impression: impression.trim(),
                     post_selections: selections,
-                    post_action: actionLog
+                    post_action: actionLog,
+                    post_systems: systems
                 })
                 .eq('id', id);
 
@@ -125,7 +126,7 @@ function ExitSurveyForm() {
     if (isComplete) {
         return (
             <div style={{
-                minHeight: '100vh',
+                minHeight: '100dvh',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
@@ -146,13 +147,20 @@ function ExitSurveyForm() {
                 >
                     トップへ戻る
                 </button>
+                <button
+                    onClick={() => router.push('/survey/enter')}
+                    className="interactive-button"
+                    style={{ marginTop: '1rem', padding: '0.8rem 1.5rem', opacity: 0.6, fontSize: '0.9rem' }}
+                >
+                    もう一度参加する
+                </button>
             </div>
         );
     }
 
     return (
         <div style={{
-            minHeight: '100vh',
+            minHeight: '100dvh',
             padding: '2rem',
             display: 'flex',
             flexDirection: 'column',

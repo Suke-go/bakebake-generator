@@ -23,11 +23,8 @@ export default function Phase1() {
         };
     }, []);
 
-    useEffect(() => {
-        if (showOptions && inputRef.current && !selectedId) {
-            inputRef.current.focus();
-        }
-    }, [showOptions, selectedId]);
+
+
 
     const handleSelect = (handle: (typeof HANDLES)[0]) => {
         if (isTransitioning) return;

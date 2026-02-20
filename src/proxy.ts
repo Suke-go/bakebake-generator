@@ -31,7 +31,7 @@ export function proxy(req: NextRequest) {
     });
 }
 
-// Config to limit proxy to specific paths
+// Config to limit middleware to specific paths
 export const config = {
     matcher: ['/generator/:path*', '/admin/:path*'],
 };

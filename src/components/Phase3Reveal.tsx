@@ -5,7 +5,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useApp } from '@/lib/context';
 import { generateImage } from '@/lib/api-client';
 import ProgressDots from './ProgressDots';
-import { Html5QrcodeScanner } from 'html5-qrcode';
 import { supabase } from '@/lib/supabase';
 
 const compressImage = (dataUrl: string, maxSize = 512): Promise<string> => {
@@ -236,7 +235,7 @@ function FogGenerationCanvas({ onComplete }: { onComplete: () => void }) {
 }
 
 export default function Phase3Reveal() {
-    const { state, goToPhase, setNarrative, setGeneratedImage } = useApp();
+    const { state, goToPhase, setNarrative, setGeneratedImage, resetState } = useApp();
     const [fogDone, setFogDone] = useState(false);
     const [showImage, setShowImage] = useState(false);
     const [showName, setShowName] = useState(false);
@@ -253,12 +252,9 @@ export default function Phase3Reveal() {
     const activeRequestKeyRef = useRef<string | null>(null);
     const cachedImageUrlRef = useRef<string | null>(state.generatedImageUrl);
 
-    // QR Scanning & Save State
-    const [isScanning, setIsScanning] = useState(false);
-    const [scanError, setScanError] = useState('');
+    // Save State
     const [saveSuccess, setSaveSuccess] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
-    const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+    const [saveError, setSaveError] = useState('');
     const [isTransitioning, setIsTransitioning] = useState(false);
 
     const abortCurrentRequest = useCallback((reason: string) => {
@@ -374,6 +370,27 @@ export default function Phase3Reveal() {
 
             setNarrative(data.narrative);
             setApiDone(true);
+
+            // 生成完了時に自動保存
+            if (state.ticketId && data.imageBase64) {
+                try {
+                    const compressedB64 = await compressImage(
+                        `data:${data.imageMimeType};base64,${data.imageBase64}`
+                    );
+                    await supabase
+                        .from('surveys')
+                        .update({
+                            yokai_name: state.selectedConcept!.name,
+                            yokai_desc: data.narrative,
+                            yokai_image_b64: compressedB64,
+                        })
+                        .eq('id', state.ticketId);
+                    setSaveSuccess(true);
+                } catch (saveErr) {
+                    console.error('Auto-save error:', saveErr);
+                    setSaveError('記録の自動保存に失敗しました。');
+                }
+            }
         } catch (err) {
             if (!mountedRef.current || requestId !== reqRef.current) {
                 return;
@@ -400,6 +417,7 @@ export default function Phase3Reveal() {
         state.artStyle,
         state.visualInput,
         state.answers,
+        state.ticketId,
         setGeneratedImage,
         setNarrative,
     ]);
@@ -409,12 +427,6 @@ export default function Phase3Reveal() {
         return () => {
             mountedRef.current = false;
             abortCurrentRequest('phase3 unmount');
-            if (scannerRef.current) {
-                try {
-                    scannerRef.current.clear().catch(() => { });
-                } catch (e) { }
-                scannerRef.current = null;
-            }
         };
     }, [abortCurrentRequest]);
 
@@ -429,74 +441,7 @@ export default function Phase3Reveal() {
         setFogDone(true);
     }, []);
 
-    useEffect(() => {
-        if (isScanning && !scannerRef.current) {
-            scannerRef.current = new Html5QrcodeScanner(
-                "generator-qr-reader",
-                { fps: 10, qrbox: { width: 250, height: 250 } },
-                false
-            );
 
-            scannerRef.current.render(
-                async (decodedText) => {
-                    if (isSaving || saveSuccess) return;
-                    setIsSaving(true);
-                    setScanError('');
-                    try {
-                        if (scannerRef.current) {
-                            try {
-                                scannerRef.current.clear().catch(() => { });
-                            } catch (e) { }
-                            scannerRef.current = null;
-                        }
-
-                        // Resize image and convert to lightweight JPEG base64
-                        const compressedB64 = state.generatedImageUrl ? await compressImage(state.generatedImageUrl) : null;
-
-                        // Save to Supabase using the scanned ID
-                        const { error: dbError } = await supabase
-                            .from('surveys')
-                            .update({
-                                yokai_name: state.yokaiName,
-                                yokai_desc: state.narrative,
-                                yokai_image_b64: compressedB64
-                            })
-                            .eq('id', decodedText);
-
-                        if (dbError) throw dbError;
-
-                        setSaveSuccess(true);
-                        setIsScanning(false);
-                        setIsSaving(false);
-
-                        // Automatically return to Phase 0 after a short delay
-                        setTimeout(() => {
-                            goToPhase(0);
-                        }, 5000);
-
-                    } catch (err: any) {
-                        console.error("Save error", err);
-                        setScanError("記録の転送に失敗しました。もう一度QRをかざしてください。");
-                        setIsSaving(false);
-                        setIsScanning(false); // Can retry by clicking "保存する" again
-                    }
-                },
-                (err) => {
-                    // Ignore parsing errors
-                }
-            );
-        }
-
-        return () => {
-            // Cleanup scanner when scanning state becomes false
-            if (!isScanning && scannerRef.current) {
-                try {
-                    scannerRef.current.clear().catch(() => { });
-                } catch (e) { }
-                scannerRef.current = null;
-            }
-        };
-    }, [isScanning, isSaving, saveSuccess, state.generatedImageUrl, state.yokaiName, state.narrative, goToPhase]);
 
     const isGenerating = !fogDone || !apiDone;
 
@@ -554,9 +499,8 @@ export default function Phase3Reveal() {
                 )}
                 <div style={{ display: 'flex', gap: 12 }}>
                     <button className="button" onClick={() => {
-                        if (isTransitioning) return;
                         void callApi();
-                    }} disabled={isTransitioning}>
+                    }}>
                         再生成
                     </button>
                     <button className="button button-primary" onClick={() => {
@@ -620,77 +564,49 @@ export default function Phase3Reveal() {
                     </p>
                 )}
 
-                {showActions && !isScanning && !saveSuccess && (
+                {showActions && (
                     <div className="float-up" style={{
                         marginTop: 32,
                         display: 'flex',
-                        gap: 12,
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 16,
                         animationDelay: '0.2s',
                     }}>
-                        <button className="button" onClick={() => {
-                            if (isTransitioning) return;
-                            setIsTransitioning(true);
-                            goToPhase(2);
-                        }} disabled={isTransitioning}>
-                            再生成
-                        </button>
-                        <button className="button" onClick={() => {
-                            if (isTransitioning) return;
-                            setIsTransitioning(true);
-                            goToPhase(0);
-                        }} disabled={isTransitioning}>
-                            初期画面へ戻る
-                        </button>
-                        <button className="button button-primary" onClick={() => setIsScanning(true)} disabled={isTransitioning}>
-                            記録を保存 (QR読取)
-                        </button>
-                    </div>
-                )}
-
-                {isScanning && (
-                    <div className="float-up scan-container" style={{
-                        marginTop: 32,
-                        width: '100%',
-                        maxWidth: '400px',
-                        background: 'rgba(0,0,0,0.5)',
-                        padding: '1rem',
-                        borderRadius: '8px',
-                        border: '1px solid rgba(255,255,255,0.2)'
-                    }}>
-                        <p style={{ textAlign: 'center', marginBottom: '1rem', color: '#fff' }}>
-                            【QRコードをカメラにかざしてください】
+                        {saveSuccess && (
+                            <p style={{ color: '#00ff00', fontSize: 14, marginBottom: 8 }}>
+                                記録が完了しました。
+                            </p>
+                        )}
+                        {saveError && (
+                            <p style={{ color: '#ff6b6b', fontSize: 12, marginBottom: 8 }}>
+                                {saveError}
+                            </p>
+                        )}
+                        <p className="voice" style={{ fontSize: 13, opacity: 0.7 }}>
+                            出口のスタッフへQRコードを再度提示してください。
                         </p>
-                        <div id="generator-qr-reader" style={{ width: '100%' }}></div>
-                        <button className="button" style={{ marginTop: '1rem', width: '100%' }} onClick={() => setIsScanning(false)}>
-                            キャンセル
-                        </button>
-                    </div>
-                )}
-
-                {isSaving && (
-                    <div className="float-up" style={{ marginTop: 32, textAlign: 'center' }}>
-                        <p>保存中…</p>
-                    </div>
-                )}
-
-                {scanError && (
-                    <div className="float-up" style={{ marginTop: 16, color: '#ff6b6b', textAlign: 'center' }}>
-                        <p>{scanError}</p>
-                    </div>
-                )}
-
-                {saveSuccess && (
-                    <div className="float-up" style={{ marginTop: 32, textAlign: 'center' }}>
-                        <p style={{ color: '#00ff00', fontSize: '1.2rem', marginBottom: '1rem' }}>
-                            記録が完了しました。
-                        </p>
-                        <p style={{ opacity: 0.8 }}>
-                            出口のスタッフへ、このQRコードを再度提示してください。<br />
-                            記録のお札を発行いたします。
-                        </p>
-                        <p style={{ marginTop: '2rem', fontSize: '0.9rem', opacity: 0.5 }}>
-                            ※まもなく最初の画面に戻ります
-                        </p>
+                        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+                            <button className="button" onClick={() => {
+                                void callApi();
+                            }}>
+                                再描画
+                            </button>
+                            <button className="button" onClick={() => {
+                                if (isTransitioning) return;
+                                setIsTransitioning(true);
+                                goToPhase(2);
+                            }} disabled={isTransitioning}>
+                                概念から選び直す
+                            </button>
+                            <button className="button" onClick={() => {
+                                if (isTransitioning) return;
+                                setIsTransitioning(true);
+                                resetState();
+                            }} disabled={isTransitioning}>
+                                初期画面へ戻る
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>

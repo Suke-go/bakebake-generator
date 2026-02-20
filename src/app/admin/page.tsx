@@ -74,7 +74,7 @@ export default function AdminDashboardPage() {
 
     return (
         <div style={{
-            minHeight: '100vh',
+            minHeight: '100dvh',
             padding: '2rem',
             background: '#111',
             color: '#fff',

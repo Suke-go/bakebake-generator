@@ -33,6 +33,8 @@ export interface YokaiConcept {
 
 export interface AppState {
   currentPhase: number; // 0, 1, 1.5, 2, 2.5, 3, 3.5
+  // Ticket (参加者のQRスキャンで取得)
+  ticketId: string | null;
   // Phase 1
   selectedHandle: Handle | null;
   artStyle: ArtStyle;
@@ -68,10 +70,13 @@ interface AppContextType {
   setGeneratedImage: (url: string) => void;
   setYokaiName: (name: string) => void;
   setNarrative: (narrative: string) => void;
+  setTicketId: (id: string) => void;
+  resetState: () => void;
 }
 
 const initialState: AppState = {
   currentPhase: 0,
+  ticketId: null,
   selectedHandle: null,
   artStyle: null,
   texture: '',
@@ -152,6 +157,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setState(prev => ({ ...prev, narrative }));
   }, []);
 
+  const setTicketId = useCallback((id: string) => {
+    setState(prev => ({ ...prev, ticketId: id }));
+  }, []);
+
+  const resetState = useCallback(() => {
+    setState(initialState);
+  }, []);
+
   const contextValue = useMemo(() => ({
     state,
     goToPhase,
@@ -168,6 +181,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setGeneratedImage,
     setYokaiName,
     setNarrative,
+    setTicketId,
+    resetState,
   }), [
     state,
     goToPhase,
@@ -184,6 +199,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setGeneratedImage,
     setYokaiName,
     setNarrative,
+    setTicketId,
+    resetState,
   ]);
 
   return (

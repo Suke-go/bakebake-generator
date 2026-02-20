@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { TicketShaderBackground } from '@/components/TicketShader';
 import { supabase } from '@/lib/supabase';
 import '@/app/globals.css';
 
@@ -100,8 +99,13 @@ export default function SurveyTicketPage({ params }: { params: { id: string } })
             justifyContent: 'center',
             backgroundColor: '#000'
         }}>
-            {/* バックグラウンドのWebGLシェーダー演出 */}
-            <TicketShaderBackground />
+            {/* 軽量な静的グラデーション背景（バッテリー節約のためWebGLシェーダーを廃止） */}
+            <div style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 0,
+                background: 'radial-gradient(ellipse at 50% 40%, hsl(270, 30%, 12%) 0%, hsl(230, 24%, 4%) 70%, #000 100%)',
+            }} />
 
             <div style={{
                 position: 'relative',
@@ -144,8 +148,15 @@ export default function SurveyTicketPage({ params }: { params: { id: string } })
                         </p>
 
                         <p className="body-text" style={{ textAlign: 'center', opacity: 0.8, maxWidth: '280px', marginTop: '1rem' }}>
-                            観測にご協力いただきありがとうございました。事後アンケートへお進みください。
+                            観測にご協力いただきありがとうございました。
                         </p>
+                        <a
+                            href={`/survey/exit?id=${id}`}
+                            className="interactive-button"
+                            style={{ marginTop: '1.5rem', padding: '1rem 2rem', textDecoration: 'none', textAlign: 'center' }}
+                        >
+                            事後アンケートへ進む
+                        </a>
                     </div>
                 ) : (
                     // 未記録の表示（QRコード）

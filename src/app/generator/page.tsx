@@ -1,13 +1,15 @@
 'use client';
 
 import { useApp } from '@/lib/context';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Phase0 from '@/components/Phase0';
 import Phase1 from '@/components/Phase1';
 import Phase1Prime from '@/components/Phase1Prime';
 import Phase2 from '@/components/Phase2';
 import Phase3 from '@/components/Phase3';
 import Phase3Reveal from '@/components/Phase3Reveal';
+
+const IDLE_TIMEOUT_MS = 3 * 60 * 1000; // 3分
 
 /**
  * Phase transition: fade out → darkness → fade in
@@ -63,7 +65,131 @@ function PhaseTransition({ phaseKey }: { phaseKey: number }) {
   );
 }
 
+/**
+ * 戻るボタン（左上のゴーストボタン）
+ * Phase 0 以外で表示。タップで1つ前の Phase、長押しで Phase 0 へリセット。
+ */
+function BackButton({ phase, onBack, onReset }: {
+  phase: number;
+  onBack: () => void;
+  onReset: () => void;
+}) {
+  const longPressRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  if (phase === 0) return null;
+
+  const handlePointerDown = () => {
+    longPressRef.current = setTimeout(() => {
+      longPressRef.current = null;
+      onReset();
+    }, 1500);
+  };
+
+  const handlePointerUp = () => {
+    if (longPressRef.current) {
+      clearTimeout(longPressRef.current);
+      longPressRef.current = null;
+      onBack();
+    }
+  };
+
+  return (
+    <button
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={() => {
+        if (longPressRef.current) clearTimeout(longPressRef.current);
+      }}
+      style={{
+        position: 'fixed',
+        top: 18,
+        left: 18,
+        zIndex: 100,
+        width: 40,
+        height: 40,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'transparent',
+        border: 'none',
+        color: 'var(--text-ghost)',
+        fontSize: 20,
+        opacity: 0.15,
+        cursor: 'pointer',
+        transition: 'opacity 0.3s ease',
+        WebkitTapHighlightColor: 'transparent',
+      }}
+      onMouseEnter={e => (e.currentTarget.style.opacity = '0.5')}
+      onMouseLeave={e => (e.currentTarget.style.opacity = '0.15')}
+      aria-label="戻る"
+    >
+      ←
+    </button>
+  );
+}
+
+/**
+ * Phase の逆引きマップ（1つ前の Phase を返す）
+ */
+function getPreviousPhase(current: number): number {
+  if (current <= 0) return 0;
+  if (current <= 1) return 0;
+  if (current <= 1.5) return 1;
+  if (current <= 2) return 1.5;
+  if (current <= 3) return 2;
+  if (current <= 3.5) return 3;
+  return 0;
+}
+
 export default function Home() {
-  const { state } = useApp();
-  return <PhaseTransition phaseKey={state.currentPhase} />;
+  const { state, goToPhase, resetState } = useApp();
+
+  // #4: overflow hidden を generator ルートだけに適用
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
+
+  // #7: アイドルタイムアウト（Phase 0 以外で3分操作なし → Phase 0 にリセット）
+  useEffect(() => {
+    if (state.currentPhase === 0) return;
+
+    let timer = setTimeout(() => resetState(), IDLE_TIMEOUT_MS);
+
+    const resetTimer = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => resetState(), IDLE_TIMEOUT_MS);
+    };
+
+    window.addEventListener('pointerdown', resetTimer);
+    window.addEventListener('keydown', resetTimer);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('pointerdown', resetTimer);
+      window.removeEventListener('keydown', resetTimer);
+    };
+  }, [state.currentPhase, resetState]);
+
+  // #6: 戻るボタンのハンドラー
+  const handleBack = useCallback(() => {
+    goToPhase(getPreviousPhase(state.currentPhase));
+  }, [state.currentPhase, goToPhase]);
+
+  const handleReset = useCallback(() => {
+    resetState();
+  }, [resetState]);
+
+  return (
+    <>
+      <BackButton
+        phase={state.currentPhase}
+        onBack={handleBack}
+        onReset={handleReset}
+      />
+      <PhaseTransition phaseKey={state.currentPhase} />
+    </>
+  );
 }

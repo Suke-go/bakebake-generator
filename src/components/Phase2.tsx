@@ -15,7 +15,7 @@ const SCATTER_POSITIONS = [
 
 const RETRY_MAX = 2;
 const RETRY_BASE_MS = 900;
-const ANIM_INTRO_TO_FOLKLORE_MS = 700;
+const ANIM_INTRO_TO_FOLKLORE_MS = 2400;
 const ANIM_FOLKLORE_TO_CONCEPT_MS = 600;
 const ANIM_FOLKLORE_STEP_MS = 180;
 const ANIM_CONCEPT_STEP_MS = 120;
@@ -163,15 +163,15 @@ export default function Phase2() {
                     ...localFallbackConcepts,
                     {
                         source: 'llm' as const,
-                        name: '補助候補',
+                        name: '名もなき気配',
                         reading: '',
-                        description: '生成が不安定なため、ローカル候補を補助表示しています。',
+                        description: 'まだ名前のない、あなただけが感じた存在。',
                         label: 'local-fallback',
                     },
                 ];
                 setConceptData(conceptFallback as YokaiConcept[]);
                 setConcepts(conceptFallback as YokaiConcept[]);
-                setRetryMsg('概念APIが不安定なため、補助候補で続行します。');
+                setRetryMsg('');
             }
 
             setIsGeneratingConcepts(false);
