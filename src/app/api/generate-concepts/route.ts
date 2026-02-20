@@ -1,4 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
+import OpenAI from 'openai';
 import { NextResponse } from 'next/server';
 import { buildConceptPrompt } from '@/lib/prompt-builder';
 import { getStatusCode, toErrorMessage, withExponentialBackoff } from '@/lib/genai-utils';
@@ -64,10 +65,11 @@ export async function POST(req: Request) {
             );
         }
 
-        const apiKey = process.env.GEMINI_API_KEY;
-        if (!apiKey) {
+        const geminiApiKey = process.env.GEMINI_API_KEY;
+        const openaiApiKey = process.env.OPENAI_API_KEY;
+        if (!geminiApiKey && !openaiApiKey) {
             return NextResponse.json(
-                { error: 'GEMINI_API_KEY not configured' },
+                { error: 'API Keys not configured' },
                 { status: 500 }
             );
         }
@@ -110,36 +112,59 @@ export async function POST(req: Request) {
         }
 
         const conceptAnswers = answers as Record<string, string>;
-        const genAI = new GoogleGenAI({ apiKey });
         const prompt = buildConceptPrompt(handle, conceptAnswers, conceptInput);
         let responseText = '';
+        let geminiFailed = false;
 
-        try {
-            const result = await withExponentialBackoff(
-                async () => {
-                    const generated = await genAI.models.generateContent({
-                        model: 'gemini-2.0-flash',
-                        contents: prompt,
-                    });
-                    if (!generated?.text) {
-                        throw new Error('Empty response from Gemini');
+        if (geminiApiKey) {
+            const genAI = new GoogleGenAI({ apiKey: geminiApiKey });
+            try {
+                const result = await withExponentialBackoff(
+                    async () => {
+                        const generated = await genAI.models.generateContent({
+                            model: 'gemini-2.0-flash',
+                            contents: prompt,
+                        });
+                        if (!generated?.text) {
+                            throw new Error('Empty response from Gemini');
+                        }
+                        return generated;
+                    },
+                    'generate-concepts',
+                    MAX_RETRY_ATTEMPTS,
+                    INITIAL_RETRY_DELAY_MS,
+                    (error) => {
+                        if (isRateLimitError(error)) {
+                            nextRequestAllowedAt = Date.now() + RATE_LIMIT_COOLDOWN_MS;
+                            return true;
+                        }
+                        return false;
                     }
-                    return generated;
-                },
-                'generate-concepts',
-                MAX_RETRY_ATTEMPTS,
-                INITIAL_RETRY_DELAY_MS,
-                (error) => {
-                    if (isRateLimitError(error)) {
-                        nextRequestAllowedAt = Date.now() + RATE_LIMIT_COOLDOWN_MS;
-                        return true;
-                    }
-                    return false;
-                }
-            );
-            responseText = result.text || '';
-        } catch (error) {
-            console.warn('generate-concepts: Gemini call failed, falling back to db concept only:', toErrorMessage(error));
+                );
+                responseText = result.text || '';
+            } catch (error) {
+                console.warn('generate-concepts: Gemini call failed:', toErrorMessage(error));
+                geminiFailed = true;
+            }
+        } else {
+            geminiFailed = true;
+        }
+
+        if (geminiFailed && openaiApiKey) {
+            console.log('generate-concepts: Falling back to OpenAI API...');
+            try {
+                const openai = new OpenAI({ apiKey: openaiApiKey });
+                const openaiResponse = await openai.chat.completions.create({
+                    model: 'gpt-4o-mini',
+                    messages: [
+                        { role: 'system', content: 'You are an expert folklorist AI returning JSON output.' },
+                        { role: 'user', content: prompt }
+                    ],
+                });
+                responseText = openaiResponse.choices[0]?.message?.content || '';
+            } catch (error) {
+                console.warn('generate-concepts: OpenAI fallback failed:', toErrorMessage(error));
+            }
         }
 
         let llmCandidates: Array<{

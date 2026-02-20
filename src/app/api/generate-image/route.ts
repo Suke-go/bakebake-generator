@@ -1,4 +1,5 @@
 import { GoogleGenAI, Modality, type GenerateContentResponse } from '@google/genai';
+import OpenAI from 'openai';
 import { NextResponse } from 'next/server';
 import { getStylePrompt } from '@/lib/art-styles';
 import { buildImagePrompt, buildNarrativePrompt } from '@/lib/prompt-builder';
@@ -160,71 +161,171 @@ function getImagePromptConfig(
     };
 }
 
+async function generateSdImage(sdApiUrl: string, prompt: string, negativePrompt = 'worst quality, normal quality, low quality, low res, blurry, text, watermark'): Promise<{ base64: string; mimeType: string; usedModel: string }> {
+    try {
+        const response = await fetch(`${sdApiUrl}/sdapi/v1/txt2img`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                prompt,
+                negative_prompt: negativePrompt,
+                steps: 20,
+                width: 512,
+                height: 512,
+                sampler_name: 'Euler a'
+            })
+        });
+        if (!response.ok) {
+            throw new Error(`SD API failed: ${response.status}`);
+        }
+        const data = await response.json();
+        const base64Image = data.images?.[0];
+        if (!base64Image) {
+            throw new Error('No image returned from SD API');
+        }
+        return {
+            base64: base64Image,
+            mimeType: 'image/png',
+            usedModel: 'local-sd'
+        };
+    } catch (e) {
+        throw new Error(`SD Generation Error: ${toErrorMessage(e)}`);
+    }
+}
+
+async function generateOpenAiImage(openai: OpenAI, prompt: string): Promise<{ base64: string; mimeType: string; usedModel: string }> {
+    const response = await openai.images.generate({
+        model: 'dall-e-3',
+        prompt: prompt.substring(0, 4000), // DALL-E 3 max prompt length
+        n: 1,
+        size: '1024x1024',
+        response_format: 'b64_json'
+    });
+    const b64 = response.data?.[0]?.b64_json;
+    if (!b64) throw new Error('No base64 image returned from OpenAI');
+    return {
+        base64: b64,
+        mimeType: 'image/png',
+        usedModel: 'dall-e-3'
+    };
+}
+
 async function generateImageWithFallback(
-    genAI: GoogleGenAI,
+    genAI: GoogleGenAI | null,
+    openai: OpenAI | null,
+    sdApiUrl: string | undefined,
     imagePrompt: string
 ): Promise<{ base64: string; mimeType: string; usedModel: string }> {
     const warnings: string[] = [];
-    const lastError = new Error('Image generation unavailable');
+    let lastError = new Error('Image generation unavailable');
 
-    for (const model of GENERATION_MODELS) {
+    // 1. Try Gemini
+    if (genAI) {
+        for (const model of GENERATION_MODELS) {
+            try {
+                const result = await withExponentialBackoff<ImageGenerationResponse>(() => {
+                    const request = getImagePromptConfig(model, imagePrompt);
+                    return genAI.models.generateContent({
+                        model,
+                        contents: request.contents,
+                        config: request.config,
+                    }) as Promise<ImageGenerationResponse>;
+                }, model, MAX_RETRY_ATTEMPTS, INITIAL_RETRY_DELAY_MS, (error) => {
+                    if (isRateLimitError(error)) {
+                        imageRequestAllowedAt = Date.now() + (getRetryDelayMs(error) ?? RATE_LIMIT_COOLDOWN_MS);
+                        return true;
+                    }
+                    return false;
+                });
+
+                const image = getImageFromResponse(result);
+                if (image) {
+                    return { ...image, usedModel: model };
+                }
+            } catch (error) {
+                warnings.push(`Gemini ${model}: ${toErrorMessage(error)}`);
+                lastError = error instanceof Error ? error : new Error(String(error));
+                if (isRateLimitError(error)) {
+                    break; // Skip other Gemini models and proceed to next fallback
+                }
+            }
+        }
+    }
+
+    // 2. Try DALL-E 3
+    if (openai) {
+        console.log('generateImageWithFallback: Falling back to OpenAI DALL-E...');
         try {
-            const result = await withExponentialBackoff<ImageGenerationResponse>(() => {
-                const request = getImagePromptConfig(model, imagePrompt);
+            return await generateOpenAiImage(openai, imagePrompt);
+        } catch (openaiErr) {
+            warnings.push(`OpenAI DALL-E: ${toErrorMessage(openaiErr)}`);
+            lastError = openaiErr instanceof Error ? openaiErr : new Error(String(openaiErr));
+        }
+    }
+
+    // 3. Try Local SD
+    if (sdApiUrl) {
+        console.log('generateImageWithFallback: Falling back to Local SD API...');
+        try {
+            return await generateSdImage(sdApiUrl, imagePrompt);
+        } catch (sdErr) {
+            warnings.push(`Local SD: ${toErrorMessage(sdErr)}`);
+            lastError = sdErr instanceof Error ? sdErr : new Error(String(sdErr));
+        }
+    }
+
+    lastError.message = warnings.join('; ');
+    throw lastError;
+}
+
+async function generateNarrativeWithFallback(
+    genAI: GoogleGenAI | null,
+    openai: OpenAI | null,
+    narrativePrompt: string
+): Promise<string> {
+    let narrativeText = '';
+    let geminiFailed = false;
+
+    if (genAI) {
+        try {
+            const narrativeResult = await withExponentialBackoff<ImageGenerationResponse>(() => {
                 return genAI.models.generateContent({
-                    model,
-                    contents: request.contents,
-                    config: request.config,
+                    model: TEXT_MODEL,
+                    contents: narrativePrompt,
                 }) as Promise<ImageGenerationResponse>;
-            }, model, MAX_RETRY_ATTEMPTS, INITIAL_RETRY_DELAY_MS, (error) => {
+            }, TEXT_MODEL, MAX_RETRY_ATTEMPTS, INITIAL_RETRY_DELAY_MS, (error) => {
                 if (isRateLimitError(error)) {
                     imageRequestAllowedAt = Date.now() + (getRetryDelayMs(error) ?? RATE_LIMIT_COOLDOWN_MS);
                     return true;
                 }
                 return false;
             });
-
-            const image = getImageFromResponse(result);
-            if (image) {
-                return { ...image, usedModel: model };
-            }
-            warnings.push(`${model}: no inline image in response`);
+            narrativeText = narrativeResult.text || '';
         } catch (error) {
-            if (isRateLimitError(error)) {
-                throw error;
-            }
-            warnings.push(`${model}: ${toErrorMessage(error)}`);
-            if (model === GENERATION_MODELS[GENERATION_MODELS.length - 1]) {
-                lastError.message = warnings.join('; ');
-            }
+            console.warn('generateNarrativeWithFallback: Gemini failed:', toErrorMessage(error));
+            geminiFailed = true;
+        }
+    } else {
+        geminiFailed = true;
+    }
+
+    if (geminiFailed && openai) {
+        console.log('generateNarrativeWithFallback: Falling back to OpenAI API...');
+        try {
+            const openaiResponse = await openai.chat.completions.create({
+                model: 'gpt-4o-mini',
+                messages: [
+                    { role: 'system', content: 'You are an expert folklorist AI.' },
+                    { role: 'user', content: narrativePrompt }
+                ],
+            });
+            narrativeText = openaiResponse.choices[0]?.message?.content || '';
+        } catch (error) {
+            console.warn('generateNarrativeWithFallback: OpenAI fallback failed:', toErrorMessage(error));
         }
     }
 
-    throw lastError;
-}
-
-async function generateNarrativeWithFallback(
-    genAI: GoogleGenAI,
-    narrativePrompt: string
-): Promise<string> {
-    try {
-        const narrativeResult = await withExponentialBackoff<ImageGenerationResponse>(() => {
-            return genAI.models.generateContent({
-                model: TEXT_MODEL,
-                contents: narrativePrompt,
-            }) as Promise<ImageGenerationResponse>;
-        }, TEXT_MODEL, MAX_RETRY_ATTEMPTS, INITIAL_RETRY_DELAY_MS, (error) => {
-            if (isRateLimitError(error)) {
-                imageRequestAllowedAt = Date.now() + (getRetryDelayMs(error) ?? RATE_LIMIT_COOLDOWN_MS);
-                return true;
-            }
-            return false;
-        });
-
-        return narrativeResult.text || '';
-    } catch {
-        return '';
-    }
+    return narrativeText;
 }
 
 function buildRateLimitResponse(): ImageApiResponse {
@@ -307,10 +408,13 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'visualInput must be a string' }, { status: 400 });
         }
 
-        const apiKey = process.env.GEMINI_API_KEY;
-        if (!apiKey) {
+        const geminiApiKey = process.env.GEMINI_API_KEY;
+        const openaiApiKey = process.env.OPENAI_API_KEY;
+        const sdApiUrl = process.env.SD_API_URL;
+
+        if (!geminiApiKey && !openaiApiKey && !sdApiUrl) {
             return NextResponse.json(
-                { error: 'GEMINI_API_KEY not configured' },
+                { error: 'No generation APIs are configured' },
                 { status: 500 }
             );
         }
@@ -340,11 +444,14 @@ export async function POST(req: Request) {
         }
 
         const requestPromise = (async (): Promise<ImageApiResponse> => {
-            if (Date.now() < imageRequestAllowedAt) {
+            // Rate limit only applies to Gemini; if we have fallbacks, we can proceed.
+            if (Date.now() < imageRequestAllowedAt && !openaiApiKey && !sdApiUrl) {
                 return buildRateLimitResponse();
             }
 
-            const genAI = new GoogleGenAI({ apiKey });
+            const genAI = geminiApiKey ? new GoogleGenAI({ apiKey: geminiApiKey }) : null;
+            const openaiClient = openaiApiKey ? new OpenAI({ apiKey: openaiApiKey }) : null;
+
             const stylePrompt = getStylePrompt(artStyle);
             const imagePromptText = buildImagePrompt(concept, stylePrompt, visualInput);
             const narrativePrompt = buildNarrativePrompt(
@@ -354,11 +461,11 @@ export async function POST(req: Request) {
             );
             const warnings: string[] = [];
 
-            const imageResultPromise = generateImageWithFallback(genAI, imagePromptText).catch((error: unknown) => {
+            const imageResultPromise = generateImageWithFallback(genAI, openaiClient, sdApiUrl, imagePromptText).catch((error: unknown) => {
                 warnings.push(`Image generation: ${toErrorMessage(error)}`);
                 throw error;
             });
-            const narrativeResultPromise = generateNarrativeWithFallback(genAI, narrativePrompt).catch((error: unknown) => {
+            const narrativeResultPromise = generateNarrativeWithFallback(genAI, openaiClient, narrativePrompt).catch((error: unknown) => {
                 warnings.push(`Narrative generation: ${toErrorMessage(error)}`);
                 return '';
             });
