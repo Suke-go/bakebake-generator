@@ -1,7 +1,7 @@
 export default function LandingPage() {
     return (
         <div style={{
-            minHeight: '100dvh',
+            height: '100dvh',
             width: '100vw',
             backgroundColor: 'var(--bg-main)',
             color: 'var(--text-main)',
