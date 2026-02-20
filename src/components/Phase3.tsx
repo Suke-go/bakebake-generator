@@ -164,16 +164,19 @@ export default function Phase3() {
             />
 
             <div style={{ marginTop: 20, display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
-                <button className="button" onClick={handleSubmit}>
-                    おまかせ
-                </button>
-                <button
-                    className="button button-primary"
-                    onClick={handleSubmit}
-                    style={{ opacity: input.trim() ? 1 : 0.5 }}
-                >
-                    つづける
-                </button>
+                {!input.trim() ? (
+                    <button className="button" onClick={handleSubmit}>
+                        おまかせ
+                    </button>
+                ) : (
+                    <button
+                        className="button button-primary"
+                        onClick={handleSubmit}
+                        style={{ opacity: 1 }}
+                    >
+                        この言葉で結ぶ
+                    </button>
+                )}
             </div>
 
             <ProgressDots current={4} />

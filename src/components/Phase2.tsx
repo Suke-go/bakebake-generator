@@ -33,6 +33,7 @@ export default function Phase2() {
     const [retryMsg, setRetryMsg] = useState('');
     const [isFetching, setIsFetching] = useState(false);
     const [isGeneratingConcepts, setIsGeneratingConcepts] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
 
     const [folkloreData, setFolkloreData] = useState<Array<{
         id: string;
@@ -233,9 +234,14 @@ export default function Phase2() {
         mountedRef.current = true;
         void fetchData();
 
+        const checkMobile = () => setIsMobile(window.innerWidth < 640);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+
         return () => {
             mountedRef.current = false;
             inFlightRef.current = false;
+            window.removeEventListener('resize', checkMobile);
             abortCurrentRequest('phase2 unmount');
             if (retryTimerRef.current) {
                 clearTimeout(retryTimerRef.current);
@@ -354,9 +360,9 @@ export default function Phase2() {
                     <p className="label fade-in" style={{ marginBottom: 16 }}>
                         関連する伝承
                     </p>
-                    <div className="folklore-field" style={{ minHeight: fieldHeight }}>
+                    <div className="folklore-field" style={{ minHeight: isMobile ? 'auto' : fieldHeight }}>
                         {folkloreData.slice(0, visibleFolklore).map((f, i) => {
-                            const pos = SCATTER_POSITIONS[i % SCATTER_POSITIONS.length];
+                            const pos = isMobile ? { position: 'relative' as const, marginBottom: '24px' } : SCATTER_POSITIONS[i % SCATTER_POSITIONS.length];
                             return (
                                 <div
                                     key={f.id}
@@ -364,6 +370,7 @@ export default function Phase2() {
                                     style={{
                                         ...pos,
                                         animationDelay: `${i * 0.3}s`,
+                                        transform: isMobile ? 'none' : undefined,
                                     }}
                                 >
                                     <p className="folklore-name">{f.kaiiName}</p>

@@ -82,7 +82,7 @@ export default function Phase0() {
                     animation: stage === 3 ? 'breathe 4s ease-in-out infinite' : 'none',
                 }}
             >
-                画面をタップしてはじめる
+                画面にふれて、はじめる
             </p>
         </div>
     );

@@ -61,7 +61,7 @@ export default function Phase1() {
                                 lineHeight: 1.9,
                             }}
                         >
-                            自由入力を先に書く
+                            直接、言葉にする
                         </p>
                         <textarea
                             ref={inputRef}
@@ -79,7 +79,7 @@ export default function Phase1() {
                                 style={{ opacity: freeText.trim() && !selectedId ? 1 : 0.4 }}
                                 disabled={!freeText.trim() || !!selectedId}
                             >
-                                この内容で進む
+                                この体験をたどる
                             </button>
                         </div>
                     </div>
@@ -88,7 +88,7 @@ export default function Phase1() {
                         className="label"
                         style={{ marginBottom: 10, marginTop: 6 }}
                     >
-                        または、近い体験を選ぶ
+                        近い体験から探す
                     </p>
 
                     {HANDLES.map((handle, i) => (

@@ -20,14 +20,14 @@ const STEPS: StepDef[] = [
         subtext: '最初に浮かぶ言葉を、そのまま書いてください。',
         type: 'choice+text',
         options: ['背後に気配を感じた', '視線だけを感じた', '声を聞いた', '物の位置が変わった', '写真に違和感があった'],
-        placeholder: '自由に書く',
+        placeholder: '自由に入力する',
     },
     {
         id: 'where',
         question: 'どこで起きましたか。',
         type: 'choice+text',
         options: ['自宅', '通勤・通学路', '職場・学校', '旅先', '水辺', '決まっていない'],
-        placeholder: '場所を追記',
+        placeholder: '自由に入力する',
     },
     {
         id: 'when',
@@ -41,7 +41,7 @@ const STEPS: StepDef[] = [
         subtext: '音・匂い・温度・光・視線など',
         type: 'choice+text',
         options: ['音', '匂い', '温度', '光', '視線'],
-        placeholder: 'ほかにあれば自由入力',
+        placeholder: '自由に入力する',
     },
     {
         id: 'texture',
@@ -49,7 +49,7 @@ const STEPS: StepDef[] = [
         subtext: '手触りや温度感の比喩でかまいません。',
         type: 'choice+text',
         options: ['冷たい', '重い', '湿っている', 'ざらつく', '乾いている'],
-        placeholder: '自由に表現',
+        placeholder: '自由に入力する',
     },
     {
         id: 'alone',
@@ -62,7 +62,7 @@ const STEPS: StepDef[] = [
         question: 'その時、どうしましたか。',
         type: 'choice+text',
         options: ['動けなかった', 'その場を離れた', '確かめた', '誰かに話した', '見ないふりをした'],
-        placeholder: 'ほかの行動があれば入力',
+        placeholder: '自由に入力する',
     },
     {
         id: 'stance',
@@ -70,11 +70,11 @@ const STEPS: StepDef[] = [
         subtext: '正解はありません。',
         type: 'choice+text',
         options: ['避けたい', '見届けたい', '話しかけたい', '忘れたい', '知りたい'],
-        placeholder: '自由に書く',
+        placeholder: '自由に入力する',
     },
     {
         id: 'absence',
-        question: 'その気配は、見たと言えますか。',
+        question: 'その気配の姿は、見えましたか。',
         subtext: '近い感覚を選んでください。',
         type: 'choice',
         options: ['見えなかった', '輪郭だけ見えた', 'はっきり見えた'],
@@ -223,9 +223,14 @@ export default function Phase1Prime() {
                         <input
                             type="text"
                             className="text-input"
-                            placeholder={step.placeholder || '自由入力'}
+                            placeholder={step.placeholder || '自由に入力する'}
                             value={customText}
                             onChange={(e) => setCustomText(e.target.value)}
+                            onFocus={(e) => {
+                                setTimeout(() => {
+                                    e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                }, 300);
+                            }}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' && customText.trim()) {
                                     answerStep(customText.trim());

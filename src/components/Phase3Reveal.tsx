@@ -5,6 +5,40 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useApp } from '@/lib/context';
 import { generateImage } from '@/lib/api-client';
 import ProgressDots from './ProgressDots';
+import { Html5QrcodeScanner } from 'html5-qrcode';
+import { supabase } from '@/lib/supabase';
+
+const compressImage = (dataUrl: string, maxSize = 512): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let w = img.width;
+            let h = img.height;
+            if (w > h) {
+                if (w > maxSize) {
+                    h = Math.round((h * maxSize) / w);
+                    w = maxSize;
+                }
+            } else {
+                if (h > maxSize) {
+                    w = Math.round((w * maxSize) / h);
+                    h = maxSize;
+                }
+            }
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return resolve(dataUrl);
+
+            ctx.filter = 'grayscale(100%)';
+            ctx.drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL('image/jpeg', 0.6));
+        };
+        img.onerror = reject;
+        img.src = dataUrl;
+    });
+};
 
 function buildImageRequestKey(
     concept: { name: string; reading: string; description: string },
@@ -27,6 +61,19 @@ function FogGenerationCanvas({ onComplete }: { onComplete: () => void }) {
         if (!ctx) return;
 
         const dpr = Math.min(window.devicePixelRatio, 1.5);
+        const offscreen = document.createElement('canvas');
+        offscreen.width = 240;
+        offscreen.height = 240;
+        const octx = offscreen.getContext('2d');
+        if (octx) {
+            const grad = octx.createRadialGradient(120, 120, 0, 120, 120, 120);
+            grad.addColorStop(0, 'rgba(180, 170, 155, 1)');
+            grad.addColorStop(0.5, 'rgba(140, 130, 115, 0.5)');
+            grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            octx.fillStyle = grad;
+            octx.fillRect(0, 0, 240, 240);
+        }
+
         const resize = () => {
             canvas.width = window.innerWidth * dpr;
             canvas.height = window.innerHeight * dpr;
@@ -35,11 +82,8 @@ function FogGenerationCanvas({ onComplete }: { onComplete: () => void }) {
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         };
         resize();
+        window.addEventListener('resize', resize);
 
-        const w = window.innerWidth;
-        const h = window.innerHeight;
-        const cx = w / 2;
-        const cy = h / 2;
         const startTime = performance.now();
         let active = true;
 
@@ -56,6 +100,10 @@ function FogGenerationCanvas({ onComplete }: { onComplete: () => void }) {
         const motes: Mote[] = [];
 
         const spawnMote = () => {
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            const cx = w / 2;
+            const cy = h / 2;
             const edge = Math.floor(Math.random() * 4);
             let x: number;
             let y: number;
@@ -94,6 +142,10 @@ function FogGenerationCanvas({ onComplete }: { onComplete: () => void }) {
         const render = () => {
             if (!active) return;
 
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            const cx = w / 2;
+            const cy = h / 2;
             const elapsed = (performance.now() - startTime) / 1000;
             const duration = 6.0;
             const progress = Math.min(elapsed / duration, 1);
@@ -128,12 +180,8 @@ function FogGenerationCanvas({ onComplete }: { onComplete: () => void }) {
                 const a = m.alpha * fadeIn * intensity;
 
                 if (a > 0.001) {
-                    const g = ctx.createRadialGradient(m.x, m.y, 0, m.x, m.y, m.size);
-                    g.addColorStop(0, `rgba(180, 170, 155, ${a})`);
-                    g.addColorStop(0.5, `rgba(140, 130, 115, ${a * 0.5})`);
-                    g.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                    ctx.fillStyle = g;
-                    ctx.fillRect(m.x - m.size, m.y - m.size, m.size * 2, m.size * 2);
+                    ctx.globalAlpha = a;
+                    ctx.drawImage(offscreen, m.x - m.size, m.y - m.size, m.size * 2, m.size * 2);
                 }
 
                 if (
@@ -146,15 +194,13 @@ function FogGenerationCanvas({ onComplete }: { onComplete: () => void }) {
                     motes.splice(i, 1);
                 }
             }
+            ctx.globalAlpha = 1.0;
 
             if (progress > 0.3) {
                 const presenceAlpha = Math.min((progress - 0.3) * 2, 1) * intensity * 0.15;
-                const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 120);
-                g.addColorStop(0, `rgba(200, 185, 160, ${presenceAlpha})`);
-                g.addColorStop(0.6, `rgba(120, 110, 95, ${presenceAlpha * 0.3})`);
-                g.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                ctx.fillStyle = g;
-                ctx.fillRect(cx - 200, cy - 200, 400, 400);
+                ctx.globalAlpha = presenceAlpha;
+                ctx.drawImage(offscreen, cx - 200, cy - 200, 400, 400);
+                ctx.globalAlpha = 1.0;
             }
 
             const washAlpha = intensity * 0.06;
@@ -172,6 +218,7 @@ function FogGenerationCanvas({ onComplete }: { onComplete: () => void }) {
         requestAnimationFrame(render);
         return () => {
             active = false;
+            window.removeEventListener('resize', resize);
         };
     }, [onComplete]);
 
@@ -205,6 +252,13 @@ export default function Phase3Reveal() {
     const lastRequestKeyRef = useRef('');
     const activeRequestKeyRef = useRef<string | null>(null);
     const cachedImageUrlRef = useRef<string | null>(state.generatedImageUrl);
+
+    // QR Scanning & Save State
+    const [isScanning, setIsScanning] = useState(false);
+    const [scanError, setScanError] = useState('');
+    const [saveSuccess, setSaveSuccess] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const scannerRef = useRef<Html5QrcodeScanner | null>(null);
 
     const abortCurrentRequest = useCallback((reason: string) => {
         const controller = abortRef.current;
@@ -349,6 +403,10 @@ export default function Phase3Reveal() {
         return () => {
             mountedRef.current = false;
             abortCurrentRequest('phase3 unmount');
+            if (scannerRef.current) {
+                scannerRef.current.clear().catch(console.error);
+                scannerRef.current = null;
+            }
         };
     }, [abortCurrentRequest]);
 
@@ -366,6 +424,71 @@ export default function Phase3Reveal() {
     const handleFogComplete = useCallback(() => {
         setFogDone(true);
     }, []);
+
+    useEffect(() => {
+        if (isScanning && !scannerRef.current) {
+            scannerRef.current = new Html5QrcodeScanner(
+                "generator-qr-reader",
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                false
+            );
+
+            scannerRef.current.render(
+                async (decodedText) => {
+                    if (isSaving || saveSuccess) return;
+                    setIsSaving(true);
+                    setScanError('');
+                    try {
+                        if (scannerRef.current) {
+                            scannerRef.current.clear().catch(console.error);
+                            scannerRef.current = null;
+                        }
+
+                        // Resize image and convert to lightweight JPEG base64
+                        const compressedB64 = state.generatedImageUrl ? await compressImage(state.generatedImageUrl) : null;
+
+                        // Save to Supabase using the scanned ID
+                        const { error: dbError } = await supabase
+                            .from('surveys')
+                            .update({
+                                yokai_name: state.yokaiName,
+                                yokai_desc: state.narrative,
+                                yokai_image_b64: compressedB64
+                            })
+                            .eq('id', decodedText);
+
+                        if (dbError) throw dbError;
+
+                        setSaveSuccess(true);
+                        setIsScanning(false);
+                        setIsSaving(false);
+
+                        // Automatically return to Phase 0 after a short delay
+                        setTimeout(() => {
+                            goToPhase(0);
+                        }, 5000);
+
+                    } catch (err: any) {
+                        console.error("Save error", err);
+                        setScanError("記録の転送に失敗しました。もう一度QRをかざしてください。");
+                        setIsSaving(false);
+                        setIsScanning(false); // Can retry by clicking "保存する" again
+                    }
+                },
+                (err) => {
+                    // Ignore parsing errors
+                }
+            );
+        }
+
+        return () => {
+            // Cleanup scanner when scanning state becomes false
+            if (!isScanning && scannerRef.current) {
+                scannerRef.current.clear().catch(console.error);
+                scannerRef.current = null;
+            }
+        };
+    }, [isScanning, isSaving, saveSuccess, state.generatedImageUrl, state.yokaiName, state.narrative, goToPhase]);
 
     const isGenerating = !fogDone || !apiDone;
 
@@ -482,19 +605,69 @@ export default function Phase3Reveal() {
                     </p>
                 )}
 
-                {showActions && (
+                {showActions && !isScanning && !saveSuccess && (
                     <div className="float-up" style={{
                         marginTop: 32,
                         display: 'flex',
                         gap: 12,
                         animationDelay: '0.2s',
                     }}>
+                        <button className="button" onClick={() => goToPhase(2)}>
+                            やり直す
+                        </button>
                         <button className="button" onClick={() => goToPhase(0)}>
                             最初から
                         </button>
-                        <button className="button button-primary">
-                            保存する
+                        <button className="button button-primary" onClick={() => setIsScanning(true)}>
+                            QRに記録する (カメラ読取)
                         </button>
+                    </div>
+                )}
+
+                {isScanning && (
+                    <div className="float-up scan-container" style={{
+                        marginTop: 32,
+                        width: '100%',
+                        maxWidth: '400px',
+                        background: 'rgba(0,0,0,0.5)',
+                        padding: '1rem',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(255,255,255,0.2)'
+                    }}>
+                        <p style={{ textAlign: 'center', marginBottom: '1rem', color: '#fff' }}>
+                            【スマートフォンのQRコードをカメラに見せてください】
+                        </p>
+                        <div id="generator-qr-reader" style={{ width: '100%', background: '#fff' }}></div>
+                        <button className="button" style={{ marginTop: '1rem', width: '100%' }} onClick={() => setIsScanning(false)}>
+                            キャンセル
+                        </button>
+                    </div>
+                )}
+
+                {isSaving && (
+                    <div className="float-up" style={{ marginTop: 32, textAlign: 'center' }}>
+                        <p>あなたの観測データを定着させています...</p>
+                    </div>
+                )}
+
+                {scanError && (
+                    <div className="float-up" style={{ marginTop: 16, color: '#ff6b6b', textAlign: 'center' }}>
+                        <p>{scanError}</p>
+                    </div>
+                )}
+
+                {saveSuccess && (
+                    <div className="float-up" style={{ marginTop: 32, textAlign: 'center' }}>
+                        <p style={{ color: '#00ff00', fontSize: '1.2rem', marginBottom: '1rem' }}>
+                            記録が完了しました。
+                        </p>
+                        <p style={{ opacity: 0.8 }}>
+                            出口のスタッフへ、このQRコードを再度提示してください。<br />
+                            記録のお札を発行いたします。
+                        </p>
+                        <p style={{ marginTop: '2rem', fontSize: '0.9rem', opacity: 0.5 }}>
+                            ※まもなく最初の画面に戻ります
+                        </p>
                     </div>
                 )}
             </div>
