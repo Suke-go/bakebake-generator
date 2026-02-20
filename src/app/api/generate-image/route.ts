@@ -268,6 +268,7 @@ export async function POST(req: Request) {
             artStyle?: string | null;
             visualInput?: string;
             answers?: Record<string, string>;
+            folklore?: Array<{ kaiiName: string; content: string; location?: string }>;
         };
         try {
             body = JSON.parse(rawBody);
@@ -283,6 +284,7 @@ export async function POST(req: Request) {
             artStyle = null,
             visualInput = '',
             answers = {},
+            folklore = [],
         } = body;
         const concept = rawConcept as ConceptPayload | undefined;
         const answerMap = answers;
@@ -342,11 +344,15 @@ export async function POST(req: Request) {
                 return buildRateLimitResponse();
             }
 
-        const genAI = new GoogleGenAI({ apiKey });
-        const stylePrompt = getStylePrompt(artStyle);
-        const imagePromptText = buildImagePrompt(concept, stylePrompt, visualInput);
-        const narrativePrompt = buildNarrativePrompt(concept, answerMap as Record<string, string>);
-        const warnings: string[] = [];
+            const genAI = new GoogleGenAI({ apiKey });
+            const stylePrompt = getStylePrompt(artStyle);
+            const imagePromptText = buildImagePrompt(concept, stylePrompt, visualInput);
+            const narrativePrompt = buildNarrativePrompt(
+                concept,
+                answerMap as Record<string, string>,
+                folklore.map(f => ({ kaiiName: f.kaiiName, content: f.content, location: f.location }))
+            );
+            const warnings: string[] = [];
 
             const imageResultPromise = generateImageWithFallback(genAI, imagePromptText).catch((error: unknown) => {
                 warnings.push(`Image generation: ${toErrorMessage(error)}`);

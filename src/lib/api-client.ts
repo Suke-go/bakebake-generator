@@ -17,6 +17,7 @@ export interface ConceptResponse {
         description: string;
         label: string;
         folkloreRef?: string;
+        namingType?: string;
     }>;
 }
 
@@ -390,7 +391,8 @@ export async function generateImage(
     artStyle: string,
     visualInput: string,
     answers: Record<string, string>,
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    folklore?: Array<{ kaiiName: string; content: string; location?: string }>
 ): Promise<ImageResponse> {
     throwIfAborted(signal);
 
@@ -405,7 +407,7 @@ export async function generateImage(
         return withAbortSignal(inFlight, signal);
     }
 
-    const sharedRequest = requestJsonInternal<ImageResponse>('/api/generate-image', { concept, artStyle, visualInput, answers })
+    const sharedRequest = requestJsonInternal<ImageResponse>('/api/generate-image', { concept, artStyle, visualInput, answers, folklore: folklore || [] })
         .then((result) => {
             setImageCache(cacheKey, result);
             return result;

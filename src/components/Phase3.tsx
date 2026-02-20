@@ -82,8 +82,7 @@ export default function Phase3() {
                     <>
                         <p className="voice float-up" style={{ marginBottom: 12 }}>
                             {state.selectedConcept?.name || ''}
-                            {' / '}
-                            {state.selectedConcept?.reading || ''}
+                            {state.selectedConcept?.reading ? ` / ${state.selectedConcept.reading}` : ''}
                         </p>
                         <p className="voice float-up" style={{ marginBottom: 34, animationDelay: '0.25s' }}>
                             どの画風で姿を結びますか。

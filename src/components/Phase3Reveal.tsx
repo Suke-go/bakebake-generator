@@ -349,7 +349,12 @@ export default function Phase3Reveal() {
                 state.artStyle ?? '',
                 state.visualInput,
                 state.answers,
-                controller.signal
+                controller.signal,
+                state.folkloreResults?.map(f => ({
+                    kaiiName: f.kaiiName,
+                    content: f.content,
+                    location: f.location,
+                })) || []
             );
 
             if (!mountedRef.current || requestId !== reqRef.current || controller.signal.aborted) {

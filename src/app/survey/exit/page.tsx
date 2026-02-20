@@ -103,6 +103,9 @@ function ExitSurveyForm() {
 
             if (dbError) throw dbError;
 
+            // 提出完了したら、次の参加（周回）ができるようにローカルストレージのIDをクリア
+            localStorage.removeItem('yokai_ticket_id');
+
             setIsComplete(true);
         } catch (err: any) {
             console.error(err);

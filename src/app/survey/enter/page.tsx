@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import '@/app/globals.css';
@@ -23,6 +23,17 @@ export default function SurveyEnterPage() {
     const [preImage, setPreImage] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState("");
+    const [isCheckingSession, setIsCheckingSession] = useState(true);
+
+    // 以前のセッション（ID）が残っていれば復帰する
+    useEffect(() => {
+        const savedId = localStorage.getItem('yokai_ticket_id');
+        if (savedId) {
+            router.push(`/survey/ticket/${savedId}`);
+        } else {
+            setIsCheckingSession(false);
+        }
+    }, [router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -52,6 +63,8 @@ export default function SurveyEnterPage() {
 
             if (data && data.length > 0) {
                 const newId = data[0].id;
+                // スマホのローカルストレージにIDを保存（誤って閉じた時の復帰用）
+                localStorage.setItem('yokai_ticket_id', newId);
                 // Navigate to the ticket page
                 router.push(`/survey/ticket/${newId}`);
             } else {
@@ -63,6 +76,14 @@ export default function SurveyEnterPage() {
             setIsSubmitting(false);
         }
     };
+
+    if (isCheckingSession) {
+        return (
+            <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000' }}>
+                <p className="body-text" style={{ opacity: 0.5 }}>以前の記録を確認中...</p>
+            </div>
+        );
+    }
 
     return (
         <div style={{

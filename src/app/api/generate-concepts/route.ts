@@ -142,45 +142,66 @@ export async function POST(req: Request) {
             console.warn('generate-concepts: Gemini call failed, falling back to db concept only:', toErrorMessage(error));
         }
 
-        let llmConcept = null as {
+        let llmCandidates: Array<{
             source: 'llm';
             name: string;
             reading: string;
             description: string;
             label: string;
-        } | null;
+            namingType: string;
+        }> = [];
 
         if (responseText) {
             try {
-                const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-                if (jsonMatch) {
-                    const parsed = JSON.parse(jsonMatch[0]);
-                    llmConcept = {
-                        source: 'llm' as const,
-                        name: parsed.name || 'Untitled Yokai',
-                        reading: parsed.reading || '',
-                        description: parsed.description || '',
-                        label: 'llm-generated',
-                    };
+                // Try to parse JSON array first
+                const arrayMatch = responseText.match(/\[[\s\S]*\]/);
+                if (arrayMatch) {
+                    const parsed = JSON.parse(arrayMatch[0]);
+                    if (Array.isArray(parsed)) {
+                        llmCandidates = parsed.map((item: any) => ({
+                            source: 'llm' as const,
+                            name: item.name || '名無し',
+                            reading: item.reading || '',
+                            description: item.description || '',
+                            label: 'llm-generated',
+                            namingType: item.type || 'unknown',
+                        }));
+                    }
+                }
+                // Fallback: try single object
+                if (llmCandidates.length === 0) {
+                    const objMatch = responseText.match(/\{[\s\S]*\}/);
+                    if (objMatch) {
+                        const parsed = JSON.parse(objMatch[0]);
+                        llmCandidates = [{
+                            source: 'llm' as const,
+                            name: parsed.name || '名無し',
+                            reading: parsed.reading || '',
+                            description: parsed.description || '',
+                            label: 'llm-generated',
+                            namingType: parsed.type || 'place_action',
+                        }];
+                    }
                 }
             } catch {
-                console.warn('Failed to parse LLM concept:', responseText);
+                console.warn('Failed to parse LLM concepts:', responseText);
             }
         }
 
-        if (!llmConcept) {
-            llmConcept = {
+        if (llmCandidates.length === 0) {
+            llmCandidates = [{
                 source: 'llm' as const,
-                name: 'Yokai Spirit',
-                reading: '',
-                description: 'LLM is currently unavailable. The concept is generated from existing folklore context.',
+                name: '気配',
+                reading: 'けはい',
+                description: 'LLMの応答を取得できませんでした。',
                 label: 'fallback',
-            };
+                namingType: 'fallback',
+            }];
         }
 
         return NextResponse.json(
             {
-                concepts: [...dbConcepts, llmConcept],
+                concepts: [...dbConcepts, ...llmCandidates],
             },
             {
                 headers: {

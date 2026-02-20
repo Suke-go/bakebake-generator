@@ -34,6 +34,8 @@ export default function Phase2() {
     const [isFetching, setIsFetching] = useState(false);
     const [isGeneratingConcepts, setIsGeneratingConcepts] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
+    const [customName, setCustomName] = useState('');
+    const [showCustomInput, setShowCustomInput] = useState(false);
 
     const [folkloreData, setFolkloreData] = useState<Array<{
         id: string;
@@ -288,8 +290,31 @@ export default function Phase2() {
 
     const handleSelect = (idx: number) => {
         setSelectedIdx(idx);
+        setShowCustomInput(false);
         selectConcept(conceptData[idx]);
         setTimeout(() => goToPhase(3), 1000);
+    };
+
+    const handleCustomName = () => {
+        if (!customName.trim()) return;
+        const custom: YokaiConcept = {
+            source: 'llm',
+            name: customName.trim(),
+            reading: '',
+            description: '体験者が自ら名付けた妖怪',
+            label: '自分で名付けた',
+        };
+        setSelectedIdx(-1);
+        setShowCustomInput(false);
+        selectConcept(custom);
+        setTimeout(() => goToPhase(3), 1000);
+    };
+
+    const NAMING_TYPE_LABELS: Record<string, string> = {
+        place_action: '場所・行動型',
+        appearance_sound: '外見・音型',
+        vernacular: '土着・方言型',
+        fallback: '補助候補',
     };
 
     const handleRetry = useCallback(() => {
@@ -393,26 +418,75 @@ export default function Phase2() {
                                 昔の人は、似た気配に名を与えてきました。
                             </p>
                             <p className="label float-up" style={{ animationDelay: '0.4s', marginTop: 32, marginBottom: 8 }}>
-                                あなたの体験に近いもの
+                                名前の候補
                             </p>
                         </>
                     )}
 
                     <div>
-                        {conceptData.slice(0, visibleConcepts).map((c, i) => (
-                            <button
-                                key={i}
-                                className={`concept-card float-up ${selectedIdx !== null && selectedIdx !== i ? 'dimmed' : ''} ${selectedIdx === i ? 'selected' : ''}`}
-                                style={{ animationDelay: `${i * 0.15}s` }}
-                                onClick={() => selectedIdx === null && handleSelect(i)}
-                            >
-                                <div className="yokai-name">{c.name}</div>
-                                <div className="yokai-reading">{c.reading}</div>
-                                <div className="yokai-desc">{c.description}</div>
-                                <span className="concept-label">{c.label}</span>
-                            </button>
-                        ))}
+                        {conceptData.filter(c => c.source === 'llm').slice(0, visibleConcepts).map((c, i) => {
+                            const globalIdx = conceptData.indexOf(c);
+                            const namingType = (c as any).namingType as string | undefined;
+                            const typeLabel = namingType ? NAMING_TYPE_LABELS[namingType] || '' : '';
+                            return (
+                                <button
+                                    key={globalIdx}
+                                    className={`concept-card float-up ${selectedIdx !== null && selectedIdx !== globalIdx ? 'dimmed' : ''} ${selectedIdx === globalIdx ? 'selected' : ''}`}
+                                    style={{ animationDelay: `${i * 0.15}s` }}
+                                    onClick={() => selectedIdx === null && handleSelect(globalIdx)}
+                                >
+                                    {typeLabel && <span className="concept-label" style={{ marginBottom: 4 }}>{typeLabel}</span>}
+                                    <div className="yokai-name">{c.name}</div>
+                                    <div className="yokai-reading">{c.reading}</div>
+                                    <div className="yokai-desc">{c.description}</div>
+                                </button>
+                            );
+                        })}
                     </div>
+
+                    {visibleConcepts >= conceptData.filter(c => c.source === 'llm').length && selectedIdx === null && (
+                        <div className="float-up" style={{ animationDelay: '0.5s', marginTop: 16 }}>
+                            {!showCustomInput ? (
+                                <button
+                                    className="concept-card"
+                                    style={{ textAlign: 'center', opacity: 0.8 }}
+                                    onClick={() => setShowCustomInput(true)}
+                                >
+                                    <div className="yokai-desc">自分で名付ける</div>
+                                </button>
+                            ) : (
+                                <div className="concept-card" style={{ padding: '16px' }}>
+                                    <p className="label" style={{ marginBottom: 8 }}>あなたが感じた名前を入力してください</p>
+                                    <input
+                                        type="text"
+                                        value={customName}
+                                        onChange={(e) => setCustomName(e.target.value)}
+                                        placeholder="例: 影渡り"
+                                        style={{
+                                            width: '100%',
+                                            padding: '8px 12px',
+                                            fontSize: '1.1rem',
+                                            background: 'transparent',
+                                            border: '1px solid var(--text-ghost)',
+                                            borderRadius: 4,
+                                            color: 'var(--text-main)',
+                                            marginBottom: 8,
+                                        }}
+                                        autoFocus
+                                        onKeyDown={(e) => e.key === 'Enter' && handleCustomName()}
+                                    />
+                                    <button
+                                        className="button button-primary"
+                                        onClick={handleCustomName}
+                                        disabled={!customName.trim()}
+                                        style={{ width: '100%' }}
+                                    >
+                                        この名前で決める
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </>
             )}
 
