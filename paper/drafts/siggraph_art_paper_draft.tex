@@ -1,0 +1,307 @@
+\documentclass[sigconf,authorversion,nonacm]{acmart}
+
+\AtBeginDocument{%
+  \providecommand\BibTeX{{%
+    \normalfont B\kern-0.5em{\scshape i\kern-0.25em b}\kern-0.8em\TeX}}}
+
+\setcopyright{none}
+\copyrightyear{2026}
+\acmYear{2026}
+\acmDOI{}
+
+\acmConference[SIGGRAPH Asia '26 Art Gallery]{SIGGRAPH Asia 2026 Art Gallery}{December 1--4, 2026}{Kuala Lumpur, Malaysia}
+\acmBooktitle{SIGGRAPH Asia 2026 Art Gallery, December 1--4, 2026, Kuala Lumpur, Malaysia}
+
+\begin{document}
+
+\title{BAKEBAKE\_XR: Computational Reactivation of Y\=okai Generation through Folklore-Grounded Generative AI and Ephemeral Materialization}
+
+\author{Author 1}
+\email{author1@example.com}
+\affiliation{%
+  \institution{Institution}
+  \city{City}
+  \country{Country}
+}
+
+\renewcommand{\shortauthors}{Author et al.}
+
+
+%%% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+%%% ABSTRACT
+%%% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+\begin{abstract}
+In historical Japanese folklore, y\=okai (supernatural entities) were not fixed characters but emergent products of a communal practice in which people named ambiguous fears and commissioned artists to visualize them. Contemporary popular culture has largely displaced this generative mechanism with passive character consumption. We present BAKEBAKE\_XR, a media art installation that computationally reconstructs the historical workflow of y\=okai generation. The system integrates a Retrieval-Augmented Generation pipeline grounded in the Nichibunken Y\=okai Database, large language models constrained by traditional naming typologies, and diffusion-based image synthesis restricted to historical Japanese visual idioms. The interaction culminates in a thermally printed artifact whose material degradation mirrors the lifecycle of oral tradition. We evaluate whether this computational reconstruction shifts participant perception from character consumption toward recognition of y\=okai as a culturally situated naming practice. This paper reports the system design, contextual positioning within computational folkloristics, and the evaluation framework for an upcoming exhibition deployment.
+\end{abstract}
+
+\begin{CCSXML}
+<ccs2012>
+   <concept>
+       <concept_id>10010405.10010469.10010474</concept_id>
+       <concept_desc>Applied computing~Media arts</concept_desc>
+       <concept_significance>500</concept_significance>
+   </concept>
+   <concept>
+       <concept_id>10003120.10003121.10003124.10010866</concept_id>
+       <concept_desc>Human-centered computing~Virtual reality</concept_desc>
+       <concept_significance>300</concept_significance>
+   </concept>
+</ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Applied computing~Media arts}
+\ccsdesc[300]{Human-centered computing~Virtual reality}
+
+\keywords{Computational Folkloristics, Generative AI, Intangible Cultural Heritage, Y\=okai, Tangible Interaction, Ephemeral Art, Retrieval-Augmented Generation}
+
+\teaser{
+  \includegraphics[width=\textwidth]{figures/teaser_placeholder.pdf}
+  \caption{BAKEBAKE\_XR installation. A participant inputs an unnamed anxiety (left). The system retrieves related folklore, generates a culturally grounded y\=okai concept and visual manifestation (center). A thermal printer dispenses the ephemeral artifact (right), whose ink fades over months.}
+  \label{fig:teaser}
+}
+
+\maketitle
+
+
+%%% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+%%% 1. INTRODUCTION
+%%% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+\section{Introduction}
+
+Throughout Japanese history, encounters with the unexplained have followed a consistent pattern. A person experiences something unsettling, perhaps a sound that cannot be attributed to any known source, or a persistent feeling of unease in a particular location. That person then communicates the experience to others, and through collective discussion, the phenomenon is given a name, a form, and a behavioral description. In the Edo period, this process frequently involved commissioning an artist to visualize the entity. Toriyama Sekien, working over the decade from 1776 to 1784, codified this practice at scale by collecting oral accounts and fragmentary records, assigning them visual forms through his own interpretation, organizing them into encyclopedic catalogs, and distributing the results through woodblock-printed volumes~\cite{sekien_wiki, fordham_yokai}. The resulting workflow, moving from oral report through naming and visualization to physical distribution, constitutes a complete generative pipeline for producing culturally situated supernatural entities.
+
+Komatsu Kazuhiko, the foremost scholar of Japanese y\=okai studies, has argued that the social function of y\=okai extends well beyond their narrative content~\cite{komatsu2017}. The act of naming an ambiguous phenomenon, of transforming a diffuse anxiety into a recognizable entity with a habitat and a behavioral pattern, provides what we term \textit{cognitive closure}. The community gains a shared vocabulary for discussing a previously inarticulable threat, and in doing so, manages its collective relationship with the unknown. The Nichibunken Y\=okai Database, compiled under Komatsu's direction, catalogs over 35,000 entries, many with geospatial and temporal metadata tying entities to specific villages, mountains, or waterways~\cite{nichibunken_db}. This granularity makes the Japanese y\=okai tradition particularly amenable to computational treatment.
+
+Contemporary popular culture has displaced this generative mechanism. Commercial franchises such as \textit{GeGeGe no Kitar\=o} and \textit{Yo-kai Watch} have made y\=okai widely visible, but present them as pre-fabricated characters for passive consumption. UNESCO's framework for intangible cultural heritage (ICH) recognizes that the value of living heritage lies in the process of transmission, not in any fixed artifact~\cite{unesco2003}. When the communal practice of naming fears is replaced by consumption of existing characters, the generative practice itself is at risk.
+
+BAKEBAKE\_XR is a media art installation that addresses this risk by computationally reconstructing the historical y\=okai generation workflow. The system positions generative AI not as an autonomous creative agent but as a computational proxy for the role historically played by the artist, including Sekien, who gave visual and textual form to experiences communicated by others. The participant provides the raw material (an unnamed anxiety), the system retrieves culturally relevant precedents from the Nichibunken database through Retrieval-Augmented Generation (RAG), a chained language model synthesizes a name and narrative following traditional typologies, and a diffusion model produces a visual manifestation constrained to historical Japanese art styles. The interaction concludes with a thermally printed artifact whose ink fades over months, embedding the temporal dynamics of oral tradition into the material output.
+
+The research question guiding this work is as follows.
+
+\textbf{RQ:} When the historical workflow of y\=okai generation (oral report, naming, visualization, material distribution) is computationally reconstructed, do participants shift from perceiving y\=okai as entertainment characters toward recognizing them as a culturally situated practice of naming the unknown?
+
+The remainder of this paper articulates the contextual framework that motivates this question (Section 2), describes the system architecture that operationalizes it (Section 3), and presents the evaluation methodology designed to answer it (Section 4).
+
+
+%%% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+%%% 2. CONTEXTUAL FRAMEWORK
+%%% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+\section{Contextual Framework}
+
+This section positions BAKEBAKE\_XR within three research areas, each of which addresses a specific aspect of the research question. The folkloristic theory of y\=okai generation establishes \textit{what} is being reconstructed. The field of computational folkloristics establishes \textit{how} such a reconstruction can be methodologically grounded. The discourse on AI-craft materialization establishes \textit{why} the physical output matters for participant perception.
+
+\subsection{The Historical Workflow of Y\=okai Generation}
+
+Y\=okai generation in Japan was historically a collaborative process involving multiple actors and media. The initial stage was perceptual. An individual or community encountered an unexplained phenomenon and attempted to articulate it through available linguistic categories. When existing categories proved insufficient, the phenomenon entered what Komatsu describes as a process of communal sense-making, in which the ambiguous experience was discussed, compared against known folklore, and eventually consolidated into a named entity with identifiable characteristics~\cite{komatsu2017}.
+
+The second stage involved the translation of this named concept into visual and textual form. Toriyama Sekien's work provides the best-documented instance of this stage. Sekien collected accounts from multiple sources, including earlier scroll paintings, popular literature, Chinese classical texts, and regional oral traditions~\cite{sekien_wiki, touken_sekien}. For many entities in his catalog, no prior visual depiction existed. Sekien's contribution was to interpret fragmentary verbal descriptions and assign them a specific visual form. He also contributed entities of his own invention, some based on wordplay, indicating that the system was productively generative rather than merely archival~\cite{fordham_yokai}.
+
+The third stage was distribution. Sekien's illustrated volumes were commercially published through woodblock printing and became widely circulated among the Edo public~\cite{touken_sekien}. This distribution step completed the y\=okai generation cycle by establishing the named and visualized entity as part of shared cultural knowledge.
+
+BAKEBAKE\_XR reconstructs each of these three stages computationally. The participant provides the perceptual input (Phase 1). The system performs naming, narrative synthesis, and visualization (Phases 2 and 3). The thermal printer provides distribution in the form of a physical artifact (Phase 3.5). The structural parallel between the historical and computational workflows is deliberate and constitutes the primary conceptual contribution of the work.
+
+\subsection{Computational Folkloristics}
+
+The application of computational methods to folklore analysis has a substantial history. Propp demonstrated in 1928 that Russian folktales follow a constrained generative grammar, a finite set of narrative functions that recombine according to structural rules~\cite{propp1928}. Recent work in computational folkloristics has extended this insight using modern language models. The AI4DH research consortium has applied LLMs to tasks including OCR correction of digitized folklore archives, automated motif classification, and cross-cultural narrative comparison~\cite{ai4dh2024}. Gerv\'as's ``Propper'' system gave Propp's grammar direct computational form, generating structurally valid folktale instances through rule-based function recombination~\cite{gervas2024}.
+
+The majority of these systems are analytical. They classify, retrieve, or explain existing folklore. A smaller body of work explores generative computational folklore, in which systems produce new entities or narratives within the structural constraints of a tradition. Recent scholarship has identified the emergence of ``generative folklore'' as a cultural phenomenon, encompassing narratives created through AI outputs and cultural meaning assigned to algorithmic behaviors~\cite{orquidea2024}. BAKEBAKE\_XR contributes to this line of work by demonstrating that culturally grounded generation requires three specific components. First, explicit retrieval from authenticated cultural databases (the RAG pipeline against the Nichibunken database). Second, structural constraints derived from folkloristic analysis (the naming typologies encoding place-action, appearance-sound, and vernacular patterns). Third, participatory input from the human participant (the individual's anxiety that initiates the generative act).
+
+The RAG paradigm is well suited to this task. Systems such as FolkRAG have demonstrated that retrieval-augmented approaches can bridge semantic gaps in archival metadata, enabling natural-language access to cultural heritage collections~\cite{folkrag2024}. BAKEBAKE\_XR extends this paradigm from retrieval to generation. The RAG pipeline does not surface existing y\=okai for the participant to browse. It provides the cultural substrate from which new entities are synthesized, ensuring structural and thematic continuity with the historical tradition.
+
+\subsection{Materialization of AI-Generated Content}
+
+Several recent SIGGRAPH contributions have examined the cultural consequences of materializing AI-generated imagery through physical media. Ozawa et al.\ demonstrated at SIGGRAPH Asia 2024 that AI-generated images, when printed through the irreproducible chemistry of wet plate collodion, acquire material singularity absent from the digital file~\cite{ozawa2024}. Elran and Zoran showed at SIGGRAPH 2024 that the act of translating generative images into ceramic, woodcut, and relief asserts human agency within a human-AI collaborative workflow~\cite{elran2024}. These works establish that the transition from digital to physical is consequential for how participants perceive and evaluate AI-generated output.
+
+BAKEBAKE\_XR addresses a different aspect of materialization. The system uses thermal paper, a medium whose ink degrades under ambient conditions, typically becoming illegible within six to eighteen months. The choice is motivated by a structural correspondence. Oral traditions are transmitted, varied with each retelling, and eventually forgotten. The fading receipt physically instantiates this temporal dynamic. The choice of a receipt printer, a device associated with transient commercial transactions, further situates the artifact outside the domain of art-gallery permanence. This approach resonates with the broader interest in ephemeral computation in media art, exemplified by Huang et al.'s \textit{Ephemera: Language as a Virus} (SIGGRAPH 2024), which treated the transience of linguistic meaning as a generative principle rather than a failure mode~\cite{huang2024}.
+
+
+%%% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+%%% 3. SYSTEM ARCHITECTURE
+%%% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+\section{System Architecture}
+
+The system comprises five phases that map onto the historical y\=okai generation workflow described in Section 2.1. Figure~\ref{fig:system} illustrates the overall pipeline.
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{figures/system_architecture_placeholder.pdf}
+  \caption{System architecture. Phase 0 binds the participant to a session via QR code. Phase 1 elicits an unnamed anxiety. Phase 2 performs RAG-based folklore retrieval and LLM-driven concept synthesis. Phase 3 generates a visual manifestation in a selected art style. Phase 3.5 produces the thermal print artifact.}
+  \label{fig:system}
+\end{figure*}
+
+\subsection{Entry and Elicitation (Phases 0--1)}
+
+Participants enter the installation by scanning a QR code, which binds their session to a unique identifier stored in a Supabase backend. A pre-experience survey captures demographic information and the participant's existing perception of y\=okai through a forced-choice item with options including ``entertainment character,'' ``cultural tradition,'' ``psychological phenomenon,'' and ``something I rarely think about.'' This survey provides the baseline against which post-experience shifts are measured.
+
+The participant then encounters a guided elicitation interface. Curated thematic prompts, such as ``a sound you cannot explain'' or ``a place that feels wrong,'' reduce input friction on touch devices while preserving the essential act of articulating an unformulated experience. Participants may also enter free-text descriptions. This phase corresponds to the initial perceptual stage of the historical workflow, in which a community member articulated an encounter with the unexplained.
+
+\subsection{Folklore Retrieval and Concept Synthesis (Phase 2)}
+
+The participant's input is processed through a two-stage pipeline. In the first stage, an LLM constructs a semantic search query from the participant's description. This query is used to retrieve the five most similar entries from a vector-embedded version of the Nichibunken Y\=okai Database~\cite{nichibunken_db}. The retrieval step ensures that the generated entity shares thematic and structural lineage with historically documented y\=okai. In the second stage, a chained LLM synthesizes three candidate y\=okai concepts. Each concept comprises a name following traditional naming typologies (place-action compounds, appearance-based descriptors, or vernacular onomatopoeia), a phonetic reading, and a descriptive narrative that integrates elements from both the retrieved folklore and the participant's input.
+
+The participant selects one of the three concepts or names the entity themselves. The self-naming option is significant because it places the participant in the position historically occupied by the community that named its fears. This design choice directly operationalizes the research question by testing whether active naming, as opposed to passive selection, produces a stronger perceptual shift.
+
+This phase corresponds to the naming and interpretation stage of the historical workflow, the stage at which Sekien and his contemporaries consolidated verbal accounts into named, characterized entities.
+
+\subsection{Visual Synthesis (Phase 3)}
+
+The selected concept is passed to a diffusion-based image synthesis model (Google Gemini Imagen, with OpenAI DALL-E 3 as fallback). Participants select from art styles including \textit{sumi-e} (ink wash), \textit{ukiyo-e} (woodblock print), and \textit{y\=okai emaki} (illustrated scroll). Negative prompt constraints suppress hyper-realistic, commercial, and anime-style outputs. This constraint preserves the visual ambiguity of traditional y\=okai depiction, in which forms are suggested rather than fully defined.
+
+This phase corresponds to Sekien's role as visualizer, translating verbal descriptions into concrete pictorial form within the conventions of his medium.
+
+\subsection{Thermal Materialization (Phase 3.5)}
+
+The generated image, y\=okai name, narrative text, and session QR code are compiled into a monochromatic layout optimized for 80mm thermal printing. A networked Epson TM-T88 printer, triggered by a Python daemon monitoring Supabase realtime events, dispenses the artifact. The printed document presents the generated entity in the format of a diagnostic report, stating the name, the visual manifestation, and the narrative origin. The act of receiving this physical document provides cognitive closure analogous to the historical experience of seeing one's reported encounter rendered in a published illustrated volume.
+
+This phase corresponds to Sekien's distribution stage, in which woodblock-printed volumes made named and visualized entities part of shared cultural knowledge. The key difference is the medium's temporality. Woodblock prints endure for centuries. Thermal prints fade within months. This difference encodes the dynamics of oral tradition, in which the cultural function lies in the act of transmission rather than in the permanence of the artifact~\cite{unesco2003}.
+
+
+%%% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+%%% 4. EVALUATION FRAMEWORK
+%%% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+\section{Evaluation Framework}
+
+The evaluation is designed to answer the research question stated in Section 1. We employ a mixed-methods approach following Braun and Clarke's reflexive thematic analysis framework~\cite{braun2006}.
+
+\subsection{Pre-Post Perceptual Measurement}
+
+Participants complete iPad-based surveys upon entry (pre) and exit (post). The pre-survey records the participant's existing y\=okai perception through a forced-choice item. The post-survey asks ``What was this artwork about?'' as a free-text response, followed by behavioral intention items assessing whether the experience prompted interest in investigating local folklore or sharing the encounter with others. The shift between pre-perception and post-interpretation constitutes the primary quantitative measure.
+
+\subsection{Deductive Coding Framework}
+
+Free-text responses are analyzed using a five-category coding framework aligned with the research question.
+
+\begin{itemize}
+  \item \textbf{C1 (Character Consumption):} The participant describes y\=okai as entertainment or collectible content. This indicates no perceptual shift.
+  \item \textbf{C2 (Technology Focus):} The participant focuses on the novelty of the AI system or the visual quality of the output. This indicates engagement with the medium rather than the cultural content.
+  \item \textbf{C3 (Spatial or Cultural Anchoring):} The participant references place, memory, or local tradition. This indicates partial engagement with the cultural substrate.
+  \item \textbf{C4 (Anxiety Externalization):} The participant describes the experience as confronting, naming, or externalizing a personal fear. This indicates core engagement with the y\=okai generation mechanism.
+  \item \textbf{C5 (Ephemeral Reflection):} The participant references the fading ink, the transience of the receipt, or the lifecycle of memory. This indicates engagement with the materiality design.
+\end{itemize}
+
+A predominance of C3, C4, and C5 codes across participants would support an affirmative answer to the research question.
+
+\subsection{Behavioral Observation}
+
+We record how participants handle the printed artifact, including whether they examine it closely, photograph it, fold it into a wallet, or show it to companions. These behavioral traces provide non-verbal evidence of the artifact's perceived cultural status. Following Star and Griesemer's boundary object framework~\cite{star1989}, the receipt functions as an entity that maintains coherence across the distinct social domains of technology, art, and folklore.
+
+
+%%% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+%%% 5. DISCUSSION
+%%% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+\section{Discussion}
+
+BAKEBAKE\_XR makes a specific claim about the role of generative AI in cultural contexts. The system treats AI as infrastructure for reproducing the structural conditions of a cultural practice rather than as an autonomous creative agent or a passive tool. The participant provides perceptual input. The RAG pipeline provides cultural constraints derived from an authenticated folklore database. The LLM provides naming and narrative within those constraints. The diffusion model provides visualization within art-historical conventions. The thermal printer provides material distribution with built-in temporal decay. Each component maps onto a historically documented stage of the y\=okai generation workflow.
+
+This mapping is not metaphorical. The structural correspondence between Sekien's workflow and the system pipeline is direct. Sekien collected oral accounts, interpreted them within the conventions of his artistic tradition, assigned names and visual forms, and distributed the results through a mass-reproduction medium. BAKEBAKE\_XR replaces the human artist with a constrained generative model, the woodblock press with a thermal printer, and the Edo-period readership with the individual exhibition participant. The participant's role, providing the perceptual report that initiates the generative process, remains unchanged.
+
+The evaluation framework is designed to determine whether this structural correspondence produces measurable consequences for participant perception. If participants predominantly produce C1 (character consumption) or C2 (technology focus) codes in the post-experience survey, the system has failed to activate the cultural mechanism it reconstructs. If participants predominantly produce C3, C4, or C5 codes, the system has successfully shifted perception toward the generative practice.
+
+Preliminary findings and full quantitative results will be reported following the exhibition deployment.
+
+
+%%% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+%%% 6. CONCLUSION
+%%% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+\section{Conclusion}
+
+This paper presented BAKEBAKE\_XR, a media art installation that computationally reconstructs the historical workflow of y\=okai generation. The system integrates folklore-grounded RAG, structurally constrained generative AI, and ephemeral thermal materialization to reproduce the conditions under which Japanese communities have historically named, visualized, and distributed supernatural entities. The evaluation framework, based on pre-post perceptual measurement and reflexive thematic analysis, is designed to assess whether this reconstruction shifts participant understanding from character consumption toward recognition of y\=okai as a culturally situated naming practice. The work contributes to the field of computational folkloristics by demonstrating that generative AI, when grounded in an authenticated cultural database and constrained by folkloristic structure, can function as infrastructure for cultural reactivation rather than content production.
+
+
+%%% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+%%% REFERENCES
+%%% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+\begin{thebibliography}{16}
+
+\bibitem{ai4dh2024}
+AI4DH Consortium. 2024.
+Computational Folkloristics: AI Methods for Analyzing and Generating Traditional Narratives.
+In \textit{Proceedings of AI for Digital Humanities Workshop}. \url{https://ai4dh.eu}.
+
+\bibitem{braun2006}
+Virginia Braun and Victoria Clarke. 2006.
+Using thematic analysis in psychology.
+\textit{Qualitative Research in Psychology} 3, 2 (2006), 77--101.
+
+\bibitem{elran2024}
+Sharan R. Elran and Amit Raphael Zoran. 2024.
+Probabilistic Craft: Materialization of Generated Images Using Digital and Traditional Craft.
+In \textit{ACM SIGGRAPH 2024 Art Papers}. ACM, New York.
+
+\bibitem{folkrag2024}
+FolkRAG Consortium. 2024.
+FolkRAG: Retrieval-Augmented Generation for Cultural Heritage Materials.
+American Folklife Center, Library of Congress. ResearchGate preprint.
+
+\bibitem{fordham_yokai}
+Fordham University. n.d.
+Edo Yokai: Supernatural Beings in Japanese Woodblock Prints.
+Online exhibition catalog. \url{https://fordham.edu}.
+
+\bibitem{gervas2024}
+Pablo Gerv\'as. 2024.
+Propper: A Computational Implementation of Propp's Morphology of the Folktale.
+\textit{Computational Creativity} (2024).
+
+\bibitem{huang2024}
+Jiayang Huang, Yue Huang, David Yip, and Varvara Guljajeva. 2024.
+Ephemera: Language as a Virus --- AI-driven Interactive and Immersive Art Installation.
+In \textit{ACM SIGGRAPH 2024 Art Papers}. ACM, New York.
+
+\bibitem{ichforum2020}
+ICH NGO Forum. 2020.
+Digital Tools for Intangible Cultural Heritage: Opportunities and Risks of Fossilization.
+Position paper, ICH NGO Forum Working Group on Digital Safeguarding.
+
+\bibitem{komatsu2017}
+Kazuhiko Komatsu. 2017.
+\textit{An Introduction to Y\=okai Culture: Monsters, Ghosts, and Outsiders in Japanese History}.
+Japan Publishing Industry Foundation for Culture (JPIC), Tokyo.
+
+\bibitem{nichibunken_db}
+International Research Center for Japanese Studies (Nichibunken).
+Y\=okai Database.
+\url{https://www.nichibun.ac.jp/youkaidb/}. Accessed 2026.
+
+\bibitem{orquidea2024}
+Orquidea AI Research. 2024.
+Generative Folklore: Myth-Like Narratives from AI Outputs and Collective Algorithmic Storytelling.
+\url{https://orquidea.ai}. Accessed 2026.
+
+\bibitem{ozawa2024}
+Chinatsu Ozawa, Tatsuya Minagawa, and Yoichi Ochiai. 2024.
+Can AI Generated Ambrotype Chain the Aura of Alternative Process?
+In \textit{SIGGRAPH Asia 2024 Art Papers}. ACM, New York.
+
+\bibitem{propp1928}
+Vladimir Propp. 1928.
+\textit{Morphology of the Folktale}.
+University of Texas Press (English translation, 1968).
+
+\bibitem{sekien_wiki}
+Wikipedia. n.d.
+Toriyama Sekien.
+\url{https://en.wikipedia.org/wiki/Toriyama_Sekien}. Accessed 2026.
+
+\bibitem{star1989}
+Susan Leigh Star and James R. Griesemer. 1989.
+Institutional Ecology, ``Translations'' and Boundary Objects.
+\textit{Social Studies of Science} 19, 3 (1989), 387--420.
+
+\bibitem{touken_sekien}
+Touken World Ukiyo-e. n.d.
+Toriyama Sekien and the Gazu Hyakki Yagy\=o Series.
+\url{https://www.touken-world-ukiyoe.jp}. Accessed 2026.
+
+\bibitem{unesco2003}
+UNESCO. 2003.
+Convention for the Safeguarding of the Intangible Cultural Heritage.
+\url{https://ich.unesco.org/en/convention}. Accessed 2026.
+
+\end{thebibliography}
+
+
+\section*{AI Tools Disclosure}
+Large Language Models were used to assist in the research planning and linguistic editing of this manuscript. All conceptual design, software implementation, experimental evaluations, and scientific conclusions were generated, verified, and finalized by the human authors, who assume full responsibility for the content.
+
+\end{document}
