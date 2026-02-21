@@ -8,11 +8,10 @@
 
 export interface UserAnswers {
     event?: string;
+    perception?: string;
     where?: string;
     when?: string;
-    noticed?: string;
-    texture?: string;
-    emotion?: string;
+    impression?: string;
     nature?: string;
 }
 
@@ -45,22 +44,19 @@ export function buildSearchQuery(handle: HandleInfo, answers: UserAnswers): stri
 
     // 体験レポートとしての自然な文脈を構築
     const contextLines = [];
+
+    if (answers.perception?.trim()) {
+        contextLines.push(answers.perception);
+    }
+
     if (answers.where?.trim() || answers.when?.trim()) {
         const time = answers.when?.trim() ? `${answers.when}のころ、` : '';
         const place = answers.where?.trim() ? `${answers.where}で` : '';
         contextLines.push(`${time}${place}`);
     }
 
-    if (answers.noticed?.trim()) {
-        contextLines.push(`${answers.noticed}に気づいた。`);
-    }
-
-    if (answers.texture?.trim()) {
-        contextLines.push(`体の感覚としては${answers.texture}だった。`);
-    }
-
-    if (answers.emotion?.trim()) {
-        contextLines.push(`そのとき${answers.emotion}。`);
+    if (answers.impression?.trim()) {
+        contextLines.push(`その体験は${answers.impression}。`);
     }
 
     if (answers.nature?.trim()) {
@@ -215,11 +211,10 @@ export function buildNarrativePrompt(
         `説明: ${concept.description}`,
         '',
         '## 体験者の報告',
+        answers.perception ? `- 知覚: ${answers.perception}` : '',
         answers.where ? `- 場所: ${answers.where}` : '',
         answers.when ? `- 時: ${answers.when}` : '',
-        answers.noticed ? `- 気づいたこと: ${answers.noticed}` : '',
-        answers.texture ? `- 身体感覚: ${answers.texture}` : '',
-        answers.emotion ? `- 感情: ${answers.emotion}` : '',
+        answers.impression ? `- 印象: ${answers.impression}` : '',
         answers.nature ? `- 性質: ${answers.nature}` : '',
         '',
         '## 出力ルール',

@@ -15,9 +15,15 @@ interface StepDef {
 
 const STEPS: StepDef[] = [
     {
+        id: 'perception',
+        question: '何を感じ取りましたか。',
+        subtext: '夢で見たこと、日常のふとした違和感——なんでも構いません。自由にお書きください。',
+        type: 'text',
+        placeholder: '例: 暗い廊下の奥から、誰かに見られている気がした',
+    },
+    {
         id: 'where',
         question: 'どんな場所での体験ですか。',
-        subtext: '夢で見たこと、日常のふとした違和感——なんでも構いません。',
         type: 'choice+text',
         options: ['自宅', '通勤・通学路', '職場・学校', '旅先', '水辺', '決まっていない'],
         placeholder: '自由に入力する',
@@ -29,26 +35,11 @@ const STEPS: StepDef[] = [
         options: ['夜', '夕方', '明け方', '時間はばらばら'],
     },
     {
-        id: 'noticed',
-        question: '最初に気づいたのは何でしたか。',
-        subtext: '音、匂い、温度、光、視線……',
+        id: 'impression',
+        question: 'その体験の印象に近いものはどれですか。',
+        subtext: '身体の感覚でも、気持ちでも構いません。',
         type: 'choice+text',
-        options: ['音', '匂い', '温度', '光', '視線'],
-        placeholder: '自由に入力する',
-    },
-    {
-        id: 'texture',
-        question: 'その体験の質感に近いものはどれですか。',
-        subtext: '身体の感覚として最も近いものを選んでください。',
-        type: 'choice+text',
-        options: ['冷たい', '重い', '湿っている', 'ざらつく', '乾いている'],
-        placeholder: '自由に入力する',
-    },
-    {
-        id: 'emotion',
-        question: 'そのとき、どんな気持ちになりましたか。',
-        type: 'choice+text',
-        options: ['怖かった', '不思議だった', '懐かしかった', '心細かった', '惹かれた'],
+        options: ['冷たい', '重い', '不思議', '懐かしい', '心細い', '惹かれる'],
         placeholder: '自由に入力する',
     },
     {
@@ -91,8 +82,10 @@ export default function Phase1Prime() {
                 return next;
             });
             setHistory(prev => prev.slice(0, -1));
-            if (stepToUndo.id === 'texture') setTexture('');
-            if (stepToUndo.id === 'emotion') setStance('');
+            if (stepToUndo.id === 'impression') {
+                setTexture('');
+                setStance('');
+            }
             if (stepToUndo.id === 'nature') setAbsenceQuality(null);
             setCurrentStep(currentStep - 1);
         }, 320);
@@ -131,8 +124,10 @@ export default function Phase1Prime() {
         const nextAnswers = { ...answers, [step.id]: value };
         setAnswers(nextAnswers);
 
-        if (step.id === 'texture') setTexture(value);
-        if (step.id === 'emotion') setStance(value);
+        if (step.id === 'impression') {
+            setTexture(value);
+            setStance(value);
+        }
         if (step.id === 'nature') {
             if (value === '目に見えない現象だと思う') {
                 setAbsenceQuality('invisible');

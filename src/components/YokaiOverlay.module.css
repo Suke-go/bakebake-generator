@@ -21,7 +21,7 @@
   height: auto;
   opacity: 0;
   transform: scale(var(--yokai-scale));
-  filter: blur(0.4px) drop-shadow(0 0 14px hsla(20, 20%, 55%, 0.08));
+  filter: blur(1px) drop-shadow(0 0 6px hsla(20, 20%, 42%, 0.08));
   mix-blend-mode: screen;
   animation: yokaiHover var(--yokai-duration) ease-in-out infinite alternate;
   animation-delay: calc(-1 * var(--yokai-delay));

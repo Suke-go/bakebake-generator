@@ -10,7 +10,9 @@
       "WebFetch(domain:note.com)",
       "WebFetch(domain:allreviews.jp)",
       "Bash(test:*)",
-      "Bash(npm ls:*)"
+      "Bash(npm ls:*)",
+      "WebFetch(domain:lscbul8v9vntd6qd.public.blob.vercel-storage.com)",
+      "Bash(findstr:*)"
     ]
   }
 }

@@ -101,10 +101,19 @@ export default function SurveyTicketPage({ params }: { params: Promise<{ id: str
             .on(
                 'postgres_changes',
                 { event: 'UPDATE', schema: 'public', table: 'surveys', filter: `id=eq.${id}` },
-                (payload) => {
+                async (payload) => {
                     const record = payload.new as any;
                     if (record && record.yokai_name) {
-                        setScannedYokai({ name: record.yokai_name, b64: record.yokai_image_b64 });
+                        // Realtime payloads silently omit fields >64 bytes (e.g. yokai_image_b64).
+                        // Use the event as a signal, then fetch full data via REST API.
+                        const { data } = await supabase
+                            .from('surveys')
+                            .select('yokai_name, yokai_image_b64')
+                            .eq('id', id)
+                            .single();
+                        if (data && data.yokai_name) {
+                            setScannedYokai({ name: data.yokai_name, b64: data.yokai_image_b64 });
+                        }
                     }
                 }
             )

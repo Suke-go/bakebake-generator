@@ -52,9 +52,24 @@ function clamp(value: number, min: number, max: number) {
 }
 
 function getFigureCount(width: number) {
-  if (width < 768) return 4;
-  if (width <= 1024) return 6;
-  return 8;
+  if (width < 768) return 3;
+  if (width <= 1024) return 5;
+  return 6;
+}
+
+function pickEdgeValue(
+  minEdge: number,
+  maxEdge: number,
+  edgeStrength = 0.86,
+) {
+  const edgeWidth = (maxEdge - minEdge) * 0.2;
+  const isOuter = Math.random() < edgeStrength;
+  if (isOuter) {
+    return Math.random() < 0.5
+      ? random(minEdge, minEdge + edgeWidth)
+      : random(maxEdge - edgeWidth, maxEdge);
+  }
+  return random(minEdge + edgeWidth, maxEdge - edgeWidth);
 }
 
 export default function YokaiOverlay() {
@@ -87,17 +102,16 @@ export default function YokaiOverlay() {
       const driftY = random(-18, 18);
       const returnX = driftX * -1;
       const returnY = driftY * -1;
-      const opacity = random(0.4, 0.6);
+      const opacity = random(0.32, 0.52);
       const duration = random(width < 768 ? 6 : 7, width <= 1024 ? 13 : 16);
       const delay = random(-width * 0.01, 8);
       const rotation = random(-8, 8);
       const scale = random(0.75, 1.08);
 
-      const left = random(4, clamp((100 * 0.96) - (size / minDim * 100), 4, 92));
-      const top = random(
-        5,
-        clamp((100 * 0.94) - (size / minDim * 100), 10, 90),
-      );
+      const safeWidth = clamp((100 * 0.96) - (size / minDim * 100), 6, 94);
+      const safeHeight = clamp((100 * 0.94) - (size / minDim * 100), 6, 94);
+      const left = pickEdgeValue(4, safeWidth, 0.9);
+      const top = pickEdgeValue(4, safeHeight, 0.86);
 
       return {
         id: `${Date.now()}-${index}-${Math.random().toString(36).slice(2, 8)}`,
