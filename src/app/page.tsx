@@ -32,7 +32,7 @@ export default function LandingPage() {
                         BAKEBAKE XR
                     </h1>
                     <p style={{ fontSize: '1rem', opacity: 0.7, letterSpacing: '0.15em' }}>
-                        妖怪生成装置
+                        計算機的民俗学による、妖怪生成の現代的実践
                     </p>
                 </section>
 
@@ -42,34 +42,34 @@ export default function LandingPage() {
                         About
                     </h2>
                     <p style={{ lineHeight: 1.9, opacity: 0.85, fontSize: '0.95rem' }}>
-                        日本の各地には、説明のつかない不思議な体験が「妖怪」や「怪異」として語り継がれてきました。本システムは、あなた自身の体験をもとに、まだ名前のない新しい妖怪を生み出す装置です。
+                        歴史上、日本の地域社会が生み出してきた「妖怪」は、単なる娯楽キャラクターではなく、説明のつかない現象や漠然とした不安に対し、共同体で「名前」と「姿」を与えることで認知的な決着（Cognitive Closure）を得るための文化的実践でした。
                     </p>
                     <p style={{ lineHeight: 1.9, opacity: 0.85, fontSize: '0.95rem' }}>
-                        国際日本文化研究センター（日文研）の怪異・妖怪伝承データベースに収録された実在の民話記録と、柳田國男の妖怪命名分類をもとに、AIが新たな妖怪の名前・姿・伝承を生成します。
+                        BAKEBAKE XRは、この歴史的な生成プロセスを現代の計算機環境に再構築するインスタレーションです。国際日本文化研究センター（日文研）の「怪異・妖怪伝承データベース」を地層として参照し、あなたが抱いた名づけえぬ感覚を引き受け、新たな妖怪として結像させます。
                     </p>
                 </section>
 
                 {/* Flow */}
                 <section style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
                     <h2 style={{ fontSize: '1.3rem', fontWeight: 'normal', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>
-                        体験の流れ
+                        体験のプロセス
                     </h2>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.2rem' }}>
                         <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.2rem', borderRadius: '8px' }}>
-                            <h3 style={{ fontSize: '1rem', marginBottom: '0.4rem', color: 'var(--text-ghost)' }}>1. 体験の入力</h3>
-                            <p style={{ fontSize: '0.9rem', opacity: 0.8, lineHeight: 1.6 }}>いつ・どこで・どんな体験をしたかを、いくつかの質問に答える形で入力します。</p>
+                            <h3 style={{ fontSize: '1rem', marginBottom: '0.6rem', color: 'var(--text-bright)' }}>1. 事象の記述</h3>
+                            <p style={{ fontSize: '0.9rem', opacity: 0.8, lineHeight: 1.6 }}>あなた自身が体験した、あるいは感じたことのある「説明のつかない感覚」をシステムに記述します。</p>
                         </div>
                         <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.2rem', borderRadius: '8px' }}>
-                            <h3 style={{ fontSize: '1rem', marginBottom: '0.4rem', color: 'var(--text-ghost)' }}>2. 類似伝承の検索</h3>
-                            <p style={{ fontSize: '0.9rem', opacity: 0.8, lineHeight: 1.6 }}>入力された体験に似た妖怪の伝承記録を、日文研のデータベースから検索します。</p>
+                            <h3 style={{ fontSize: '1rem', marginBottom: '0.6rem', color: 'var(--text-bright)' }}>2. 文化地層への接続</h3>
+                            <p style={{ fontSize: '0.9rem', opacity: 0.8, lineHeight: 1.6 }}>入力された体験をもとに日文研のデータベースを検索し、歴史的に語り継がれてきた類似の伝承記録を抽出・参照します。</p>
                         </div>
                         <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.2rem', borderRadius: '8px' }}>
-                            <h3 style={{ fontSize: '1rem', marginBottom: '0.4rem', color: 'var(--text-ghost)' }}>3. 命名と画像生成</h3>
-                            <p style={{ fontSize: '0.9rem', opacity: 0.8, lineHeight: 1.6 }}>柳田國男の命名分類に基づき、AIが3つの名前候補を提案。選んだ名前で妖怪の姿と伝承テキストを生成します。</p>
+                            <h3 style={{ fontSize: '1rem', marginBottom: '0.6rem', color: 'var(--text-bright)' }}>3. 命名と視覚化</h3>
+                            <p style={{ fontSize: '0.9rem', opacity: 0.8, lineHeight: 1.6 }}>民俗学的な命名規則（地名＋行動、擬音語など）に基づき名前が与えられ、伝統的な和風画法の制約下で姿が生成されます。</p>
                         </div>
                         <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.2rem', borderRadius: '8px' }}>
-                            <h3 style={{ fontSize: '1rem', marginBottom: '0.4rem', color: 'var(--text-ghost)' }}>4. 記録の保存</h3>
-                            <p style={{ fontSize: '0.9rem', opacity: 0.8, lineHeight: 1.6 }}>生成された妖怪はQRコードを通じてお手持ちのスマートフォンに転送・保存されます。</p>
+                            <h3 style={{ fontSize: '1rem', marginBottom: '0.6rem', color: 'var(--text-bright)' }}>4. 記録と伝達</h3>
+                            <p style={{ fontSize: '0.9rem', opacity: 0.8, lineHeight: 1.6 }}>最後に、生成された妖怪の記録を発行します。時間が経つとインクが消えゆく感熱紙は、口承伝承の変容と忘却の性質を表現しています。</p>
                         </div>
                     </div>
                 </section>
