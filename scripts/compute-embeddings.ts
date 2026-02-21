@@ -124,7 +124,8 @@ async function main() {
                 model: 'gemini-embedding-001',
                 contents: texts,
                 config: {
-                    taskType: 'SEMANTIC_SIMILARITY',
+                    taskType: 'RETRIEVAL_DOCUMENT',
+                    outputDimensionality: 768,
                 },
             });
             const batchResults = batchResult.embeddings;

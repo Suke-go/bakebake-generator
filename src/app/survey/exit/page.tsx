@@ -40,20 +40,48 @@ function ExitSurveyForm() {
     const [isComplete, setIsComplete] = useState(false);
 
     // アクセスした瞬間に印刷トリガーを引く（1回のみ）
+    // オンライン: Supabase の print_triggered を true に → print_daemon がポーリングで検知
+    // オフライン: Supabase 失敗時 → /api/local-print に直接 POST
     useEffect(() => {
         if (!id || triggerSent) return;
 
         const triggerPrint = async () => {
             try {
-                // print_triggered がまだ false の場合のみ true に書き換える
-                await supabase
+                // まず Supabase 経由を試す（オンラインモード）
+                const { error } = await supabase
                     .from('surveys')
                     .update({ print_triggered: true })
                     .eq('id', id)
                     .eq('print_triggered', false);
+
+                if (error) throw error;
                 setTriggerSent(true);
             } catch (e) {
-                console.error("Failed to trigger print", e);
+                console.warn("Supabase print trigger failed, trying local daemon...", e);
+                // オフラインモード: ローカルの print daemon に直接送信
+                try {
+                    const { data: record } = await supabase
+                        .from('surveys')
+                        .select('yokai_name, yokai_desc, yokai_image_b64')
+                        .eq('id', id)
+                        .single();
+
+                    if (record) {
+                        await fetch('/api/local-print', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                id,
+                                yokai_name: record.yokai_name,
+                                yokai_desc: record.yokai_desc,
+                                yokai_image_b64: record.yokai_image_b64,
+                            }),
+                        });
+                    }
+                    setTriggerSent(true);
+                } catch (localErr) {
+                    console.error("Local print also failed:", localErr);
+                }
             }
         };
 

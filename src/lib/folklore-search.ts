@@ -14,7 +14,7 @@ export interface FolkloreEntry {
     summary: string;     // 要約
     location: string;    // 地域
     source: string;      // 出典
-    embedding: number[]; // 3072次元 (gemini-embedding-001)
+    embedding: number[]; // 768次元 (gemini-embedding-001 with outputDimensionality)
 }
 
 export interface SearchResult {

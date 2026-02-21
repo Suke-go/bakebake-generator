@@ -74,6 +74,39 @@ export default function LandingPage() {
                     </div>
                 </section>
 
+                {/* CTA: 参加登録 */}
+                <section style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '1rem',
+                    marginTop: '1rem',
+                }}>
+                    <a
+                        href="/survey/enter"
+                        style={{
+                            display: 'inline-block',
+                            padding: '1.2rem 3rem',
+                            fontSize: '1.1rem',
+                            fontFamily: '"Noto Serif JP", serif',
+                            letterSpacing: '0.15em',
+                            color: '#fff',
+                            background: 'rgba(255, 255, 255, 0.08)',
+                            border: '1px solid rgba(255, 255, 255, 0.25)',
+                            borderRadius: '6px',
+                            textDecoration: 'none',
+                            textAlign: 'center',
+                            transition: 'background 0.3s ease, border-color 0.3s ease',
+                            cursor: 'pointer',
+                        }}
+                    >
+                        参加する
+                    </a>
+                    <p style={{ fontSize: '0.8rem', opacity: 0.45 }}>
+                        事前アンケートに回答し、観測IDを取得します
+                    </p>
+                </section>
+
                 {/* Notice */}
                 <section style={{ marginTop: '1rem', textAlign: 'center' }}>
                     <p style={{ fontSize: '0.85rem', opacity: 0.45, lineHeight: 1.6 }}>
@@ -81,8 +114,27 @@ export default function LandingPage() {
                     </p>
                 </section>
 
-                <footer style={{ marginTop: '3rem', textAlign: 'center', opacity: 0.35, fontSize: '0.8rem' }}>
-                    &copy; 2026 BAKEBAKE XR
+                <footer style={{
+                    marginTop: '3rem',
+                    textAlign: 'center',
+                    opacity: 0.35,
+                    fontSize: '0.8rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.5rem',
+                    alignItems: 'center',
+                }}>
+                    <span>&copy; 2026 BAKEBAKE XR</span>
+                    <a
+                        href="/generator"
+                        style={{
+                            fontSize: '0.7rem',
+                            color: 'rgba(255,255,255,0.15)',
+                            textDecoration: 'none',
+                        }}
+                    >
+                        展示端末
+                    </a>
                 </footer>
             </div>
         </div>

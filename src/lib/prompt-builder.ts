@@ -42,18 +42,43 @@ export interface FolkloreEntry {
 export function buildSearchQuery(handle: HandleInfo, answers: UserAnswers): string {
     const parts: string[] = [];
 
-    // 体験の要約
+    // 体験の要約を最初の文として扱う
     parts.push(handle.text.replace('\n', ''));
 
-    if (answers.event?.trim()) parts.push(`${answers.event}とき`);
-    if (answers.where?.trim()) parts.push(`${answers.where}で`);
-    if (answers.when?.trim()) parts.push(`（${answers.when}）`);
-    if (answers.noticed?.trim()) parts.push(`${answers.noticed}`);
-    if (answers.texture?.trim()) parts.push(`体の感覚は${answers.texture}`);
-    if (answers.alone?.trim()) parts.push(answers.alone);
-    if (answers.reaction?.trim()) parts.push(`そのとき${answers.reaction}`);
-    if (answers.stance?.trim()) parts.push(`いまは${answers.stance}`);
-    if (answers.absence?.trim()) parts.push(`姿は${answers.absence}`);
+    // 体験レポートとしての自然な文脈を構築
+    const contextLines = [];
+    if (answers.event?.trim() || answers.where?.trim() || answers.when?.trim()) {
+        const time = answers.when?.trim() ? `${answers.when}のころ、` : '';
+        const place = answers.where?.trim() ? `${answers.where}で` : '';
+        const event = answers.event?.trim() ? `${answers.event}のとき、` : '';
+        contextLines.push(`${time}${place}${event}`);
+    }
+
+    if (answers.noticed?.trim()) {
+        contextLines.push(`${answers.noticed}ことに気づいた。`);
+    }
+
+    if (answers.absence?.trim()) {
+        contextLines.push(`姿は${answers.absence}。`);
+    }
+
+    if (answers.texture?.trim() || answers.alone?.trim()) {
+        const alone = answers.alone?.trim() ? `${answers.alone}、` : '';
+        const texture = answers.texture?.trim() ? `体の感覚としては${answers.texture}だった。` : '';
+        contextLines.push(`${alone}${texture}`);
+    }
+
+    if (answers.reaction?.trim()) {
+        contextLines.push(`そのとき自分は${answers.reaction}。`);
+    }
+
+    if (answers.stance?.trim()) {
+        contextLines.push(`いま振り返ると${answers.stance}。`);
+    }
+
+    if (contextLines.length > 0) {
+        parts.push(contextLines.join(''));
+    }
 
     return parts.join('。') + '。';
 }

@@ -123,7 +123,8 @@ async function runSearchFallback(
                     model: 'gemini-embedding-001',
                     contents: searchQuery,
                     config: {
-                        taskType: 'SEMANTIC_SIMILARITY',
+                        taskType: 'RETRIEVAL_QUERY',
+                        outputDimensionality: 768,
                     },
                 });
             },

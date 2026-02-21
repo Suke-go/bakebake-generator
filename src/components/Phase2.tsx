@@ -5,14 +5,6 @@ import { useApp, YokaiConcept } from '@/lib/context';
 import { searchFolklore, generateConcepts } from '@/lib/api-client';
 import ProgressDots from './ProgressDots';
 
-const SCATTER_POSITIONS = [
-    { left: '5%', top: '0px' },
-    { right: '0%', top: '100px' },
-    { left: '12%', top: '220px' },
-    { right: '8%', top: '350px' },
-    { left: '2%', top: '470px' },
-];
-
 const RETRY_MAX = 2;
 const RETRY_BASE_MS = 900;
 const ANIM_INTRO_TO_FOLKLORE_MS = 2400;
@@ -65,12 +57,7 @@ export default function Phase2() {
         }
     }, []);
 
-    const fieldHeight = useMemo(() => {
-        if (visibleFolklore === 0) return 0;
-        const lastPos = SCATTER_POSITIONS[Math.min(visibleFolklore - 1, SCATTER_POSITIONS.length - 1)];
-        const topVal = parseInt(lastPos.top, 10) || 0;
-        return topVal + 180;
-    }, [visibleFolklore]);
+
 
     const isRetryableError = useCallback((message: string) => {
         const normalized = message.toLowerCase();
@@ -389,17 +376,25 @@ export default function Phase2() {
                     <p className="label fade-in" style={{ marginBottom: 16 }}>
                         関連する伝承
                     </p>
-                    <div className="folklore-field" style={{ minHeight: isMobile ? 'auto' : fieldHeight }}>
+                    <div className="folklore-field" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                         {folkloreData.slice(0, visibleFolklore).map((f, i) => {
-                            const pos = isMobile ? { position: 'relative' as const, marginBottom: '24px' } : SCATTER_POSITIONS[i % SCATTER_POSITIONS.length];
+                            // Alternate left/right scatter without absolute overlap
+                            const isEven = i % 2 === 0;
+                            const alignSelf = isMobile ? 'stretch' : (isEven ? 'flex-start' : 'flex-end');
+                            const marginLeft = isMobile ? '0' : (isEven ? `${2 + (i % 3) * 5}%` : '0');
+                            const marginRight = isMobile ? '0' : (!isEven ? `${2 + (i % 3) * 5}%` : '0');
+
                             return (
                                 <div
                                     key={f.id}
                                     className="folklore-entry volatile"
                                     style={{
-                                        ...pos,
+                                        position: 'relative',
+                                        alignSelf,
+                                        marginLeft,
+                                        marginRight,
                                         animationDelay: `${i * 0.3}s`,
-                                        transform: isMobile ? 'none' : undefined,
+                                        transform: 'none',
                                     }}
                                 >
                                     <p className="folklore-name">{f.kaiiName}</p>
