@@ -4,6 +4,14 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useApp, YokaiConcept } from '@/lib/context';
 import { searchFolklore, generateConcepts } from '@/lib/api-client';
 import ProgressDots from './ProgressDots';
+// Use flex properties to create the organic scattered effect from 29f9879 without absolute vertical overlap
+const SCATTER_POSITIONS = [
+    { alignSelf: 'flex-start', marginLeft: '5%' },
+    { alignSelf: 'flex-end', marginRight: '0%' },
+    { alignSelf: 'flex-start', marginLeft: '12%' },
+    { alignSelf: 'flex-end', marginRight: '8%' },
+    { alignSelf: 'flex-start', marginLeft: '2%' },
+];
 
 const RETRY_MAX = 2;
 const RETRY_BASE_MS = 900;
@@ -120,7 +128,7 @@ export default function Phase2() {
                 controller.signal
             );
             const folklore = searchResult.folklore;
-            const localFallbackConcepts = folklore.slice(0, 3).map((entry) => ({
+            const localFallbackConcepts = folklore.slice(0, 3).map((entry: any) => ({
                 source: 'db' as const,
                 name: entry.kaiiName,
                 reading: '',
@@ -376,13 +384,11 @@ export default function Phase2() {
                     <p className="label fade-in" style={{ marginBottom: 16 }}>
                         関連する伝承
                     </p>
-                    <div className="folklore-field" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                    <div className="folklore-field" style={{ display: 'flex', flexDirection: 'column' }}>
                         {folkloreData.slice(0, visibleFolklore).map((f, i) => {
-                            // Alternate left/right scatter without absolute overlap
-                            const isEven = i % 2 === 0;
-                            const alignSelf = isMobile ? 'stretch' : (isEven ? 'flex-start' : 'flex-end');
-                            const marginLeft = isMobile ? '0' : (isEven ? `${2 + (i % 3) * 5}%` : '0');
-                            const marginRight = isMobile ? '0' : (!isEven ? `${2 + (i % 3) * 5}%` : '0');
+                            const desktopPos = SCATTER_POSITIONS[i % SCATTER_POSITIONS.length];
+                            const mobilePos = { alignSelf: 'stretch', marginTop: i === 0 ? '0' : '32px' };
+                            const pos = isMobile ? mobilePos : desktopPos;
 
                             return (
                                 <div
@@ -390,9 +396,7 @@ export default function Phase2() {
                                     className="folklore-entry volatile"
                                     style={{
                                         position: 'relative',
-                                        alignSelf,
-                                        marginLeft,
-                                        marginRight,
+                                        ...pos,
                                         animationDelay: `${i * 0.3}s`,
                                         transform: 'none',
                                     }}

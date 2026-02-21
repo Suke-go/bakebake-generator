@@ -328,7 +328,7 @@ body {
 }
 
 .folklore-entry {
-  position: absolute;
+  position: relative;
   max-width: 380px;
 }
 
