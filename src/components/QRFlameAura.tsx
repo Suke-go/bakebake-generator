@@ -81,16 +81,16 @@ void main() {
   float wisps = fbm(centered * 8.0 + vec2(t * 0.08, -t * 0.05));
   wisps = pow(wisps, 2.0) * radialOuter * 0.15;
 
-  // Green onibi palette
-  vec3 coreColor = vec3(0.5, 1.0, 0.6);
-  vec3 midColor = vec3(0.08, 0.5, 0.15);
-  vec3 outerColor = vec3(0.02, 0.12, 0.04);
+  // Blood-red horror palette
+  vec3 coreColor = vec3(1.0, 0.1, 0.1);
+  vec3 midColor = vec3(0.5, 0.0, 0.05);
+  vec3 outerColor = vec3(0.15, 0.0, 0.02);
 
   vec3 color = mix(outerColor, midColor, smoothstep(0.0, 0.3, intensity));
   color = mix(color, coreColor, smoothstep(0.4, 0.8, intensity));
 
-  // Add wisps
-  color += vec3(0.03, 0.1, 0.04) * wisps;
+  // Add wisps (darker red)
+  color += vec3(0.2, 0.0, 0.0) * wisps;
 
   // Overall intensity
   float alpha = intensity * 0.5 + wisps;
@@ -104,114 +104,114 @@ void main() {
 `;
 
 interface QRGlowProps {
-    size?: number;
+  size?: number;
 }
 
 export default function QRGlow({ size = 300 }: QRGlowProps) {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const rafRef = useRef(0);
-    const startTime = useRef(0);
-    const frameToggle = useRef(false);
-    const uniformsRef = useRef<{
-        gl: WebGLRenderingContext;
-        uTime: WebGLUniformLocation;
-        uRes: WebGLUniformLocation;
-    } | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const rafRef = useRef(0);
+  const startTime = useRef(0);
+  const frameToggle = useRef(false);
+  const uniformsRef = useRef<{
+    gl: WebGLRenderingContext;
+    uTime: WebGLUniformLocation;
+    uRes: WebGLUniformLocation;
+  } | null>(null);
 
-    const initGL = useCallback(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) return false;
-        const gl = canvas.getContext('webgl', { alpha: true, antialias: false, premultipliedAlpha: true });
-        if (!gl) return false;
+  const initGL = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return false;
+    const gl = canvas.getContext('webgl', { alpha: true, antialias: false, premultipliedAlpha: true });
+    if (!gl) return false;
 
-        gl.enable(gl.BLEND);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-        const compile = (type: number, src: string) => {
-            const s = gl.createShader(type)!;
-            gl.shaderSource(s, src);
-            gl.compileShader(s);
-            if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
-                console.error('QRGlow shader:', gl.getShaderInfoLog(s));
-                return null;
-            }
-            return s;
-        };
+    const compile = (type: number, src: string) => {
+      const s = gl.createShader(type)!;
+      gl.shaderSource(s, src);
+      gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+        console.error('QRGlow shader:', gl.getShaderInfoLog(s));
+        return null;
+      }
+      return s;
+    };
 
-        const vs = compile(gl.VERTEX_SHADER, VERT);
-        const fs = compile(gl.FRAGMENT_SHADER, FRAG);
-        if (!vs || !fs) return false;
+    const vs = compile(gl.VERTEX_SHADER, VERT);
+    const fs = compile(gl.FRAGMENT_SHADER, FRAG);
+    if (!vs || !fs) return false;
 
-        const prog = gl.createProgram()!;
-        gl.attachShader(prog, vs);
-        gl.attachShader(prog, fs);
-        gl.linkProgram(prog);
-        if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return false;
-        gl.useProgram(prog);
+    const prog = gl.createProgram()!;
+    gl.attachShader(prog, vs);
+    gl.attachShader(prog, fs);
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return false;
+    gl.useProgram(prog);
 
-        const buf = gl.createBuffer()!;
-        gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
-        const pos = gl.getAttribLocation(prog, 'a_position');
-        gl.enableVertexAttribArray(pos);
-        gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
+    const buf = gl.createBuffer()!;
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    const pos = gl.getAttribLocation(prog, 'a_position');
+    gl.enableVertexAttribArray(pos);
+    gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
 
-        uniformsRef.current = {
-            gl,
-            uTime: gl.getUniformLocation(prog, 'u_time')!,
-            uRes: gl.getUniformLocation(prog, 'u_resolution')!,
-        };
-        startTime.current = performance.now();
-        return true;
-    }, []);
+    uniformsRef.current = {
+      gl,
+      uTime: gl.getUniformLocation(prog, 'u_time')!,
+      uRes: gl.getUniformLocation(prog, 'u_resolution')!,
+    };
+    startTime.current = performance.now();
+    return true;
+  }, []);
 
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-        const dpr = Math.min(window.devicePixelRatio, 1.5);
-        canvas.width = size * dpr;
-        canvas.height = size * dpr;
+    const dpr = Math.min(window.devicePixelRatio, 1.5);
+    canvas.width = size * dpr;
+    canvas.height = size * dpr;
 
-        if (!initGL()) return;
-        uniformsRef.current?.gl.viewport(0, 0, canvas.width, canvas.height);
+    if (!initGL()) return;
+    uniformsRef.current?.gl.viewport(0, 0, canvas.width, canvas.height);
 
-        const render = () => {
-            frameToggle.current = !frameToggle.current;
-            if (frameToggle.current) {
-                rafRef.current = requestAnimationFrame(render);
-                return;
-            }
+    const render = () => {
+      frameToggle.current = !frameToggle.current;
+      if (frameToggle.current) {
+        rafRef.current = requestAnimationFrame(render);
+        return;
+      }
 
-            const ref = uniformsRef.current;
-            if (!ref) return;
-            const t = (performance.now() - startTime.current) / 1000;
+      const ref = uniformsRef.current;
+      if (!ref) return;
+      const t = (performance.now() - startTime.current) / 1000;
 
-            ref.gl.clearColor(0, 0, 0, 0);
-            ref.gl.clear(ref.gl.COLOR_BUFFER_BIT);
-            ref.gl.uniform1f(ref.uTime, t);
-            ref.gl.uniform2f(ref.uRes, canvasRef.current!.width, canvasRef.current!.height);
-            ref.gl.drawArrays(ref.gl.TRIANGLE_STRIP, 0, 4);
-            rafRef.current = requestAnimationFrame(render);
-        };
-        render();
+      ref.gl.clearColor(0, 0, 0, 0);
+      ref.gl.clear(ref.gl.COLOR_BUFFER_BIT);
+      ref.gl.uniform1f(ref.uTime, t);
+      ref.gl.uniform2f(ref.uRes, canvasRef.current!.width, canvasRef.current!.height);
+      ref.gl.drawArrays(ref.gl.TRIANGLE_STRIP, 0, 4);
+      rafRef.current = requestAnimationFrame(render);
+    };
+    render();
 
-        return () => { cancelAnimationFrame(rafRef.current); };
-    }, [initGL, size]);
+    return () => { cancelAnimationFrame(rafRef.current); };
+  }, [initGL, size]);
 
-    return (
-        <canvas
-            ref={canvasRef}
-            style={{
-                width: size,
-                height: size,
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                pointerEvents: 'none',
-                zIndex: 0,
-            }}
-        />
-    );
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{
+        width: size,
+        height: size,
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        pointerEvents: 'none',
+        zIndex: 0,
+      }}
+    />
+  );
 }

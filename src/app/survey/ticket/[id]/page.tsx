@@ -30,19 +30,19 @@ function StyledQR({ value, size = 200 }: { value: string; size?: number }) {
                 type: 'canvas',
                 data: value,
                 dotsOptions: {
-                    color: '#1a2418',       // 墨色に近い深緑
+                    color: '#2a0808',       // 濃い血の色（黒に近い赤）
                     type: 'dots',
                 },
                 cornersSquareOptions: {
-                    color: '#0f1a0d',
+                    color: '#1a0505',       // さらに暗い赤黒
                     type: 'extra-rounded',
                 },
                 cornersDotOptions: {
-                    color: '#2d4a28',       // 苔色
+                    color: '#4a0808',       // 強い血の赤
                     type: 'dot',
                 },
                 backgroundOptions: {
-                    color: '#ede8d8',       // 生成り色（和紙）
+                    color: '#e2d5c8',       // 少し暗く汚れた生成り色
                 },
                 qrOptions: {
                     errorCorrectionLevel: 'H',
@@ -263,14 +263,18 @@ export default function SurveyTicketPage({ params }: { params: Promise<{ id: str
                         flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: '2rem',
-                        background: 'rgba(0, 0, 0, 0.65)',
-                        backdropFilter: 'blur(4px)',
-                        padding: '2rem 1rem',
-                        borderRadius: '8px',
-                        width: '100%',
+                        gap: '1.5rem',
+                        // 背景の黒枠を最小限に抑える
+                        background: 'rgba(0, 0, 0, 0.45)',
+                        backdropFilter: 'blur(3px)',
+                        padding: '1.5rem 1rem',
+                        borderRadius: '6px',
+                        width: 'auto', // 横幅も最小限に
+                        minWidth: '220px',
                         boxSizing: 'border-box',
-                        flexGrow: 1, // 高さいっぱいに広げる
+                        // flexGrow: 1 を削除し、必要最小限の高さにする
+                        marginTop: 'auto',
+                        marginBottom: 'auto', // コンテナの中央に配置
                     }}>
                         {/* QR + GLSL glow */}
                         <div style={{
@@ -280,7 +284,7 @@ export default function SurveyTicketPage({ params }: { params: Promise<{ id: str
                             justifyContent: 'center',
                         }}>
                             {/* GLSL glow behind QR */}
-                            <QRGlow size={280} />
+                            <QRGlow size={240} />
 
                             {/* QR code: washi background, ink dots */}
                             <div style={{
@@ -289,17 +293,17 @@ export default function SurveyTicketPage({ params }: { params: Promise<{ id: str
                                 borderRadius: '4px',
                                 overflow: 'hidden',
                                 // QRをよりくっきりさせるために白い余白を付与
-                                padding: '8px',
+                                padding: '6px',
                                 background: '#ede8d8',
                             }}>
-                                <StyledQR value={id} size={180} />
+                                <StyledQR value={id} size={160} />
                             </div>
                         </div>
 
                         {/* 指示テキスト — 白文字 */}
                         <p style={{
                             fontFamily: '"Noto Serif JP", serif',
-                            fontSize: '0.9rem',
+                            fontSize: '0.85rem',
                             letterSpacing: '0.15em',
                             lineHeight: 1.8,
                             color: '#ede8d8',
