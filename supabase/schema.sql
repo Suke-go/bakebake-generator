@@ -10,6 +10,10 @@ CREATE TABLE public.surveys (
     pre_origin text NULL,
     pre_familiarity integer NULL,
     pre_image text NULL,
+    pre_age text NULL,
+    pre_gender text NULL,
+    pre_yokai_perception text NULL,   -- 'character' | 'culture' | 'psychology' | 'none'
+    pre_ai_experience integer NULL,   -- 1-5 scale
     
     -- Post-Survey (Exit)
     post_completed boolean NOT NULL DEFAULT false,

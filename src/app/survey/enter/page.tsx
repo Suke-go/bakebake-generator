@@ -15,12 +15,24 @@ const PREFECTURES = [
     "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県", "海外"
 ];
 
+const YOKAI_PERCEPTION_OPTIONS = [
+    { value: 'character', label: 'エンタメ・キャラクター（ゲゲゲの鬼太郎、妖怪ウォッチなど）' },
+    { value: 'culture', label: '日本の伝統文化・民俗の一部' },
+    { value: 'psychology', label: '人間の不安や恐怖の表れ' },
+    { value: 'none', label: 'あまり考えたことがない' }
+];
+
 export default function SurveyEnterPage() {
     const router = useRouter();
     const [visitorType, setVisitorType] = useState("");
     const [origin, setOrigin] = useState("");
     const [familiarity, setFamiliarity] = useState<number | null>(null);
     const [preImage, setPreImage] = useState("");
+    // New fields for SIGGRAPH evaluation
+    const [age, setAge] = useState("");
+    const [gender, setGender] = useState("");
+    const [yokaiPerception, setYokaiPerception] = useState("");
+    const [aiExperience, setAiExperience] = useState<number | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState("");
     const [isCheckingSession, setIsCheckingSession] = useState(true);
@@ -39,8 +51,8 @@ export default function SurveyEnterPage() {
         e.preventDefault();
         setError("");
 
-        if (!visitorType || !origin || !familiarity || !preImage.trim()) {
-            setError("すべての項目を入力してください。");
+        if (!visitorType || !origin || !familiarity || !preImage.trim() || !age || !yokaiPerception) {
+            setError("必須項目をすべて入力してください。");
             return;
         }
 
@@ -54,7 +66,11 @@ export default function SurveyEnterPage() {
                         visitor_type: visitorType,
                         pre_origin: origin,
                         pre_familiarity: familiarity,
-                        pre_image: preImage.trim()
+                        pre_image: preImage.trim(),
+                        pre_age: age,
+                        pre_gender: gender || null,
+                        pre_yokai_perception: yokaiPerception,
+                        pre_ai_experience: aiExperience
                     }
                 ])
                 .select();
@@ -197,6 +213,89 @@ export default function SurveyEnterPage() {
                             onChange={e => setPreImage(e.target.value)}
                             style={{ padding: '1rem', width: '100%' }}
                         />
+                    </div>
+
+                    {/* Q5: 年齢 */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                        <label className="body-text">5. 年齢層<span style={{ color: '#ff6b6b', fontSize: '0.8rem', marginLeft: '0.5rem' }}>必須</span></label>
+                        <select
+                            className="glass-input"
+                            value={age}
+                            onChange={e => setAge(e.target.value)}
+                            style={{ padding: '1rem', width: '100%' }}
+                        >
+                            <option value="" disabled>選択してください</option>
+                            <option value="10代">10代</option>
+                            <option value="20代">20代</option>
+                            <option value="30代">30代</option>
+                            <option value="40代">40代</option>
+                            <option value="50代以上">50代以上</option>
+                        </select>
+                    </div>
+
+                    {/* Q6: 性別 */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                        <label className="body-text">6. 性別（任意）</label>
+                        <select
+                            className="glass-input"
+                            value={gender}
+                            onChange={e => setGender(e.target.value)}
+                            style={{ padding: '1rem', width: '100%' }}
+                        >
+                            <option value="">回答しない</option>
+                            <option value="男性">男性</option>
+                            <option value="女性">女性</option>
+                            <option value="その他">その他</option>
+                        </select>
+                    </div>
+
+                    {/* Q7: 妖怪の知覚ベースライン (CRITICAL for paper §4.1) */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                        <label className="body-text">
+                            7. 「妖怪」をひとことで表すなら、最も近いものはどれですか？
+                            <span style={{ color: '#ff6b6b', fontSize: '0.8rem', marginLeft: '0.5rem' }}>必須</span>
+                        </label>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            {YOKAI_PERCEPTION_OPTIONS.map(opt => (
+                                <label key={opt.value} style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', cursor: 'pointer' }}>
+                                    <input
+                                        type="radio"
+                                        name="yokai_perception"
+                                        value={opt.value}
+                                        checked={yokaiPerception === opt.value}
+                                        onChange={() => setYokaiPerception(opt.value)}
+                                        style={{ width: '1.2rem', height: '1.2rem', accentColor: 'var(--accent)' }}
+                                    />
+                                    <span className="body-text" style={{ fontSize: '0.9rem' }}>{opt.label}</span>
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Q8: 生成AI経験 */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                        <label className="body-text">8. 生成AI（ChatGPT, 画像生成AIなど）の利用経験はありますか？</label>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem' }}>
+                            {[1, 2, 3, 4, 5].map(num => (
+                                <button
+                                    key={num}
+                                    type="button"
+                                    className={`interactive-button ${aiExperience === num ? 'active' : ''}`}
+                                    onClick={() => setAiExperience(num)}
+                                    style={{
+                                        flex: 1,
+                                        padding: '0.8rem',
+                                        background: aiExperience === num ? 'rgba(255,255,255,0.2)' : 'transparent'
+                                    }}
+                                >
+                                    {num}
+                                </button>
+                            ))}
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', opacity: 0.6 }}>
+                            <span>全くない</span>
+                            <span>日常的に使う</span>
+                        </div>
                     </div>
 
                     <button
