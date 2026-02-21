@@ -82,21 +82,22 @@ void main() {
   wisps = pow(wisps, 2.0) * radialOuter * 0.15;
 
   // Blood-red horror palette
-  vec3 coreColor = vec3(1.0, 0.1, 0.1);
-  vec3 midColor = vec3(0.5, 0.0, 0.05);
-  vec3 outerColor = vec3(0.15, 0.0, 0.02);
+  vec3 coreColor = vec3(1.0, 0.15, 0.05);
+  vec3 midColor = vec3(0.6, 0.02, 0.02);
+  vec3 outerColor = vec3(0.25, 0.0, 0.0);
 
-  vec3 color = mix(outerColor, midColor, smoothstep(0.0, 0.3, intensity));
-  color = mix(color, coreColor, smoothstep(0.4, 0.8, intensity));
+  vec3 color = mix(outerColor, midColor, smoothstep(0.0, 0.25, intensity));
+  color = mix(color, coreColor, smoothstep(0.3, 0.7, intensity));
 
   // Add wisps (darker red)
-  color += vec3(0.2, 0.0, 0.0) * wisps;
+  color += vec3(0.3, 0.02, 0.0) * wisps;
 
-  // Overall intensity
-  float alpha = intensity * 0.5 + wisps;
+  // Overall intensity — 大幅に強化
+  float alpha = intensity * 0.85 + wisps * 2.0;
+  alpha = clamp(alpha, 0.0, 1.0);
 
   // Grain
-  float grain = hash(gl_FragCoord.xy + t * 60.0) * 0.01;
+  float grain = hash(gl_FragCoord.xy + t * 60.0) * 0.015;
   color += grain;
 
   gl_FragColor = vec4(color * alpha, alpha);

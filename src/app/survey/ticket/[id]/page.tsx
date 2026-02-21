@@ -42,7 +42,7 @@ function StyledQR({ value, size = 200 }: { value: string; size?: number }) {
                     type: 'dot',
                 },
                 backgroundOptions: {
-                    color: '#e2d5c8',       // 少し暗く汚れた生成り色
+                    color: 'transparent',   // 透明 — お札に直接埋め込む
                 },
                 qrOptions: {
                     errorCorrectionLevel: 'H',
@@ -258,62 +258,45 @@ export default function SurveyTicketPage({ params }: { params: Promise<{ id: str
                         )}
                     </div>
                 ) : (
-                    <div style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '1.5rem',
-                        // 背景の黒枠を最小限に抑える
-                        background: 'rgba(0, 0, 0, 0.45)',
-                        backdropFilter: 'blur(3px)',
-                        padding: '1.5rem 1rem',
-                        borderRadius: '6px',
-                        width: 'auto', // 横幅も最小限に
-                        minWidth: '220px',
-                        boxSizing: 'border-box',
-                        // flexGrow: 1 を削除し、必要最小限の高さにする
-                        marginTop: 'auto',
-                        marginBottom: 'auto', // コンテナの中央に配置
-                    }}>
-                        {/* QR + GLSL glow */}
+                    <>
+                        {/* QR + GLSL glow — 直接お札の上に配置、黒枠なし */}
                         <div style={{
                             position: 'relative',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
+                            marginTop: 'auto',
                         }}>
-                            {/* GLSL glow behind QR */}
-                            <QRGlow size={240} />
+                            {/* GLSL blood glow — 大きく光らせる */}
+                            <QRGlow size={320} />
 
-                            {/* QR code: washi background, ink dots */}
+                            {/* QR code: 透明背景で直にお札に馴染ませる */}
                             <div style={{
                                 position: 'relative',
                                 zIndex: 1,
-                                borderRadius: '4px',
-                                overflow: 'hidden',
-                                // QRをよりくっきりさせるために白い余白を付与
-                                padding: '6px',
-                                background: '#ede8d8',
                             }}>
-                                <StyledQR value={id} size={160} />
+                                <StyledQR value={id} size={180} />
                             </div>
                         </div>
 
-                        {/* 指示テキスト — 白文字 */}
+                        {/* 指示テキスト — 最小限のpill型黒背景 + 白文字 */}
                         <p style={{
                             fontFamily: '"Noto Serif JP", serif',
                             fontSize: '0.85rem',
                             letterSpacing: '0.15em',
                             lineHeight: 1.8,
-                            color: '#ede8d8',
+                            color: '#ffffff',
                             textAlign: 'center',
                             margin: 0,
-                            textShadow: '0 2px 4px rgba(0,0,0,0.8)',
+                            marginBottom: 'auto',
+                            background: 'rgba(0, 0, 0, 0.7)',
+                            padding: '0.5rem 1.2rem',
+                            borderRadius: '4px',
+                            textShadow: '0 1px 3px rgba(0,0,0,0.9)',
                         }}>
                             妖怪生成装置に<br />かざしてください
                         </p>
-                    </div>
+                    </>
                 )}
             </div>
 
