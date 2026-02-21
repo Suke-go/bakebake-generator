@@ -1,17 +1,13 @@
 'use client';
 
-import { useEffect, useRef, useCallback, useState } from 'react';
-import QRCodeLib from 'qrcode';
+import { useEffect, useRef, useCallback } from 'react';
 
 /**
- * QRFlameAura — 鬼火で描かれたQRコード
+ * QRGlow — 鬼火の淡い光
  *
- * QRコードのモジュール（ドット）自体をWebGLシェーダーで描画。
- * 各ドットが緑の鬼火のように揺らめき、呼吸する。
- * QRデータはテクスチャとしてシェーダーに渡される。
- *
- * 読み取り性を保つため、各ドットの中心位置は維持しつつ
- * エッジと明るさにノイズを加える。
+ * QRコードの背後に配置する。
+ * FBMノイズで有機的に呼吸する緑のグロー。
+ * Raw WebGL, 30fps制限, モバイル軽量。
  */
 
 const VERT = `
@@ -28,8 +24,6 @@ precision mediump float;
 
 uniform float u_time;
 uniform vec2 u_resolution;
-uniform sampler2D u_qrTex;
-uniform float u_qrSize;   // number of modules per side
 
 varying vec2 v_uv;
 
@@ -64,107 +58,56 @@ float fbm(vec2 p) {
 
 void main() {
   vec2 uv = v_uv;
+  vec2 centered = uv - 0.5;
+  float r = length(centered);
+  float t = u_time;
 
-  // QR is centered with margin
-  float margin = 0.08;
-  vec2 qrUV = (uv - margin) / (1.0 - 2.0 * margin);
+  // Organic breathing glow
+  float glow1 = fbm(centered * 3.0 + vec2(t * 0.15, t * 0.1));
+  float glow2 = fbm(centered * 5.0 + vec2(-t * 0.2, t * 0.12));
 
-  // Background: very dark
-  vec3 bg = vec3(0.008, 0.015, 0.01);
+  // Radial falloff: bright center, fading edges
+  float radial = smoothstep(0.6, 0.0, r);
+  float radialOuter = smoothstep(0.7, 0.3, r);
 
-  if (qrUV.x < 0.0 || qrUV.x > 1.0 || qrUV.y < 0.0 || qrUV.y > 1.0) {
-    // Outside QR area: subtle ambient flame wisps
-    vec2 centeredUV = uv - 0.5;
-    float r = length(centeredUV);
-    float wisp = fbm(centeredUV * 6.0 + vec2(0.0, -u_time * 0.3)) * 0.15;
-    wisp *= smoothstep(0.5, 0.2, r);
-    vec3 wispColor = vec3(0.05, 0.15, 0.06) * wisp;
-    gl_FragColor = vec4(bg + wispColor, 1.0);
-    return;
-  }
+  // Combine
+  float intensity = (glow1 * 0.6 + glow2 * 0.4) * radial;
 
-  // Sample QR texture (check if this module is dark)
-  // Flip Y for correct orientation
-  vec2 texCoord = vec2(qrUV.x, 1.0 - qrUV.y);
-  float qrVal = texture2D(u_qrTex, texCoord).r;
-  bool isDark = qrVal < 0.5;
+  // Breathing pulse
+  float breathe = sin(t * 0.8) * 0.1 + 0.9;
+  intensity *= breathe;
 
-  // Module grid position
-  vec2 modulePos = qrUV * u_qrSize;
-  vec2 moduleCenter = (floor(modulePos) + 0.5) / u_qrSize;
-  vec2 localUV = fract(modulePos); // 0-1 within current module
+  // Outer wisps
+  float wisps = fbm(centered * 8.0 + vec2(t * 0.08, -t * 0.05));
+  wisps = pow(wisps, 2.0) * radialOuter * 0.15;
 
-  // Distance from module center (for dot shape)
-  float distFromCenter = length(localUV - 0.5) * 2.0;
+  // Green onibi palette
+  vec3 coreColor = vec3(0.5, 1.0, 0.6);
+  vec3 midColor = vec3(0.08, 0.5, 0.15);
+  vec3 outerColor = vec3(0.02, 0.12, 0.04);
 
-  if (isDark) {
-    // --- Dark module: render as glowing flame dot ---
+  vec3 color = mix(outerColor, midColor, smoothstep(0.0, 0.3, intensity));
+  color = mix(color, coreColor, smoothstep(0.4, 0.8, intensity));
 
-    // Per-module unique seed
-    vec2 seed = floor(modulePos);
-    float moduleHash = hash(seed);
+  // Add wisps
+  color += vec3(0.03, 0.1, 0.04) * wisps;
 
-    // Breathing intensity per module
-    float breathe = sin(u_time * (1.5 + moduleHash * 2.0) + moduleHash * 6.28) * 0.15 + 0.85;
+  // Overall intensity
+  float alpha = intensity * 0.5 + wisps;
 
-    // Flame flicker noise
-    float flicker = noise(seed * 3.0 + u_time * 2.0) * 0.2 + 0.8;
+  // Grain
+  float grain = hash(gl_FragCoord.xy + t * 60.0) * 0.01;
+  color += grain;
 
-    // Dot shape: slightly organic (noise on edge)
-    float edgeNoise = noise(localUV * 8.0 + seed + u_time * 0.5) * 0.08;
-    float dotRadius = 0.38 + edgeNoise;
-    float dot = smoothstep(dotRadius + 0.06, dotRadius - 0.04, distFromCenter);
-
-    // Glow around dot
-    float glow = smoothstep(0.7, 0.1, distFromCenter) * 0.25;
-
-    float intensity = (dot + glow) * breathe * flicker;
-
-    // Color: green onibi gradient
-    vec3 coreColor = vec3(0.6, 1.0, 0.7);    // 白緑の芯
-    vec3 midColor  = vec3(0.1, 0.7, 0.25);   // 緑
-    vec3 edgeColor = vec3(0.02, 0.2, 0.06);   // 暗緑
-
-    vec3 dotColor = mix(edgeColor, midColor, smoothstep(0.0, 0.5, intensity));
-    dotColor = mix(dotColor, coreColor, smoothstep(0.6, 1.0, intensity));
-
-    // Occasional bright spark
-    float spark = pow(noise(seed * 7.0 + u_time * 3.5), 6.0) * 0.3;
-    dotColor += vec3(0.4, 0.9, 0.5) * spark;
-
-    gl_FragColor = vec4(bg + dotColor * intensity, 1.0);
-  } else {
-    // --- Light module: dark background with subtle texture ---
-    float grain = hash(gl_FragCoord.xy + u_time * 30.0) * 0.008;
-    
-    // Very subtle ambient glow from nearby dark modules
-    float ambientGlow = 0.0;
-    for (int dx = -1; dx <= 1; dx++) {
-      for (int dy = -1; dy <= 1; dy++) {
-        if (dx == 0 && dy == 0) continue;
-        vec2 neighborCoord = (floor(modulePos) + vec2(float(dx), float(dy)) + 0.5) / u_qrSize;
-        vec2 neighborTex = vec2(neighborCoord.x, 1.0 - neighborCoord.y);
-        if (neighborTex.x >= 0.0 && neighborTex.x <= 1.0 && neighborTex.y >= 0.0 && neighborTex.y <= 1.0) {
-          float neighborVal = texture2D(u_qrTex, neighborTex).r;
-          if (neighborVal < 0.5) {
-            ambientGlow += 0.006;
-          }
-        }
-      }
-    }
-
-    vec3 lightColor = bg + vec3(0.02, 0.04, 0.025) * ambientGlow;
-    gl_FragColor = vec4(lightColor + grain, 1.0);
-  }
+  gl_FragColor = vec4(color * alpha, alpha);
 }
 `;
 
-interface QRFlameAuraProps {
-    value: string;
+interface QRGlowProps {
     size?: number;
 }
 
-export default function QRFlameAura({ value, size = 280 }: QRFlameAuraProps) {
+export default function QRGlow({ size = 300 }: QRGlowProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const rafRef = useRef(0);
     const startTime = useRef(0);
@@ -173,22 +116,23 @@ export default function QRFlameAura({ value, size = 280 }: QRFlameAuraProps) {
         gl: WebGLRenderingContext;
         uTime: WebGLUniformLocation;
         uRes: WebGLUniformLocation;
-        uQrSize: WebGLUniformLocation;
     } | null>(null);
-    const [qrReady, setQrReady] = useState(false);
 
-    const initGL = useCallback((qrModules: boolean[][], moduleCount: number) => {
+    const initGL = useCallback(() => {
         const canvas = canvasRef.current;
         if (!canvas) return false;
-        const gl = canvas.getContext('webgl', { alpha: false, antialias: false });
+        const gl = canvas.getContext('webgl', { alpha: true, antialias: false, premultipliedAlpha: true });
         if (!gl) return false;
+
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
         const compile = (type: number, src: string) => {
             const s = gl.createShader(type)!;
             gl.shaderSource(s, src);
             gl.compileShader(s);
             if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
-                console.error('QRFlame shader:', gl.getShaderInfoLog(s));
+                console.error('QRGlow shader:', gl.getShaderInfoLog(s));
                 return null;
             }
             return s;
@@ -205,7 +149,6 @@ export default function QRFlameAura({ value, size = 280 }: QRFlameAuraProps) {
         if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return false;
         gl.useProgram(prog);
 
-        // Full-screen quad
         const buf = gl.createBuffer()!;
         gl.bindBuffer(gl.ARRAY_BUFFER, buf);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
@@ -213,78 +156,27 @@ export default function QRFlameAura({ value, size = 280 }: QRFlameAuraProps) {
         gl.enableVertexAttribArray(pos);
         gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
 
-        // Create QR texture from module data
-        const texSize = moduleCount;
-        const texData = new Uint8Array(texSize * texSize);
-        for (let y = 0; y < texSize; y++) {
-            for (let x = 0; x < texSize; x++) {
-                texData[y * texSize + x] = qrModules[y]?.[x] ? 0 : 255; // dark=0, light=255
-            }
-        }
-
-        const tex = gl.createTexture()!;
-        gl.bindTexture(gl.TEXTURE_2D, tex);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, texSize, texSize, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, texData);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-        const uQrTex = gl.getUniformLocation(prog, 'u_qrTex');
-        gl.uniform1i(uQrTex, 0);
-
         uniformsRef.current = {
             gl,
             uTime: gl.getUniformLocation(prog, 'u_time')!,
             uRes: gl.getUniformLocation(prog, 'u_resolution')!,
-            uQrSize: gl.getUniformLocation(prog, 'u_qrSize')!,
         };
-
-        gl.uniform1f(uniformsRef.current.uQrSize, moduleCount);
         startTime.current = performance.now();
         return true;
     }, []);
 
-    // Generate QR matrix and init WebGL
     useEffect(() => {
-        if (!value) return;
-
-        // Use the create() method to get raw module data
-        const qr = (QRCodeLib as any).create(value, { errorCorrectionLevel: 'H' });
-        const modules = qr.modules;
-        const moduleCount: number = modules.size;
-
-        // modules.data is a Uint8Array of 0/1 values, length = size * size
-        // Convert to boolean[][] for initGL
-        const rawData: Uint8Array = modules.data;
-        const data: boolean[][] = [];
-        for (let y = 0; y < moduleCount; y++) {
-            const row: boolean[] = [];
-            for (let x = 0; x < moduleCount; x++) {
-                row.push(rawData[y * moduleCount + x] === 1);
-            }
-            data.push(row);
-        }
-
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        const dpr = Math.min(window.devicePixelRatio, 2);
+        const dpr = Math.min(window.devicePixelRatio, 1.5);
         canvas.width = size * dpr;
         canvas.height = size * dpr;
 
-        if (initGL(data, moduleCount)) {
-            setQrReady(true);
-            uniformsRef.current?.gl.viewport(0, 0, canvas.width, canvas.height);
-        }
-    }, [value, size, initGL]);
-
-    // Render loop
-    useEffect(() => {
-        if (!qrReady) return;
+        if (!initGL()) return;
+        uniformsRef.current?.gl.viewport(0, 0, canvas.width, canvas.height);
 
         const render = () => {
-            // 30fps cap
             frameToggle.current = !frameToggle.current;
             if (frameToggle.current) {
                 rafRef.current = requestAnimationFrame(render);
@@ -294,18 +186,18 @@ export default function QRFlameAura({ value, size = 280 }: QRFlameAuraProps) {
             const ref = uniformsRef.current;
             if (!ref) return;
             const t = (performance.now() - startTime.current) / 1000;
-            const canvas = canvasRef.current;
-            if (!canvas) return;
 
+            ref.gl.clearColor(0, 0, 0, 0);
+            ref.gl.clear(ref.gl.COLOR_BUFFER_BIT);
             ref.gl.uniform1f(ref.uTime, t);
-            ref.gl.uniform2f(ref.uRes, canvas.width, canvas.height);
+            ref.gl.uniform2f(ref.uRes, canvasRef.current!.width, canvasRef.current!.height);
             ref.gl.drawArrays(ref.gl.TRIANGLE_STRIP, 0, 4);
             rafRef.current = requestAnimationFrame(render);
         };
         render();
 
         return () => { cancelAnimationFrame(rafRef.current); };
-    }, [qrReady]);
+    }, [initGL, size]);
 
     return (
         <canvas
@@ -313,7 +205,12 @@ export default function QRFlameAura({ value, size = 280 }: QRFlameAuraProps) {
             style={{
                 width: size,
                 height: size,
-                borderRadius: '4px',
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                pointerEvents: 'none',
+                zIndex: 0,
             }}
         />
     );
