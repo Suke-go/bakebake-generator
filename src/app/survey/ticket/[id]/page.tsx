@@ -42,7 +42,7 @@ function StyledQR({ value, size = 200 }: { value: string; size?: number }) {
                     type: 'dot',
                 },
                 backgroundOptions: {
-                    color: 'transparent',   // 透明 — お札に直接埋め込む
+                    color: '#ffffff',       // 白背景 — スキャン認識のため必須
                 },
                 qrOptions: {
                     errorCorrectionLevel: 'H',
@@ -270,12 +270,16 @@ export default function SurveyTicketPage({ params }: { params: Promise<{ id: str
                             {/* GLSL blood glow — 大きく光らせる */}
                             <QRGlow size={320} />
 
-                            {/* QR code: 透明背景で直にお札に馴染ませる */}
+                            {/* QR code: 白背景 + quiet zone で認識率確保 */}
                             <div style={{
                                 position: 'relative',
                                 zIndex: 1,
+                                borderRadius: '4px',
+                                overflow: 'hidden',
+                                padding: '10px',
+                                background: '#ffffff',
                             }}>
-                                <StyledQR value={id} size={180} />
+                                <StyledQR value={id} size={160} />
                             </div>
                         </div>
 
