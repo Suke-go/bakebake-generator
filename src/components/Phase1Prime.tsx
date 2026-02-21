@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useApp } from '@/lib/context';
 import ProgressDots from './ProgressDots';
 
@@ -15,69 +15,48 @@ interface StepDef {
 
 const STEPS: StepDef[] = [
     {
-        id: 'event',
-        question: 'どのような体験でしたか。',
-        subtext: '最も近いものを選ぶか、自由に記述してください。',
-        type: 'choice+text',
-        options: ['背後に気配を感じた', '視線だけを感じた', '声を聞いた', '物の位置が変わった', '写真に違和感があった'],
-        placeholder: '自由に入力する',
-    },
-    {
         id: 'where',
-        question: 'どこで起きましたか。',
+        question: 'どんな場所での体験ですか。',
+        subtext: '夢で見たこと、日常のふとした違和感——なんでも構いません。',
         type: 'choice+text',
         options: ['自宅', '通勤・通学路', '職場・学校', '旅先', '水辺', '決まっていない'],
         placeholder: '自由に入力する',
     },
     {
         id: 'when',
-        question: 'いつ起きることが多いですか。',
+        question: 'いつ頃のことですか。',
         type: 'choice',
         options: ['夜', '夕方', '明け方', '時間はばらばら'],
     },
     {
         id: 'noticed',
         question: '最初に気づいたのは何でしたか。',
-        subtext: '音・匂い・温度・光・視線など',
+        subtext: '音、匂い、温度、光、視線……',
         type: 'choice+text',
         options: ['音', '匂い', '温度', '光', '視線'],
         placeholder: '自由に入力する',
     },
     {
         id: 'texture',
-        question: 'その体験の質感に近いものは。',
-        subtext: '身体感覚として最も近いものを選んでください。',
+        question: 'その体験の質感に近いものはどれですか。',
+        subtext: '身体の感覚として最も近いものを選んでください。',
         type: 'choice+text',
         options: ['冷たい', '重い', '湿っている', 'ざらつく', '乾いている'],
         placeholder: '自由に入力する',
     },
     {
-        id: 'alone',
-        question: 'その時、あなたは一人でしたか。',
-        type: 'choice',
-        options: ['一人だった', '人はいたが気づいていない', '誰かと一緒だった'],
-    },
-    {
-        id: 'reaction',
-        question: 'その時、どうしましたか。',
+        id: 'emotion',
+        question: 'そのとき、どんな気持ちになりましたか。',
         type: 'choice+text',
-        options: ['動けなかった', 'その場を離れた', '確かめた', '誰かに話した', '見ないふりをした'],
+        options: ['怖かった', '不思議だった', '懐かしかった', '心細かった', '惹かれた'],
         placeholder: '自由に入力する',
     },
     {
-        id: 'stance',
-        question: 'その体験に対して、どのような態度をとりますか。',
-        subtext: '',
-        type: 'choice+text',
-        options: ['避けたい', '見届けたい', '話しかけたい', '忘れたい', '知りたい'],
-        placeholder: '自由に入力する',
-    },
-    {
-        id: 'absence',
-        question: 'その気配の姿は、見えましたか。',
-        subtext: '近い感覚を選んでください。',
+        id: 'nature',
+        question: 'もしそれが妖怪のしわざだとしたら——',
+        subtext: '現象だと思いますか、それとも何か実体があると思いますか。',
         type: 'choice',
-        options: ['見えなかった', '輪郭だけ見えた', 'はっきり見えた'],
+        options: ['目に見えない現象だと思う', '気配はあるが姿はない', '何か実体があると思う'],
     },
 ];
 
@@ -89,6 +68,7 @@ export default function Phase1Prime() {
         setStance,
         setAbsenceQuality,
         setAnswers: saveAnswersToContext,
+        backOverrideRef,
     } = useApp();
 
     const [currentStep, setCurrentStep] = useState(0);
@@ -97,6 +77,39 @@ export default function Phase1Prime() {
     const [visible, setVisible] = useState(false);
     const [history, setHistory] = useState<Array<{ question: string; answer: string }>>([]);
     const scrollRef = useRef<HTMLDivElement>(null);
+
+    // サブステップを1つ戻す
+    const goBackStep = useCallback(() => {
+        if (currentStep <= 0) return;
+        setVisible(false);
+        setCustomText('');
+        setTimeout(() => {
+            const stepToUndo = STEPS[currentStep - 1];
+            setAnswers(prev => {
+                const next = { ...prev };
+                delete next[stepToUndo.id];
+                return next;
+            });
+            setHistory(prev => prev.slice(0, -1));
+            if (stepToUndo.id === 'texture') setTexture('');
+            if (stepToUndo.id === 'emotion') setStance('');
+            if (stepToUndo.id === 'nature') setAbsenceQuality(null);
+            setCurrentStep(currentStep - 1);
+        }, 320);
+    }, [currentStep, setTexture, setStance, setAbsenceQuality]);
+
+    // ページレベルの戻るボタンにサブステップ戻りを登録
+    useEffect(() => {
+        if (currentStep > 0) {
+            backOverrideRef.current = () => {
+                goBackStep();
+                return true;
+            };
+        } else {
+            backOverrideRef.current = null;
+        }
+        return () => { backOverrideRef.current = null; };
+    }, [currentStep, goBackStep, backOverrideRef]);
 
     useEffect(() => {
         const t = setTimeout(() => setVisible(true), 180);
@@ -119,11 +132,11 @@ export default function Phase1Prime() {
         setAnswers(nextAnswers);
 
         if (step.id === 'texture') setTexture(value);
-        if (step.id === 'stance') setStance(value);
-        if (step.id === 'absence') {
-            if (value === '見えなかった') {
+        if (step.id === 'emotion') setStance(value);
+        if (step.id === 'nature') {
+            if (value === '目に見えない現象だと思う') {
                 setAbsenceQuality('invisible');
-            } else if (value === '輪郭だけ見えた') {
+            } else if (value === '気配はあるが姿はない') {
                 setAbsenceQuality('blurry');
             } else {
                 setAbsenceQuality('clear');
@@ -195,6 +208,15 @@ export default function Phase1Prime() {
                     transition: 'all 0.35s ease',
                 }}
             >
+                <p style={{
+                    fontSize: 10,
+                    color: 'var(--text-ghost)',
+                    letterSpacing: '0.15em',
+                    marginBottom: 8,
+                }}>
+                    {currentStep + 1} / {STEPS.length}
+                </p>
+
                 {currentStep === 0 && handleText && (
                     <p className="question-context">
                         {handleText.split('\n').map((line, i) => (

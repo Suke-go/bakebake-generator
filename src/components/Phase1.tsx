@@ -49,13 +49,36 @@ export default function Phase1() {
         <div className="phase-scrollable phase-enter">
             {showIntro && (
                 <p className="voice float-up" style={{ marginBottom: 28, textAlign: 'left' }}>
-                    あなたの体験を記録、または近いものから選択してください。
+                    あなたの体験を入力するか、近いものを選んでください。
                 </p>
             )}
 
             {showOptions && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-                    <div className="fade-in" style={{ marginBottom: 18 }}>
+                    <p
+                        className="label"
+                        style={{ marginBottom: 10 }}
+                    >
+                        近い体験から選択する
+                    </p>
+
+                    {HANDLES.map((handle, i) => (
+                        <button
+                            key={handle.id}
+                            className={`handle-option fade-in ${selectedId && selectedId !== handle.id ? 'dimmed' : ''} ${selectedId === handle.id ? 'selected' : ''}`}
+                            style={{ animationDelay: `${i * 0.08}s` }}
+                            onClick={() => !selectedId && handleSelect(handle)}
+                        >
+                            {handle.text.split('\n').map((line, j) => (
+                                <span key={j}>
+                                    {line}
+                                    {j < handle.text.split('\n').length - 1 && <br />}
+                                </span>
+                            ))}
+                        </button>
+                    ))}
+
+                    <div className="fade-in" style={{ marginTop: 24 }}>
                         <p
                             style={{
                                 fontFamily: 'var(--font-main)',
@@ -87,29 +110,6 @@ export default function Phase1() {
                             </button>
                         </div>
                     </div>
-
-                    <p
-                        className="label"
-                        style={{ marginBottom: 10, marginTop: 6 }}
-                    >
-                        近い体験から選択する
-                    </p>
-
-                    {HANDLES.map((handle, i) => (
-                        <button
-                            key={handle.id}
-                            className={`handle-option fade-in ${selectedId && selectedId !== handle.id ? 'dimmed' : ''} ${selectedId === handle.id ? 'selected' : ''}`}
-                            style={{ animationDelay: `${i * 0.08}s` }}
-                            onClick={() => !selectedId && handleSelect(handle)}
-                        >
-                            {handle.text.split('\n').map((line, j) => (
-                                <span key={j}>
-                                    {line}
-                                    {j < handle.text.split('\n').length - 1 && <br />}
-                                </span>
-                            ))}
-                        </button>
-                    ))}
                 </div>
             )}
 

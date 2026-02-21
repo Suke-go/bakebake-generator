@@ -32,7 +32,7 @@ export default function LandingPage() {
                         BAKEBAKE XR
                     </h1>
                     <p style={{ fontSize: '1rem', opacity: 0.7, letterSpacing: '0.15em' }}>
-                        計算機的民俗学による、妖怪生成の現代的実践
+                        あなたの体験から、新たな妖怪が生まれる
                     </p>
                 </section>
 
@@ -42,15 +42,15 @@ export default function LandingPage() {
                         About
                     </h2>
                     <p style={{ lineHeight: 1.9, opacity: 0.85, fontSize: '0.95rem' }}>
-                        歴史上、日本の地域社会が生み出してきた「妖怪」は、単なる娯楽キャラクターではなく、説明のつかない現象や漠然とした不安に対し、共同体で「名前」と「姿」を与えることで認知的な決着（Cognitive Closure）を得るための文化的実践でした。
+                        歴史上、日本の地域社会が生み出してきた「妖怪」は、単なる娯楽キャラクターではなく、説明のつかない現象や漠然とした不安に「名前」と「姿」を与え、腑に落とすための文化的実践でした。
                     </p>
                     <p style={{ lineHeight: 1.9, opacity: 0.85, fontSize: '0.95rem' }}>
-                        BAKEBAKE XRは、この歴史的な生成プロセスを現代の計算機環境に再構築するインスタレーションです。国際日本文化研究センター（日文研）の「怪異・妖怪伝承データベース」を地層として参照し、あなたが抱いた名づけえぬ感覚を引き受け、新たな妖怪として結像させます。
+                        BAKEBAKE XRは、この歴史的な生成プロセスを現代の計算機環境に再構築するインスタレーションです。国際日本文化研究センター（日文研）の「怪異・妖怪伝承データベース」を地層として参照し、あなたが抱いた名づけえぬ感覚を引き受け、新たな妖怪として像を結ばせます。
                     </p>
                 </section>
 
                 {/* Flow */}
-                <section style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                <section data-yokai-zone="landing-flow" style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
                     <h2 style={{ fontSize: '1.3rem', fontWeight: 'normal', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>
                         体験のプロセス
                     </h2>
@@ -60,12 +60,12 @@ export default function LandingPage() {
                             <p style={{ fontSize: '0.9rem', opacity: 0.8, lineHeight: 1.6 }}>あなた自身が体験した、あるいは感じたことのある「説明のつかない感覚」をシステムに記述します。</p>
                         </div>
                         <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.2rem', borderRadius: '8px' }}>
-                            <h3 style={{ fontSize: '1rem', marginBottom: '0.6rem', color: 'var(--text-bright)' }}>2. 文化地層への接続</h3>
-                            <p style={{ fontSize: '0.9rem', opacity: 0.8, lineHeight: 1.6 }}>入力された体験をもとに日文研のデータベースを検索し、歴史的に語り継がれてきた類似の伝承記録を抽出・参照します。</p>
+                            <h3 style={{ fontSize: '1rem', marginBottom: '0.6rem', color: 'var(--text-bright)' }}>2. 伝承記録との照合</h3>
+                            <p style={{ fontSize: '0.9rem', opacity: 0.8, lineHeight: 1.6 }}>あなたの体験をもとに日文研のデータベースを検索し、歴史的に語り継がれてきた類似の伝承記録を探し出します。</p>
                         </div>
                         <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.2rem', borderRadius: '8px' }}>
                             <h3 style={{ fontSize: '1rem', marginBottom: '0.6rem', color: 'var(--text-bright)' }}>3. 命名と視覚化</h3>
-                            <p style={{ fontSize: '0.9rem', opacity: 0.8, lineHeight: 1.6 }}>民俗学的な命名規則（地名＋行動、擬音語など）に基づき名前が与えられ、伝統的な和風画法の制約下で姿が生成されます。</p>
+                            <p style={{ fontSize: '0.9rem', opacity: 0.8, lineHeight: 1.6 }}>民俗学的な名づけの作法（地名＋行動、擬音語など）に基づき名前が与えられ、伝統的な和の画風で姿が描き出されます。</p>
                         </div>
                         <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.2rem', borderRadius: '8px' }}>
                             <h3 style={{ fontSize: '1rem', marginBottom: '0.6rem', color: 'var(--text-bright)' }}>4. 記録と伝達</h3>
@@ -103,7 +103,7 @@ export default function LandingPage() {
                         参加する
                     </a>
                     <p style={{ fontSize: '0.8rem', opacity: 0.45 }}>
-                        事前アンケートに回答し、観測IDを取得します
+                        事前アンケートに回答し、参加証を受け取ります
                     </p>
                 </section>
 

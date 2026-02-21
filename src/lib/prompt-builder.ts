@@ -2,7 +2,7 @@
  * プロンプト構築ユーティリティ
  *
  * ユーザーの回答を自然文やAPIプロンプトに変換する。
- * 命名規則: 柳田國男『妖怪談義』の4軸分類に準拠
+ * 命名規則: 柳田國男『妖怪談義』の妖怪名彙における命名慣習に準拠
  * 物語生成: 怪異・妖怪伝承データベース（日文研）の記録構造を参照
  */
 
@@ -12,10 +12,8 @@ export interface UserAnswers {
     when?: string;
     noticed?: string;
     texture?: string;
-    alone?: string;
-    reaction?: string;
-    stance?: string;
-    absence?: string;
+    emotion?: string;
+    nature?: string;
 }
 
 export interface HandleInfo {
@@ -37,7 +35,7 @@ export interface FolkloreEntry {
 }
 
 /**
- * Phase 1' の回答9問を、embedding検索用の自然文に変換
+ * Phase 1' の回答を、embedding検索用の自然文に変換
  */
 export function buildSearchQuery(handle: HandleInfo, answers: UserAnswers): string {
     const parts: string[] = [];
@@ -47,33 +45,26 @@ export function buildSearchQuery(handle: HandleInfo, answers: UserAnswers): stri
 
     // 体験レポートとしての自然な文脈を構築
     const contextLines = [];
-    if (answers.event?.trim() || answers.where?.trim() || answers.when?.trim()) {
+    if (answers.where?.trim() || answers.when?.trim()) {
         const time = answers.when?.trim() ? `${answers.when}のころ、` : '';
         const place = answers.where?.trim() ? `${answers.where}で` : '';
-        const event = answers.event?.trim() ? `${answers.event}のとき、` : '';
-        contextLines.push(`${time}${place}${event}`);
+        contextLines.push(`${time}${place}`);
     }
 
     if (answers.noticed?.trim()) {
-        contextLines.push(`${answers.noticed}ことに気づいた。`);
+        contextLines.push(`${answers.noticed}に気づいた。`);
     }
 
-    if (answers.absence?.trim()) {
-        contextLines.push(`姿は${answers.absence}。`);
+    if (answers.texture?.trim()) {
+        contextLines.push(`体の感覚としては${answers.texture}だった。`);
     }
 
-    if (answers.texture?.trim() || answers.alone?.trim()) {
-        const alone = answers.alone?.trim() ? `${answers.alone}、` : '';
-        const texture = answers.texture?.trim() ? `体の感覚としては${answers.texture}だった。` : '';
-        contextLines.push(`${alone}${texture}`);
+    if (answers.emotion?.trim()) {
+        contextLines.push(`そのとき${answers.emotion}。`);
     }
 
-    if (answers.reaction?.trim()) {
-        contextLines.push(`そのとき自分は${answers.reaction}。`);
-    }
-
-    if (answers.stance?.trim()) {
-        contextLines.push(`いま振り返ると${answers.stance}。`);
+    if (answers.nature?.trim()) {
+        contextLines.push(`それは${answers.nature}。`);
     }
 
     if (contextLines.length > 0) {
@@ -84,12 +75,12 @@ export function buildSearchQuery(handle: HandleInfo, answers: UserAnswers): stri
 }
 
 /**
- * 妖怪名のLLM生成プロンプト（柳田國男の4軸分類に準拠）
+ * 妖怪名のLLM生成プロンプト（柳田國男『妖怪名彙』の命名慣習に準拠）
  *
- * 3つの命名パターンから候補を生成:
- * 1. 場所・行動型（磯女、小豆洗い、送り犬）
- * 2. 外見・音型（一つ目小僧、べとべとさん、畳叩き）
- * 3. 土着・方言型（アマビエ、ケサランパサラン、イジコ）
+ * 3つの命名パターンから候補を生成（柳田國男『妖怪名彙』・香川雅信『妖怪を名づける』参照）:
+ * 1. 現象描写型（小豆洗い＝音の怪、砂かけ婆＝行為、送り犬＝行動）
+ * 2. 場所・出現条件型（磯女＝場所、橋姫＝場所、夜行さん＝時間）
+ * 3. 感覚・擬声型（ベトベトサン＝擬音、ヒダルガミ＝身体感覚、ケサランパサラン＝口承音韻）
  */
 export function buildConceptPrompt(
     handle: HandleInfo,
@@ -105,19 +96,19 @@ export function buildConceptPrompt(
         'あなたは日本の民俗学（柳田國男『妖怪談義』）に基づく妖怪研究者です。',
         'ユーザーの体験に基づいて、新しい妖怪の名前を【3つ】提案してください。',
         '',
-        '## 命名ルール（柳田國男の4軸分類に準拠）',
+        '## 命名ルール（柳田國男『妖怪名彙』の命名慣習に準拠）',
         '',
-        '### 候補1【場所・行動型】',
-        '体験の場所や行動を組み合わせた漢字2-4文字の名前。',
-        '実例: 磯女（磯に現れる女）、小豆洗い（小豆を洗う音）、送り犬（人について来る犬）、砂かけ婆（砂をかけてくる）',
+        '### 候補1【現象描写型】',
+        '体験で起きた現象・行為そのものを名前にした漢字2-4文字の名前。',
+        '実例: 小豆洗い（小豆を洗う音）、砂かけ婆（砂をかける行為）、送り犬（後をつける犬）、枕返し（枕の位置を変える）',
         '',
-        '### 候補2【外見・音型】',
-        '体験で感知した姿・質感・音に由来する名前。',
-        '実例: 一つ目小僧（目が一つ）、べとべとさん（べとべとという足音）、畳叩き（畳を叩く音）、青行燈（青い灯り）',
+        '### 候補2【場所・出現条件型】',
+        '体験の場所・時間・条件に由来する名前。柳田國男が指摘した「妖怪は場所につく」原則に基づく。',
+        '実例: 磯女（磯に現れる女）、橋姫（橋に出る）、夜行さん（夜に出歩く）、青行燈（青い灯りのそば）',
         '',
-        '### 候補3【土着・方言型】',
-        '地方の口承に現れるような、カタカナ・ひらがな・オノマトペの名前。',
-        '実例: アマビエ、ケサランパサラン、イジコ、ヒダルガミ、ベトベトサン',
+        '### 候補3【感覚・擬声型】',
+        '体験の音・身体感覚・オノマトペに由来する名前。カタカナ・ひらがなを含む。',
+        '実例: ベトベトサン（足音の擬音）、ヒダルガミ（空腹感）、ケサランパサラン（口承の音韻）、アマビエ（名乗りの音）',
         '',
         '## ユーザーの体験',
         context,
@@ -126,7 +117,7 @@ export function buildConceptPrompt(
         folkloreRef,
         '',
         '## 重要な注意',
-        '- 鳥山石燕が既存伝承を基に創作的に拡張したように、上記の伝承を参考にしつつ独自の名前を作ること',
+        '- 鳥山石燕が口承の怪異を図鑑化し視覚を与えたように、上記の伝承を参考にしつつ独自の名前を作ること',
         '- 既存の妖怪名をそのまま使わないこと',
         '- 各候補にはその命名根拠を一言で添えること',
         '',
@@ -164,7 +155,8 @@ export function buildConceptPrompt(
 export function buildImagePrompt(
     concept: ConceptInfo,
     stylePrompt: string,
-    visualInput?: string
+    visualInput?: string,
+    negativeHints?: string
 ): string {
     const parts = [
         stylePrompt,
@@ -182,6 +174,11 @@ export function buildImagePrompt(
     parts.push('Capture a sense of mystery, the supernatural, and the uncanny.');
     parts.push('The atmosphere should feel like encountering something from another world.');
 
+    if (negativeHints) {
+        parts.push('');
+        parts.push(`Avoid: ${negativeHints}`);
+    }
+
     return parts.join('\n');
 }
 
@@ -189,7 +186,7 @@ export function buildImagePrompt(
  * ナラティブ（物語テキスト）生成プロンプト
  *
  * 怪異・妖怪伝承データベース（国際日本文化研究センター）の
- * 記録形式（呼称・地域・場所・時・現象・出典）を参照し、
+ * 記録形式（番号・呼称・出典・話者・地域・要約）を参照し、
  * 実在の類似伝承のエッセンスを織り込んだ説話を生成する。
  */
 export function buildNarrativePrompt(
@@ -208,7 +205,7 @@ export function buildNarrativePrompt(
         'あなたは民俗学の調査員です。',
         '以下の「類似する既存の伝承（実在）」と「体験者の報告」を元に、',
         '怪異・妖怪伝承データベース（国際日本文化研究センター）の',
-        '記録形式を模して、新しい伝承を1件作成してください。',
+        '要約形式（約100字の伝聞調記録）を模して、新しい伝承を1件作成してください。',
         '',
         '## 類似する既存の伝承（実在）',
         folkloreRef || '（該当なし）',
@@ -220,10 +217,10 @@ export function buildNarrativePrompt(
         '## 体験者の報告',
         answers.where ? `- 場所: ${answers.where}` : '',
         answers.when ? `- 時: ${answers.when}` : '',
-        answers.texture ? `- 身体感覚: ${answers.texture}` : '',
         answers.noticed ? `- 気づいたこと: ${answers.noticed}` : '',
-        answers.reaction ? `- 反応: ${answers.reaction}` : '',
-        answers.absence ? `- 姿: ${answers.absence}` : '',
+        answers.texture ? `- 身体感覚: ${answers.texture}` : '',
+        answers.emotion ? `- 感情: ${answers.emotion}` : '',
+        answers.nature ? `- 性質: ${answers.nature}` : '',
         '',
         '## 出力ルール',
         '- 「〜という。」「〜と伝えられている。」のような伝聞調で書くこと',

@@ -51,7 +51,7 @@ export default function SurveyScanPage() {
     }, [scanResult, router]);
 
     return (
-        <div style={{
+        <div data-yokai-zone="survey-scan-main" style={{
             minHeight: '100dvh',
             padding: '2rem',
             display: 'flex',

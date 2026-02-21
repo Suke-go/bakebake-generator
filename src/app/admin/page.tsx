@@ -73,7 +73,7 @@ export default function AdminDashboardPage() {
     };
 
     return (
-        <div style={{
+        <div data-yokai-zone="admin-dashboard-main" style={{
             minHeight: '100dvh',
             padding: '2rem',
             background: '#111',

@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, useMemo, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useMemo, useRef, ReactNode } from 'react';
 
 // === Types ===
 export type HandleId = 'A' | 'B' | 'C' | 'D' | 'E' | 'free';
@@ -72,6 +72,8 @@ interface AppContextType {
   setNarrative: (narrative: string) => void;
   setTicketId: (id: string) => void;
   resetState: () => void;
+  /** Phase内サブステップの戻りハンドラーを登録するためのref */
+  backOverrideRef: { current: (() => boolean) | null };
 }
 
 const initialState: AppState = {
@@ -96,6 +98,7 @@ const AppContext = createContext<AppContextType | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(initialState);
+  const backOverrideRef = useRef<(() => boolean) | null>(null);
 
   const goToPhase = useCallback((phase: number) => {
     setState(prev => ({ ...prev, currentPhase: phase }));
@@ -183,6 +186,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setNarrative,
     setTicketId,
     resetState,
+    backOverrideRef,
   }), [
     state,
     goToPhase,
@@ -201,6 +205,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setNarrative,
     setTicketId,
     resetState,
+    backOverrideRef,
   ]);
 
   return (

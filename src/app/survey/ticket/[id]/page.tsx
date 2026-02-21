@@ -114,7 +114,7 @@ export default function SurveyTicketPage({ params }: { params: Promise<{ id: str
     }, [id]);
 
     return (
-        <div style={{
+        <div data-yokai-zone="survey-ticket-main" style={{
             position: 'relative',
             minHeight: '100dvh',
             width: '100vw',
@@ -239,10 +239,10 @@ export default function SurveyTicketPage({ params }: { params: Promise<{ id: str
                         {/* 指示テキスト — 墨色、書体的 */}
                         <p style={{
                             fontFamily: '"Noto Serif JP", serif',
-                            fontSize: '0.75rem',
+                            fontSize: '0.85rem',
                             letterSpacing: '0.2em',
                             lineHeight: 2.4,
-                            color: 'rgba(40, 40, 30, 0.45)',
+                            color: 'rgba(40, 40, 30, 0.6)',
                             textAlign: 'center',
                             margin: 0,
                         }}>

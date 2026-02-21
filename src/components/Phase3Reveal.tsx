@@ -6,6 +6,7 @@ import { useApp } from '@/lib/context';
 import { generateImage } from '@/lib/api-client';
 import ProgressDots from './ProgressDots';
 import { supabase } from '@/lib/supabase';
+import SpookyText from './SpookyText';
 
 const compressImage = (dataUrl: string, maxSize = 512): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -257,6 +258,11 @@ export default function Phase3Reveal() {
     const [saveError, setSaveError] = useState('');
     const [isTransitioning, setIsTransitioning] = useState(false);
 
+    // Auto-reset idle timer
+    const [showIdlePrompt, setShowIdlePrompt] = useState(false);
+    const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
     const abortCurrentRequest = useCallback((reason: string) => {
         const controller = abortRef.current;
         if (!controller || controller.signal.aborted) {
@@ -441,6 +447,36 @@ export default function Phase3Reveal() {
         setFogDone(true);
     }, []);
 
+    // Auto-reset: 10s idle → prompt, 5s more → reset
+    const clearIdleTimers = useCallback(() => {
+        if (idleTimerRef.current) { clearTimeout(idleTimerRef.current); idleTimerRef.current = null; }
+        if (resetTimerRef.current) { clearTimeout(resetTimerRef.current); resetTimerRef.current = null; }
+        setShowIdlePrompt(false);
+    }, []);
+
+    const startIdleTimers = useCallback(() => {
+        clearIdleTimers();
+        idleTimerRef.current = setTimeout(() => {
+            setShowIdlePrompt(true);
+            resetTimerRef.current = setTimeout(() => {
+                resetState();
+            }, 5000);
+        }, 10000);
+    }, [clearIdleTimers, resetState]);
+
+    useEffect(() => {
+        if (!showActions) return;
+        startIdleTimers();
+        const restart = () => startIdleTimers();
+        window.addEventListener('pointerdown', restart);
+        window.addEventListener('keydown', restart);
+        return () => {
+            clearIdleTimers();
+            window.removeEventListener('pointerdown', restart);
+            window.removeEventListener('keydown', restart);
+        };
+    }, [showActions, startIdleTimers, clearIdleTimers]);
+
 
 
     const isGenerating = !fogDone || !apiDone;
@@ -472,7 +508,7 @@ export default function Phase3Reveal() {
                     position: 'relative',
                     zIndex: 11,
                 }}>
-                    <p className="generation-wait">気配の記録を視覚化しています...</p>
+                    <p className="generation-wait">気配を像に写しています...</p>
                     {warning && (
                         <p style={{ fontSize: 12, color: 'var(--text-ghost)' }}>
                             {warning}
@@ -547,7 +583,15 @@ export default function Phase3Reveal() {
 
                 {showName && (
                     <div className="float-up" style={{ animationDelay: '0.1s' }}>
-                        <h1 className="reveal-name">{state.yokaiName}</h1>
+                        <SpookyText
+                            text={state.yokaiName || ''}
+                            as="h1"
+                            className="reveal-name ink-spread"
+                            mojibake
+                            mojibakeOptions={{ resolveSpeed: 120, flickerRate: 40, delay: 400 }}
+                            charAnimation
+                            charDelayStep={80}
+                        />
                         <p className="reveal-reading">{state.selectedConcept?.reading}</p>
                     </div>
                 )}
@@ -574,7 +618,7 @@ export default function Phase3Reveal() {
                         animationDelay: '0.2s',
                     }}>
                         {saveSuccess && (
-                            <p style={{ color: '#00ff00', fontSize: 14, marginBottom: 8 }}>
+                            <p style={{ color: 'var(--text-dim)', fontSize: 14, marginBottom: 8 }}>
                                 記録が完了しました。
                             </p>
                         )}
@@ -583,8 +627,22 @@ export default function Phase3Reveal() {
                                 {saveError}
                             </p>
                         )}
-                        <p className="voice" style={{ fontSize: 13, opacity: 0.7 }}>
-                            出口のスタッフへQRコードを再度提示してください。
+                        <a
+                            href={`/survey/exit?id=${state.ticketId}`}
+                            className="button button-primary"
+                            style={{
+                                display: 'inline-block',
+                                textDecoration: 'none',
+                                textAlign: 'center',
+                                padding: '14px 36px',
+                                fontSize: 16,
+                                letterSpacing: '0.15em',
+                            }}
+                        >
+                            アンケートへ進む
+                        </a>
+                        <p className="voice" style={{ fontSize: 12, opacity: 0.45, marginTop: 4 }}>
+                            アンケートに回答されない方もありがとうございました。
                         </p>
                         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
                             <button className="button" onClick={() => {
@@ -607,6 +665,17 @@ export default function Phase3Reveal() {
                                 初期画面へ戻る
                             </button>
                         </div>
+
+                        {showIdlePrompt && (
+                            <p className="voice float-up" style={{
+                                fontSize: 13,
+                                opacity: 0.7,
+                                marginTop: 16,
+                                animation: 'breathe 2s ease-in-out infinite',
+                            }}>
+                                操作がありません。まもなく初期画面に戻ります…
+                            </p>
+                        )}
                     </div>
                 )}
             </div>

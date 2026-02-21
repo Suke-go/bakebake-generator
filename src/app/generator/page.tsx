@@ -113,14 +113,14 @@ function BackButton({ phase, onBack, onReset }: {
         background: 'transparent',
         border: 'none',
         color: 'var(--text-ghost)',
-        fontSize: 20,
-        opacity: 0.15,
+        fontSize: 18,
+        opacity: 0.5,
         cursor: 'pointer',
         transition: 'opacity 0.3s ease',
         WebkitTapHighlightColor: 'transparent',
       }}
-      onMouseEnter={e => (e.currentTarget.style.opacity = '0.5')}
-      onMouseLeave={e => (e.currentTarget.style.opacity = '0.15')}
+      onMouseEnter={e => (e.currentTarget.style.opacity = '0.75')}
+      onMouseLeave={e => (e.currentTarget.style.opacity = '0.5')}
       aria-label="戻る"
     >
       ←
@@ -142,7 +142,8 @@ function getPreviousPhase(current: number): number {
 }
 
 export default function Home() {
-  const { state, goToPhase, resetState } = useApp();
+  const { state, goToPhase, resetState, backOverrideRef } = useApp();
+  const [showIdleWarning, setShowIdleWarning] = useState(false);
 
   // #4: overflow hidden を generator ルートだけに適用
   useEffect(() => {
@@ -152,44 +153,101 @@ export default function Home() {
     };
   }, []);
 
-  // #7: アイドルタイムアウト（Phase 0 以外で3分操作なし → Phase 0 にリセット）
+  // Wake Lock — 展示端末のスリープ防止
   useEffect(() => {
-    if (state.currentPhase === 0) return;
+    let wakeLock: any = null;
+    const requestWakeLock = async () => {
+      if ('wakeLock' in navigator) {
+        try { wakeLock = await (navigator as any).wakeLock.request('screen'); } catch { }
+      }
+    };
+    requestWakeLock();
+    const handleVisibilityChange = () => {
+      if (wakeLock !== null && document.visibilityState === 'visible') requestWakeLock();
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      if (wakeLock !== null) wakeLock.release().then(() => { wakeLock = null; });
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
 
-    let timer = setTimeout(() => resetState(), IDLE_TIMEOUT_MS);
+  // #7: アイドルタイムアウト（Phase 0 以外で3分操作なし → Phase 0 にリセット）
+  // 残り30秒で警告表示、操作があれば延長
+  const WARNING_BEFORE_MS = 30 * 1000;
 
-    const resetTimer = () => {
-      clearTimeout(timer);
-      timer = setTimeout(() => resetState(), IDLE_TIMEOUT_MS);
+  useEffect(() => {
+    if (state.currentPhase === 0) {
+      setShowIdleWarning(false);
+      return;
+    }
+
+    let warningTimer: ReturnType<typeof setTimeout>;
+    let resetTimer: ReturnType<typeof setTimeout>;
+
+    const startTimers = () => {
+      setShowIdleWarning(false);
+      warningTimer = setTimeout(() => {
+        setShowIdleWarning(true);
+        resetTimer = setTimeout(() => resetState(), WARNING_BEFORE_MS);
+      }, IDLE_TIMEOUT_MS - WARNING_BEFORE_MS);
     };
 
-    window.addEventListener('pointerdown', resetTimer);
-    window.addEventListener('keydown', resetTimer);
+    startTimers();
+
+    const handleActivity = () => {
+      clearTimeout(warningTimer);
+      clearTimeout(resetTimer);
+      startTimers();
+    };
+
+    window.addEventListener('pointerdown', handleActivity);
+    window.addEventListener('keydown', handleActivity);
 
     return () => {
-      clearTimeout(timer);
-      window.removeEventListener('pointerdown', resetTimer);
-      window.removeEventListener('keydown', resetTimer);
+      clearTimeout(warningTimer);
+      clearTimeout(resetTimer);
+      setShowIdleWarning(false);
+      window.removeEventListener('pointerdown', handleActivity);
+      window.removeEventListener('keydown', handleActivity);
     };
   }, [state.currentPhase, resetState]);
 
   // #6: 戻るボタンのハンドラー
   const handleBack = useCallback(() => {
+    if (backOverrideRef.current?.()) return;
     goToPhase(getPreviousPhase(state.currentPhase));
-  }, [state.currentPhase, goToPhase]);
+  }, [state.currentPhase, goToPhase, backOverrideRef]);
 
   const handleReset = useCallback(() => {
     resetState();
   }, [resetState]);
 
   return (
-    <>
+    <div data-yokai-zone="generator-main">
       <BackButton
         phase={state.currentPhase}
         onBack={handleBack}
         onReset={handleReset}
       />
       <PhaseTransition phaseKey={state.currentPhase} />
-    </>
+      {showIdleWarning && (
+        <div style={{
+          position: 'fixed',
+          bottom: 48,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 200,
+          fontFamily: 'var(--font-main)',
+          fontSize: 13,
+          color: 'var(--text-dim)',
+          letterSpacing: '0.1em',
+          textAlign: 'center',
+          animation: 'breathe 2s ease-in-out infinite',
+        }}>
+          操作がありません。30秒後にリセットします
+        </div>
+      )}
+    </div>
   );
 }

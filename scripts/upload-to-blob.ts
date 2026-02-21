@@ -45,6 +45,8 @@ async function main() {
 
     console.log(`\n=== アップロード完了 ===`);
     console.log(`URL: ${blob.url}`);
+    console.log(`\nPrivate Blob のため、読み込みには BLOB_READ_WRITE_TOKEN が必要です。`);
+    console.log(`Vercel の環境変数に BLOB_READ_WRITE_TOKEN が設定されていることを確認してください。`);
     console.log(`\n.env.local に以下を追加してください:`);
     console.log(`FOLKLORE_BLOB_URL=${blob.url}`);
 }

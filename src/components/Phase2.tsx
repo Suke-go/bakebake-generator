@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useApp, YokaiConcept } from '@/lib/context';
 import { searchFolklore, generateConcepts } from '@/lib/api-client';
 import ProgressDots from './ProgressDots';
+import SpookyText from './SpookyText';
 // Use flex properties to create the organic scattered effect from 29f9879 without absolute vertical overlap
 const SCATTER_POSITIONS = [
     { alignSelf: 'flex-start', marginLeft: '5%' },
@@ -113,7 +114,7 @@ export default function Phase2() {
         setStage('loading');
 
         if (retryCount > 0) {
-            setRetryMsg(`バックオフ付き再試行 (${retryCount}/${RETRY_MAX})`);
+            setRetryMsg(`少し間をおいて再試行します (${retryCount}/${RETRY_MAX})`);
         }
 
         if (retryTimerRef.current) {
@@ -300,7 +301,7 @@ export default function Phase2() {
             source: 'llm',
             name: customName.trim(),
             reading: '',
-            description: '体験者が自ら名付けた妖怪',
+            description: 'あなた自身が名付けた妖怪',
             label: '自分で名付けた',
         };
         setSelectedIdx(-1);
@@ -325,6 +326,9 @@ export default function Phase2() {
             <div className="phase" style={{ justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
                 <p className="voice" style={{ animation: 'breathe 3s ease-in-out infinite' }}>
                     伝承の記録を検索しています...
+                </p>
+                <p style={{ fontSize: 11, color: 'var(--text-ghost)', marginTop: 16, letterSpacing: '0.1em' }}>
+                    数秒お待ちください
                 </p>
                 {retryMsg && (
                     <p style={{ fontSize: 12, color: 'var(--text-ghost)', marginTop: 12 }}>
@@ -401,8 +405,20 @@ export default function Phase2() {
                                         transform: 'none',
                                     }}
                                 >
-                                    <p className="folklore-name">{f.kaiiName}</p>
-                                    <p className="folklore-content">{f.content}</p>
+                                    <SpookyText
+                                        text={f.kaiiName}
+                                        as="p"
+                                        className="folklore-name"
+                                        mojibake
+                                        mojibakeOptions={{ resolveSpeed: 50, flickerRate: 60, delay: 0, intensity: 0.6 }}
+                                    />
+                                    <SpookyText
+                                        text={f.content}
+                                        as="p"
+                                        className="folklore-content"
+                                        mojibake
+                                        mojibakeOptions={{ resolveSpeed: 15, flickerRate: 40, delay: 100, intensity: 0.4 }}
+                                    />
                                     <p className="folklore-meta">{f.location}</p>
                                 </div>
                             );
@@ -439,7 +455,15 @@ export default function Phase2() {
                                     onClick={() => selectedIdx === null && handleSelect(globalIdx)}
                                 >
                                     {typeLabel && <span className="concept-label" style={{ marginBottom: 4 }}>{typeLabel}</span>}
-                                    <div className="yokai-name">{c.name}</div>
+                                    <SpookyText
+                                        text={c.name}
+                                        as="div"
+                                        className="yokai-name"
+                                        mojibake
+                                        mojibakeOptions={{ resolveSpeed: 60, flickerRate: 40, delay: 100, intensity: 0.8 }}
+                                        charAnimation
+                                        charDelayStep={50}
+                                    />
                                     <div className="yokai-reading">{c.reading}</div>
                                     <div className="yokai-desc">{c.description}</div>
                                 </button>

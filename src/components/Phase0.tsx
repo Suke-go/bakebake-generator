@@ -74,13 +74,22 @@ export default function Phase0() {
         };
     }, [scannerReady, setTicketId, goToPhase]);
 
+    const handleTap = () => {
+        if (stage < 3 && !scannedRef.current) {
+            setStage(3);
+            setScannerReady(true);
+        }
+    };
+
     return (
         <div
             className="phase"
+            onClick={handleTap}
             style={{
                 justifyContent: 'center',
                 alignItems: 'center',
                 textAlign: 'center',
+                cursor: stage < 3 ? 'pointer' : 'default',
             }}
         >
             {/* タイトル */}

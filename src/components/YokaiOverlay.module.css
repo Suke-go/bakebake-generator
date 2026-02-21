@@ -1,0 +1,67 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+  transform: translateZ(0);
+}
+
+.active {
+  opacity: 1;
+}
+
+.figure {
+  position: absolute;
+  left: var(--yokai-left);
+  top: var(--yokai-top);
+  width: var(--yokai-size);
+  height: auto;
+  opacity: 0;
+  transform: scale(var(--yokai-scale));
+  filter: blur(0.4px) drop-shadow(0 0 14px hsla(20, 20%, 55%, 0.08));
+  mix-blend-mode: screen;
+  animation: yokaiHover var(--yokai-duration) ease-in-out infinite alternate;
+  animation-delay: calc(-1 * var(--yokai-delay));
+  animation-play-state: paused;
+}
+
+.active .figure {
+  opacity: var(--yokai-opacity);
+  animation-play-state: running;
+}
+
+.reducedMotion .figure {
+  animation: none;
+}
+
+.reducedMotion .figure {
+  opacity: var(--yokai-opacity);
+}
+
+@keyframes yokaiHover {
+  0% {
+    transform: translate3d(0, 0, 0) scale(var(--yokai-scale)) rotate(calc(var(--yokai-rotation) - 2deg));
+  }
+
+  45% {
+    transform: translate3d(var(--yokai-drift-x), var(--yokai-drift-y), 0) scale(calc(var(--yokai-scale) + 0.02)) rotate(var(--yokai-rotation));
+  }
+
+  100% {
+    transform: translate3d(var(--yokai-return-x), var(--yokai-return-y), 0) scale(calc(var(--yokai-scale) + 0.04)) rotate(calc(var(--yokai-rotation) + 2deg));
+  }
+}
+
+@media (max-width: 640px) {
+  .overlay {
+    opacity: 0;
+    transition: opacity 1.4s ease;
+  }
+
+  .active {
+    opacity: 1;
+  }
+}

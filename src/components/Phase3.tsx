@@ -8,27 +8,27 @@ const ART_STYLES: { id: ArtStyle; name: string; desc: string }[] = [
     {
         id: 'sumi',
         name: '水墨画',
-        desc: '余白とにじみを活かした筆致。',
+        desc: '余白とにじみの筆致。石燕以前の妖怪画の系譜。',
     },
     {
         id: 'emaki',
         name: '絵巻',
-        desc: '横スクロールの絵巻物様式。',
+        desc: '百鬼夜行絵巻に連なる横長の物語様式。',
     },
     {
         id: 'ukiyoe',
         name: '浮世絵',
-        desc: '輪郭と平面の木版画様式。',
+        desc: '鳥山石燕の拭きぼかしを継ぐ木版画様式。',
     },
     {
         id: 'manga',
         name: '漫画風',
-        desc: '現代的な線と陰影。',
+        desc: '水木しげるの点描に始まる現代妖怪画。',
     },
     {
         id: 'dennou',
         name: '電脳',
-        desc: 'ノイズと光を混ぜたデジタル様式。',
+        desc: 'ノイズと光の電子的様式。デジタルの怪異。',
     },
 ];
 

@@ -83,6 +83,25 @@ export default function ThemeEngine() {
         };
     }, [state.currentPhase]);
 
+    // data-spooky: CSS [data-spooky="N"] セレクタで段階的エフェクト制御
+    useEffect(() => {
+        const phase = state.currentPhase;
+        let spooky: number;
+        if (phase < 1) {
+            spooky = 0;
+        } else if (phase < 2) {
+            spooky = 1;
+        } else if (phase < 3) {
+            spooky = 2;
+        } else {
+            spooky = 3;
+        }
+        document.documentElement.dataset.spooky = String(spooky);
+        return () => {
+            delete document.documentElement.dataset.spooky;
+        };
+    }, [state.currentPhase]);
+
     useEffect(() => {
         const root = document.documentElement;
         const style = state.artStyle;

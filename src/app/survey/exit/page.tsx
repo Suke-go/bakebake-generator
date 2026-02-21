@@ -143,9 +143,52 @@ function ExitSurveyForm() {
         }
     };
 
+    // Auto-reset idle timer for completion screen
+    const [showIdlePrompt, setShowIdlePrompt] = useState(false);
+    const idleTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+    const resetTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    // Completion screen phased reveal
+    const [showThankTitle, setShowThankTitle] = useState(false);
+    const [showThankBody, setShowThankBody] = useState(false);
+    const [showThankButtons, setShowThankButtons] = useState(false);
+
+    const clearIdleTimers = React.useCallback(() => {
+        if (idleTimerRef.current) { clearTimeout(idleTimerRef.current); idleTimerRef.current = null; }
+        if (resetTimerRef.current) { clearTimeout(resetTimerRef.current); resetTimerRef.current = null; }
+        setShowIdlePrompt(false);
+    }, []);
+
+    const startIdleTimers = React.useCallback(() => {
+        clearIdleTimers();
+        idleTimerRef.current = setTimeout(() => {
+            setShowIdlePrompt(true);
+            resetTimerRef.current = setTimeout(() => {
+                router.push('/generator');
+            }, 5000);
+        }, 10000);
+    }, [clearIdleTimers, router]);
+
+    useEffect(() => {
+        if (!isComplete) return;
+        const t1 = setTimeout(() => setShowThankTitle(true), 400);
+        const t2 = setTimeout(() => setShowThankBody(true), 1600);
+        const t3 = setTimeout(() => setShowThankButtons(true), 2800);
+        startIdleTimers();
+        const restart = () => startIdleTimers();
+        window.addEventListener('pointerdown', restart);
+        window.addEventListener('keydown', restart);
+        return () => {
+            clearTimeout(t1); clearTimeout(t2); clearTimeout(t3);
+            clearIdleTimers();
+            window.removeEventListener('pointerdown', restart);
+            window.removeEventListener('keydown', restart);
+        };
+    }, [isComplete, startIdleTimers, clearIdleTimers]);
+
     if (!id) {
         return (
-            <div style={{ color: 'red', textAlign: 'center', marginTop: '5rem' }}>
+            <div data-yokai-zone="survey-exit-missing-id" style={{ color: 'red', textAlign: 'center', marginTop: '5rem' }}>
                 有効な観測IDがありません。QRコードをもう一度スキャンしてください。
             </div>
         );
@@ -153,41 +196,93 @@ function ExitSurveyForm() {
 
     if (isComplete) {
         return (
-            <div style={{
+            <div data-yokai-zone="survey-exit-complete" style={{
                 minHeight: '100dvh',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '2rem'
+                padding: '2rem',
+                textAlign: 'center',
             }}>
-                <h1 className="title-text" style={{ fontSize: '2rem', marginBottom: '1rem' }}>
-                    ご協力ありがとうございました
-                </h1>
-                <p className="body-text" style={{ textAlign: 'center', opacity: 0.8 }}>
-                    印刷されたお札（レシート）は、記録としてお持ち帰りください。<br />
-                    気をつけてお帰りください。
-                </p>
-                <button
-                    onClick={() => router.push('/')}
-                    className="interactive-button"
-                    style={{ marginTop: '3rem', padding: '1rem 2rem' }}
-                >
-                    トップへ戻る
-                </button>
-                <button
-                    onClick={() => router.push('/survey/enter')}
-                    className="interactive-button"
-                    style={{ marginTop: '1rem', padding: '0.8rem 1.5rem', opacity: 0.6, fontSize: '0.9rem' }}
-                >
-                    もう一度参加する
-                </button>
+                {showThankTitle && (
+                    <h1 className="title-text float-up" style={{
+                        fontSize: '2.2rem',
+                        marginBottom: '1.5rem',
+                        letterSpacing: '0.15em',
+                    }}>
+                        ご体験ありがとうございました
+                    </h1>
+                )}
+
+                {showThankBody && (
+                    <div className="float-up" style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '1rem',
+                    }}>
+                        <p className="body-text" style={{
+                            fontSize: '1.1rem',
+                            opacity: 0.85,
+                            lineHeight: 2.0,
+                            letterSpacing: '0.08em',
+                        }}>
+                            印刷されたお札をお受け取りください。
+                        </p>
+                        <p className="body-text" style={{
+                            fontSize: '0.85rem',
+                            opacity: 0.5,
+                            lineHeight: 1.8,
+                        }}>
+                            この記録は感熱紙に印刷されています。<br />
+                            時間が経てば、この記憶も消えます。<br />
+                            気をつけてお帰りください。
+                        </p>
+                    </div>
+                )}
+
+                {showThankButtons && (
+                    <div className="float-up" style={{
+                        marginTop: '2.5rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '0.8rem',
+                    }}>
+                        <button
+                            onClick={() => router.push('/generator')}
+                            className="interactive-button"
+                            style={{ padding: '1rem 2rem' }}
+                        >
+                            初期画面へ戻る
+                        </button>
+                        <button
+                            onClick={() => router.push('/survey/enter')}
+                            className="interactive-button"
+                            style={{ padding: '0.7rem 1.5rem', opacity: 0.5, fontSize: '0.85rem' }}
+                        >
+                            もう一度参加する
+                        </button>
+                    </div>
+                )}
+
+                {showIdlePrompt && (
+                    <p className="body-text" style={{
+                        marginTop: '2rem',
+                        fontSize: '0.9rem',
+                        opacity: 0.6,
+                        animation: 'breathe 2s ease-in-out infinite',
+                    }}>
+                        操作がありません。まもなく初期画面に戻ります…
+                    </p>
+                )}
             </div>
         );
     }
 
     return (
-        <div style={{
+        <div data-yokai-zone="survey-exit-form" style={{
             minHeight: '100dvh',
             padding: '2rem',
             display: 'flex',
@@ -196,7 +291,7 @@ function ExitSurveyForm() {
             gap: '2rem'
         }}>
             <h1 className="title-text" style={{ fontSize: '2rem' }}>
-                体験の総括
+                体験のふりかえり
             </h1>
 
             <p className="body-text" style={{ textAlign: 'center', opacity: 0.8, maxWidth: '600px' }}>
@@ -235,7 +330,7 @@ function ExitSurveyForm() {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                    <label className="body-text">2. この作品は、ズバリ「何について」の作品だと思いましたか？<span style={{ color: '#ff6b6b', fontSize: '0.8rem', marginLeft: '0.5rem' }}>必須</span></label>
+                    <label className="body-text">2. この作品は、「何について」の作品だと思いましたか？<span style={{ color: '#ff6b6b', fontSize: '0.8rem', marginLeft: '0.5rem' }}>必須</span></label>
                     <textarea
                         className="glass-input"
                         placeholder="自由にお書きください"
@@ -277,7 +372,7 @@ function ExitSurveyForm() {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                    <label className="body-text">5. 帰った後に、地元の噂、怪談、あるいはお住まいの地域の言い伝えについて、誰かに聞いたり、調べたりしたいと思いますか？</label>
+                    <label className="body-text">5. 帰った後に、地元の伝承や怪談について調べたり、誰かに聞いてみたいと思いますか？</label>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem' }}>
                         {[1, 2, 3, 4, 5].map(num => (
                             <button

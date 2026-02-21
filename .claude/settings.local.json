@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(npx next build:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run build:*)",
+      "WebFetch(domain:ja.wikipedia.org)",
+      "WebFetch(domain:www.nichibun.ac.jp)",
+      "WebFetch(domain:note.com)",
+      "WebFetch(domain:allreviews.jp)",
+      "Bash(test:*)",
+      "Bash(npm ls:*)"
+    ]
+  }
+}

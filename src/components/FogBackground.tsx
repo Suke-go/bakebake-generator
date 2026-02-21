@@ -67,7 +67,24 @@ void main() {
   timeScale = mix(timeScale, 0.08, smoothstep(3.5, 4.0, u_phase));   // Reveal: 静かに
 
   float t = u_time * timeScale;
-  vec2 p = vec2(uv.x * aspect, uv.y);
+
+  // === 陽炎ゆがみ (heat haze distortion) ===
+  // Phase 0-1: 0, Phase 2: 0.2, Phase 3-3.5: 0.5-1.0, Reveal: 0.1
+  float hazeStrength = 0.0;
+  hazeStrength = mix(hazeStrength, 0.002, smoothstep(1.5, 2.5, u_phase));
+  hazeStrength = mix(hazeStrength, 0.005, smoothstep(2.5, 3.2, u_phase));
+  hazeStrength = mix(hazeStrength, 0.008, smoothstep(3.2, 3.5, u_phase));
+  hazeStrength = mix(hazeStrength, 0.001, smoothstep(3.5, 4.0, u_phase));
+
+  vec2 hazeUV = uv;
+  if (hazeStrength > 0.0) {
+    float haze1 = fbm(vec2(uv.x * 3.0 + u_time * 0.02, uv.y * 3.0 + u_time * 0.015));
+    float haze2 = fbm(vec2(uv.x * 2.0 - u_time * 0.018, uv.y * 4.0 + u_time * 0.01));
+    hazeUV.x += (haze1 - 0.5) * hazeStrength;
+    hazeUV.y += (haze2 - 0.5) * hazeStrength;
+  }
+
+  vec2 p = vec2(hazeUV.x * aspect, hazeUV.y);
 
   // レイヤー1: 大きなうねり（墨の広がり）
   float f1 = fbm(p * 1.4 + vec2(t * 0.3, t * 0.1));
@@ -89,11 +106,11 @@ void main() {
   fog *= vig;
 
   // フェーズに応じた霧の濃度
-  float fogIntensity = 0.10;   // Phase 0: ほのか
-  fogIntensity = mix(fogIntensity, 0.12, smoothstep(0.5, 1.5, u_phase));
-  fogIntensity = mix(fogIntensity, 0.15, smoothstep(1.5, 2.5, u_phase));
-  fogIntensity = mix(fogIntensity, 0.18, smoothstep(3.0, 3.5, u_phase));
-  fogIntensity = mix(fogIntensity, 0.06, smoothstep(3.5, 4.0, u_phase));  // Reveal: 晴れ
+  float fogIntensity = 0.40;   // Phase 0: light
+  fogIntensity = mix(fogIntensity, 0.70, smoothstep(0.5, 1.5, u_phase));
+  fogIntensity = mix(fogIntensity, 1.00, smoothstep(1.5, 2.5, u_phase));
+  fogIntensity = mix(fogIntensity, 1.00, smoothstep(2.5, 3.5, u_phase));
+  fogIntensity = mix(fogIntensity, 0.40, smoothstep(3.5, 4.0, u_phase));
 
   fog *= fogIntensity;
 
@@ -104,6 +121,39 @@ void main() {
   vec3 fogCol = vec3(0.48, 0.44, 0.38);
 
   vec3 color = bg + fogCol * fog;
+
+  // === 色収差 (chromatic aberration) ===
+  // Phase 3+ のみ、最大 0.004
+  float caStrength = 0.0;
+  caStrength = mix(caStrength, 0.002, smoothstep(2.5, 3.2, u_phase));
+  caStrength = mix(caStrength, 0.004, smoothstep(3.2, 3.5, u_phase));
+  caStrength = mix(caStrength, 0.0, smoothstep(3.5, 4.0, u_phase));
+
+  if (caStrength > 0.0) {
+    vec2 caDir = normalize(uv - 0.5);
+    float caFog_r = fbm(vec2((hazeUV.x + caDir.x * caStrength) * aspect, hazeUV.y + caDir.y * caStrength) * 1.4 + vec2(t * 0.3, t * 0.1));
+    float caFog_b = fbm(vec2((hazeUV.x - caDir.x * caStrength) * aspect, hazeUV.y - caDir.y * caStrength) * 1.4 + vec2(t * 0.3, t * 0.1));
+    caFog_r = smoothstep(0.30, 0.70, caFog_r) * fogIntensity;
+    caFog_b = smoothstep(0.30, 0.70, caFog_b) * fogIntensity;
+    color.r = bg.r + fogCol.r * caFog_r * mix(0.35, 1.2, bottom) * vig;
+    color.b = bg.b + fogCol.b * caFog_b * mix(0.35, 1.2, bottom) * vig;
+  }
+
+  // === フリッカー (flicker) ===
+  // Phase 3以降、ランダムに明度が一瞬下がる（15-30秒に1回）
+  if (u_phase >= 3.0 && u_phase < 3.6) {
+    // Use time-based pseudo-random for sparse flicker
+    float flickerSeed = floor(u_time * 0.06); // ~every 16-17 seconds
+    float flickerRand = hash(vec2(flickerSeed, flickerSeed * 1.7));
+    // Only trigger when random value is very low (sparse occurrence)
+    if (flickerRand < 0.04) {
+      float flickerPhase = fract(u_time * 0.06);
+      // Brief dip: only in first 2% of the cycle (~0.3s)
+      if (flickerPhase < 0.02) {
+        color *= 0.85;
+      }
+    }
+  }
 
   // 和紙の粒（ごく微細なグレイン）
   float grain = hash(gl_FragCoord.xy + u_time * 60.0) * 0.006;

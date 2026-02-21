@@ -128,10 +128,10 @@ export default function SurveyEnterPage() {
                 </h1>
 
                 <p className="body-text" style={{ textAlign: 'center', opacity: 0.8, maxWidth: '100%' }}>
-                    妖怪生成体験の前に、ご自身の属性について教えてください。入力内容は研究目的でのみ利用されます。
+                    妖怪生成体験の前に、いくつか質問にお答えください。回答は研究目的でのみ利用されます。
                 </p>
 
-                <form onSubmit={handleSubmit} style={{
+                <form data-yokai-zone="survey-enter-form" onSubmit={handleSubmit} style={{
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '2rem',

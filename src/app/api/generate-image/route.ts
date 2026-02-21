@@ -1,7 +1,7 @@
 import { GoogleGenAI, Modality, type GenerateContentResponse } from '@google/genai';
 import OpenAI from 'openai';
 import { NextResponse } from 'next/server';
-import { getStylePrompt } from '@/lib/art-styles';
+import { getStylePrompt, getNegativeHints } from '@/lib/art-styles';
 import { buildImagePrompt, buildNarrativePrompt } from '@/lib/prompt-builder';
 import {
     getRetryDelayMs,
@@ -472,7 +472,8 @@ export async function POST(req: Request) {
             const openaiClient = openaiApiKey ? new OpenAI({ apiKey: openaiApiKey }) : null;
 
             const stylePrompt = getStylePrompt(artStyle);
-            const imagePromptText = buildImagePrompt(concept, stylePrompt, visualInput);
+            const negativeHints = getNegativeHints(artStyle);
+            const imagePromptText = buildImagePrompt(concept, stylePrompt, visualInput, negativeHints);
             const narrativePrompt = buildNarrativePrompt(
                 concept,
                 answerMap as Record<string, string>,

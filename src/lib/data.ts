@@ -47,23 +47,23 @@ export const MOCK_FOLKLORE: Array<{
 }> = [
         {
             id: 'f001',
-            kaiiName: '背追い',
-            content: '夜道で足音だけが追ってくるという語り。振り向くたびに静まる。',
-            location: '東北',
+            kaiiName: 'ベトベトサン',
+            content: '夜道で後ろから足音がついてくる。「ベトベトサン、お先にどうぞ」と言うと止む。',
+            location: '奈良県',
             similarity: 0.82,
         },
         {
             id: 'f002',
-            kaiiName: '視返し',
-            content: '人の気配を感じるが誰もいない。家の角や廊下で起こるとされる。',
-            location: '近畿',
+            kaiiName: 'ヌリカベ',
+            content: '夜道を歩いていると急に前に進めなくなる。見えない壁が立ちはだかるという。',
+            location: '福岡県',
             similarity: 0.76,
         },
         {
             id: 'f003',
-            kaiiName: '間の声',
-            content: '寝入り際に呼びかけられる現象。返事をしないほうが良いとされる。',
-            location: '関東',
+            kaiiName: '呼子',
+            content: '山中で名前を呼ばれるが誰もいない。返事をすると災いがあるとされる。',
+            location: '各地',
             similarity: 0.71,
         },
     ];
