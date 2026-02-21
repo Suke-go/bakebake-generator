@@ -141,7 +141,7 @@ export default function SurveyTicketPage({ params }: { params: Promise<{ id: str
                 background: 'radial-gradient(ellipse at 50% 45%, hsl(120, 8%, 8%) 0%, hsl(0, 0%, 3%) 70%, #000 100%)',
             }} />
 
-            {/* ── お札 ── */}
+            {/* ── お札 (label.png 背景) ── */}
             <div style={{
                 position: 'relative',
                 zIndex: 10,
@@ -150,49 +150,43 @@ export default function SurveyTicketPage({ params }: { params: Promise<{ id: str
                 alignItems: 'center',
                 // 間: generous vertical spacing
                 gap: '2.5rem',
-                // お札の形: 縦長, 和紙の色
-                padding: '3rem 2rem 2.5rem',
-                background: 'linear-gradient(180deg, #ede8d8 0%, #e5dfc8 100%)',
-                borderRadius: '2px',
-                maxWidth: '300px',
-                width: '80vw',
-                // 和紙の質感: subtle inner shadow + soft outer glow
+                // 霊符画像の比率に合わせたPadding
+                padding: '4rem 2rem 3rem',
+                // 背景画像にlabel.pngを指定
+                backgroundImage: 'url(/label.png)',
+                backgroundSize: '100% 100%',
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'center',
+                borderRadius: '4px',
+                maxWidth: '340px',
+                width: '85vw',
+                minHeight: '600px', // 霊符らしく縦長を維持
+                // 霊符らしく少し影をつける
                 boxShadow: `
-                    inset 0 0 30px rgba(0, 0, 0, 0.06),
-                    0 0 60px rgba(40, 100, 50, 0.12),
-                    0 4px 20px rgba(0, 0, 0, 0.4)
+                    0 0 60px rgba(0, 0, 0, 0.6),
+                    0 4px 20px rgba(0, 0, 0, 0.8)
                 `,
-                // 非常に薄い枠線
-                border: '1px solid rgba(160, 140, 100, 0.3)',
             }}>
 
-                {/* 上部の朱印的装飾 */}
-                <div style={{
-                    width: '2.5rem',
-                    height: '2.5rem',
-                    borderRadius: '50%',
-                    border: '1.5px solid rgba(180, 60, 40, 0.4)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    opacity: 0.6,
-                }}>
-                    <span style={{
-                        fontFamily: 'serif',
-                        fontSize: '0.75rem',
-                        color: 'rgba(160, 50, 30, 0.6)',
-                        fontWeight: 700,
-                    }}>化</span>
-                </div>
-
                 {scannedYokai ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.2rem' }}>
+                    <div style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '1.2rem',
+                        background: 'rgba(0, 0, 0, 0.75)',
+                        backdropFilter: 'blur(4px)',
+                        padding: '1.5rem',
+                        borderRadius: '8px',
+                        width: '100%',
+                        boxSizing: 'border-box',
+                    }}>
                         {/* Thank you message */}
                         <p style={{
                             fontFamily: '"Noto Serif JP", serif',
-                            fontSize: '0.75rem',
+                            fontSize: '0.85rem',
                             letterSpacing: '0.15em',
-                            color: 'rgba(40, 40, 30, 0.5)',
+                            color: '#ede8d8', // 白・生成り文字
                             margin: 0,
                             textAlign: 'center',
                         }}>
@@ -205,9 +199,9 @@ export default function SurveyTicketPage({ params }: { params: Promise<{ id: str
                                 src={scannedYokai.b64}
                                 alt={scannedYokai.name}
                                 style={{
-                                    width: '200px', height: '200px',
-                                    objectFit: 'cover', borderRadius: '2px',
-                                    border: '1px solid rgba(0,0,0,0.1)',
+                                    width: '180px', height: '180px',
+                                    objectFit: 'cover', borderRadius: '4px',
+                                    border: '1px solid rgba(255,255,255,0.2)',
                                 }}
                             />
                         )}
@@ -215,10 +209,11 @@ export default function SurveyTicketPage({ params }: { params: Promise<{ id: str
                         {/* Yokai name */}
                         <p style={{
                             fontFamily: '"Noto Serif JP", serif',
-                            fontSize: '1.2rem',
-                            color: '#2a2a20',
+                            fontSize: '1.3rem',
+                            color: '#ffffff',
                             margin: 0,
                             fontWeight: 600,
+                            letterSpacing: '0.05em',
                         }}>
                             {scannedYokai.name}
                         </p>
@@ -227,9 +222,9 @@ export default function SurveyTicketPage({ params }: { params: Promise<{ id: str
                         {scannedYokai.desc && (
                             <p style={{
                                 fontFamily: '"Noto Serif JP", serif',
-                                fontSize: '0.75rem',
-                                lineHeight: 2.0,
-                                color: 'rgba(40, 40, 30, 0.7)',
+                                fontSize: '0.8rem',
+                                lineHeight: 1.8,
+                                color: 'rgba(237, 232, 216, 0.9)', // 少し白を抑えた生成り
                                 margin: 0,
                                 textAlign: 'left',
                                 width: '100%',
@@ -249,10 +244,13 @@ export default function SurveyTicketPage({ params }: { params: Promise<{ id: str
                                     padding: '0.7rem 2rem',
                                     textDecoration: 'none',
                                     color: '#ede8d8',
-                                    background: '#2a3a28',
-                                    borderRadius: '2px',
+                                    background: 'rgba(255, 255, 255, 0.1)',
+                                    border: '1px solid rgba(237, 232, 216, 0.3)',
+                                    borderRadius: '4px',
                                     letterSpacing: '0.1em',
                                     textAlign: 'center',
+                                    marginTop: '0.5rem',
+                                    transition: 'background 0.2s ease',
                                 }}
                             >
                                 画像を保存する
@@ -260,7 +258,20 @@ export default function SurveyTicketPage({ params }: { params: Promise<{ id: str
                         )}
                     </div>
                 ) : (
-                    <>
+                    <div style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '2rem',
+                        background: 'rgba(0, 0, 0, 0.65)',
+                        backdropFilter: 'blur(4px)',
+                        padding: '2rem 1rem',
+                        borderRadius: '8px',
+                        width: '100%',
+                        boxSizing: 'border-box',
+                        flexGrow: 1, // 高さいっぱいに広げる
+                    }}>
                         {/* QR + GLSL glow */}
                         <div style={{
                             position: 'relative',
@@ -275,34 +286,31 @@ export default function SurveyTicketPage({ params }: { params: Promise<{ id: str
                             <div style={{
                                 position: 'relative',
                                 zIndex: 1,
-                                borderRadius: '2px',
+                                borderRadius: '4px',
                                 overflow: 'hidden',
+                                // QRをよりくっきりさせるために白い余白を付与
+                                padding: '8px',
+                                background: '#ede8d8',
                             }}>
-                                <StyledQR value={id} size={200} />
+                                <StyledQR value={id} size={180} />
                             </div>
                         </div>
 
-                        {/* 指示テキスト — 墨色、書体的 */}
+                        {/* 指示テキスト — 白文字 */}
                         <p style={{
                             fontFamily: '"Noto Serif JP", serif',
-                            fontSize: '0.85rem',
-                            letterSpacing: '0.2em',
-                            lineHeight: 2.4,
-                            color: 'rgba(40, 40, 30, 0.6)',
+                            fontSize: '0.9rem',
+                            letterSpacing: '0.15em',
+                            lineHeight: 1.8,
+                            color: '#ede8d8',
                             textAlign: 'center',
                             margin: 0,
+                            textShadow: '0 2px 4px rgba(0,0,0,0.8)',
                         }}>
-                            妖怪生成装置にかざしてください
+                            妖怪生成装置に<br />かざしてください
                         </p>
-                    </>
+                    </div>
                 )}
-
-                {/* 下部装飾: 細い墨線 */}
-                <div style={{
-                    width: '40%',
-                    height: '0.5px',
-                    background: 'rgba(40, 40, 30, 0.15)',
-                }} />
             </div>
 
             {/* ID: ほぼ不可視 */}

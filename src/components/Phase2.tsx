@@ -10,8 +10,6 @@ const SCATTER_POSITIONS = [
     { alignSelf: 'flex-start', marginLeft: '5%' },
     { alignSelf: 'flex-end', marginRight: '0%' },
     { alignSelf: 'flex-start', marginLeft: '12%' },
-    { alignSelf: 'flex-end', marginRight: '8%' },
-    { alignSelf: 'flex-start', marginLeft: '2%' },
 ];
 
 const RETRY_MAX = 2;
@@ -411,6 +409,7 @@ export default function Phase2() {
                                         className="folklore-name"
                                         mojibake
                                         mojibakeOptions={{ resolveSpeed: 50, flickerRate: 60, delay: 0, intensity: 0.6 }}
+                                        charSizeVariation={0.15}
                                     />
                                     <SpookyText
                                         text={f.content}
@@ -418,6 +417,7 @@ export default function Phase2() {
                                         className="folklore-content"
                                         mojibake
                                         mojibakeOptions={{ resolveSpeed: 15, flickerRate: 40, delay: 100, intensity: 0.4 }}
+                                        charSizeVariation={0.08}
                                     />
                                     <p className="folklore-meta">{f.location}</p>
                                 </div>

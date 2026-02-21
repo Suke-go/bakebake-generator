@@ -226,7 +226,7 @@ async function generateOpenAiImage(openai: OpenAI, prompt: string): Promise<{ ba
 }
 
 async function generateImageWithFallback(
-    genAI: GoogleGenAI | null,
+    genAIs: GoogleGenAI[],
     openai: OpenAI | null,
     sdApiUrl: string | undefined,
     imagePrompt: string,
@@ -235,8 +235,9 @@ async function generateImageWithFallback(
     const warnings: string[] = [];
     let lastError = new Error('Image generation unavailable');
 
-    // 1. Try Gemini
-    if (genAI) {
+    // 1. Try Gemini Keys
+    for (const [index, genAI] of genAIs.entries()) {
+        let keyFailed = false;
         for (const model of GENERATION_MODELS) {
             try {
                 const result = await withExponentialBackoff<ImageGenerationResponse>(() => {
@@ -257,13 +258,15 @@ async function generateImageWithFallback(
 
                 const image = getImageFromResponse(result);
                 if (image) {
+                    imageRequestAllowedAt = 0; // Reset global cooldown if a key succeeds
                     return { ...image, usedModel: model };
                 }
             } catch (error) {
-                warnings.push(`Gemini ${model}: ${toErrorMessage(error)}`);
+                warnings.push(`Gemini (Key ${index + 1}) ${model}: ${toErrorMessage(error)}`);
                 lastError = error instanceof Error ? error : new Error(String(error));
                 if (isRateLimitError(error)) {
-                    break; // Skip other Gemini models and proceed to next fallback
+                    keyFailed = true;
+                    break; // Skip other Gemini models for this key, proceed to next key
                 }
             }
         }
@@ -296,15 +299,15 @@ async function generateImageWithFallback(
 }
 
 async function generateNarrativeWithFallback(
-    genAI: GoogleGenAI | null,
+    genAIs: GoogleGenAI[],
     openai: OpenAI | null,
     narrativePrompt: string,
     signal: AbortSignal
 ): Promise<string> {
     let narrativeText = '';
-    let geminiFailed = false;
+    let geminiFailed = true;
 
-    if (genAI) {
+    for (const [index, genAI] of genAIs.entries()) {
         try {
             const narrativeResult = await withExponentialBackoff<ImageGenerationResponse>(() => {
                 return genAI.models.generateContent({
@@ -320,12 +323,14 @@ async function generateNarrativeWithFallback(
                 return false;
             });
             narrativeText = narrativeResult.text || '';
+            if (narrativeText) {
+                geminiFailed = false;
+                imageRequestAllowedAt = 0; // Reset global cooldown if a key succeeds
+                break;
+            }
         } catch (error) {
-            console.warn('generateNarrativeWithFallback: Gemini failed:', toErrorMessage(error));
-            geminiFailed = true;
+            console.warn(`generateNarrativeWithFallback: Gemini (Key ${index + 1}) failed:`, toErrorMessage(error));
         }
-    } else {
-        geminiFailed = true;
     }
 
     if (geminiFailed && openai) {
@@ -351,8 +356,8 @@ function buildRateLimitResponse(): ImageApiResponse {
     return {
         imageBase64: '',
         imageMimeType: 'image/png',
-        narrative: 'Image generation is temporarily paused due to service quota, using fallback mode.',
-        warnings: ['Rate limit cooldown active; using fallback mode.'],
+        narrative: '画像生成サービスが一時的に混雑しています。代替モードで生成中です。',
+        warnings: ['サービスが混雑しています。代替モードで生成中です。'],
     };
 }
 
@@ -468,12 +473,14 @@ export async function POST(req: Request) {
                 return buildRateLimitResponse();
             }
 
-            const genAI = geminiApiKey ? new GoogleGenAI({ apiKey: geminiApiKey }) : null;
+            const genAIs: GoogleGenAI[] = [];
+            if (geminiApiKey) genAIs.push(new GoogleGenAI({ apiKey: geminiApiKey }));
+            if (process.env.GEMINI_SUB_API_KEY) genAIs.push(new GoogleGenAI({ apiKey: process.env.GEMINI_SUB_API_KEY }));
             const openaiClient = openaiApiKey ? new OpenAI({ apiKey: openaiApiKey }) : null;
 
             const stylePrompt = getStylePrompt(artStyle);
             const negativeHints = getNegativeHints(artStyle);
-            const imagePromptText = buildImagePrompt(concept, stylePrompt, visualInput, negativeHints);
+            const imagePromptText = buildImagePrompt(concept, stylePrompt, visualInput, negativeHints, answerMap as Record<string, string>);
             const narrativePrompt = buildNarrativePrompt(
                 concept,
                 answerMap as Record<string, string>,
@@ -481,11 +488,11 @@ export async function POST(req: Request) {
             );
             const warnings: string[] = [];
 
-            const imageResultPromise = generateImageWithFallback(genAI, openaiClient, sdApiUrl, imagePromptText, req.signal).catch((error: unknown) => {
+            const imageResultPromise = generateImageWithFallback(genAIs, openaiClient, sdApiUrl, imagePromptText, req.signal).catch((error: unknown) => {
                 warnings.push(`Image generation: ${toErrorMessage(error)}`);
                 throw error;
             });
-            const narrativeResultPromise = generateNarrativeWithFallback(genAI, openaiClient, narrativePrompt, req.signal).catch((error: unknown) => {
+            const narrativeResultPromise = generateNarrativeWithFallback(genAIs, openaiClient, narrativePrompt, req.signal).catch((error: unknown) => {
                 warnings.push(`Narrative generation: ${toErrorMessage(error)}`);
                 return '';
             });
@@ -494,7 +501,7 @@ export async function POST(req: Request) {
             const narrativeText =
                 narrativeTextState.status === 'fulfilled' && narrativeTextState.value
                     ? narrativeTextState.value
-                    : 'Could not generate narrative.';
+                    : '物語の生成に失敗しました。';
 
             if (imageResultState.status === 'rejected') {
                 if (isRateLimitError(imageResultState.reason)) {
@@ -511,7 +518,7 @@ export async function POST(req: Request) {
             const imageResult = imageResultState.value;
 
             if (!imageResult) {
-                warnings.push('No image generated by model; returning fallback text-only response.');
+                warnings.push('画像の生成に失敗しました。テキストのみの応答を返します。');
                 return {
                     imageBase64: '',
                     imageMimeType: 'image/png',

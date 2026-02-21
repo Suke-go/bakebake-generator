@@ -332,25 +332,34 @@ body {
 
 .folklore-entry {
   position: relative;
-  max-width: 380px;
+  max-width: 420px;
+}
+
+.folklore-name {
+  font-family: var(--font-yokai);
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  color: var(--text-bright);
+  margin-bottom: 6px;
 }
 
 .folklore-content {
   font-family: var(--font-folklore);
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 400;
   letter-spacing: 0.04em;
-  line-height: 2.4;
+  line-height: 2.2;
   color: var(--text-bright);
 }
 
 .folklore-meta {
   font-family: var(--font-label);
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 300;
   letter-spacing: 0.15em;
   color: var(--text-ghost);
-  margin-top: 8px;
+  margin-top: 10px;
 }
 
 /* === Concept Card (Phase 2b) === */

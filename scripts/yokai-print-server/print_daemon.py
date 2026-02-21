@@ -25,11 +25,13 @@ Requirements:
 
 import os
 import sys
+import json
 import time
 import base64
 import argparse
 import threading
 from io import BytesIO
+from pathlib import Path
 
 from PIL import Image
 from dotenv import load_dotenv
@@ -83,6 +85,58 @@ def init_printer():
 printer = init_printer()
 # Thread lock so two modes don't print at the same time.
 print_lock = threading.Lock()
+
+# ──────────────────────────────────────────────
+# Persistent Print Queue
+# ──────────────────────────────────────────────
+QUEUE_FILE = Path(__file__).parent / "print_queue.json"
+MAX_PRINT_RETRIES = 3
+_recent_jobs: list = []  # last N completed job IDs for /status
+
+def _load_queue() -> list:
+    """Load pending print queue from disk."""
+    try:
+        if QUEUE_FILE.exists():
+            return json.loads(QUEUE_FILE.read_text(encoding="utf-8"))
+    except Exception as e:
+        print(f"[QUEUE] Error loading queue: {e}")
+    return []
+
+def _save_queue(queue: list):
+    """Persist pending queue to disk."""
+    try:
+        QUEUE_FILE.write_text(json.dumps(queue, ensure_ascii=False), encoding="utf-8")
+    except Exception as e:
+        print(f"[QUEUE] Error saving queue: {e}")
+
+def enqueue_job(data: dict):
+    """Add a print job to the persistent queue."""
+    queue = _load_queue()
+    queue.append(data)
+    _save_queue(queue)
+    print(f"[QUEUE] Enqueued job (queue size: {len(queue)})")
+
+def process_queue():
+    """Process all pending jobs in the queue."""
+    queue = _load_queue()
+    if not queue:
+        return
+    print(f"[QUEUE] Processing {len(queue)} pending job(s)...")
+    remaining = []
+    for job in queue:
+        success = print_yokai(job)
+        if not success:
+            retries = job.get("_retries", 0)
+            if retries < MAX_PRINT_RETRIES:
+                job["_retries"] = retries + 1
+                remaining.append(job)
+                print(f"[QUEUE] Job {job.get('id', '?')} failed, retry {retries+1}/{MAX_PRINT_RETRIES}")
+            else:
+                print(f"[QUEUE] Job {job.get('id', '?')} failed after {MAX_PRINT_RETRIES} retries, discarding.")
+    _save_queue(remaining)
+
+# Process any jobs left from a previous crash on startup
+process_queue()
 
 
 # ──────────────────────────────────────────────
@@ -157,6 +211,9 @@ def print_yokai(data):
             printer.cut()
 
             print(f"[PRINT] Done: {record_id}")
+            _recent_jobs.append({"id": record_id, "name": name, "time": time.strftime("%H:%M:%S")})
+            if len(_recent_jobs) > 20:
+                _recent_jobs.pop(0)
             return True
 
         except Exception as e:
@@ -255,11 +312,14 @@ def start_offline_mode():
 
     @app.route("/status", methods=["GET"])
     def status():
+        queue = _load_queue()
         return jsonify({
             "status": "ok",
             "printer": PRINTER_NAME,
             "mode": "offline",
             "port": LOCAL_PORT,
+            "queue_length": len(queue),
+            "recent_jobs": _recent_jobs[-10:],
         })
 
     @app.route("/print", methods=["POST"])
@@ -278,7 +338,9 @@ def start_offline_mode():
         if success:
             return jsonify({"status": "printed", "yokai_name": name})
         else:
-            return jsonify({"error": "Print failed"}), 500
+            # Enqueue for retry on next daemon cycle
+            enqueue_job(data)
+            return jsonify({"error": "Print failed, job queued for retry"}), 500
 
     print(f"[OFFLINE] HTTP API starting on http://0.0.0.0:{LOCAL_PORT}")
     print(f"[OFFLINE] POST http://localhost:{LOCAL_PORT}/print")

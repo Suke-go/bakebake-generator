@@ -95,9 +95,9 @@ export async function POST(req: Request) {
                         ...dbConcepts,
                         {
                             source: 'llm' as const,
-                            name: 'Fallback Yokai',
+                            name: '仮の妖怪',
                             reading: '',
-                            description: 'Concept generation is temporarily paused due to service quota, using fallback mode.',
+                            description: '概念生成サービスが一時的に混雑しています。代替モードで表示しています。',
                             label: 'rate-limit-fallback',
                         },
                     ],
@@ -114,10 +114,12 @@ export async function POST(req: Request) {
         const conceptAnswers = answers as Record<string, string>;
         const prompt = buildConceptPrompt(handle, conceptAnswers, conceptInput);
         let responseText = '';
-        let geminiFailed = false;
+        let geminiFailed = true;
 
-        if (geminiApiKey) {
-            const genAI = new GoogleGenAI({ apiKey: geminiApiKey });
+        const geminiApiKeys = [process.env.GEMINI_API_KEY, process.env.GEMINI_SUB_API_KEY].filter(Boolean) as string[];
+
+        for (const [index, apiKey] of geminiApiKeys.entries()) {
+            const genAI = new GoogleGenAI({ apiKey });
             try {
                 const result = await withExponentialBackoff(
                     async () => {
@@ -146,12 +148,13 @@ export async function POST(req: Request) {
                     }
                 );
                 responseText = result.text || '';
+                geminiFailed = false;
+                nextRequestAllowedAt = 0; // Reset global rate limit if this key succeeded
+                break;
             } catch (error) {
-                console.warn('generate-concepts: Gemini call failed:', toErrorMessage(error));
-                geminiFailed = true;
+                console.warn(`generate-concepts: Gemini (Key ${index + 1}) call failed:`, toErrorMessage(error));
+                // Will naturally loop to next key if available
             }
-        } else {
-            geminiFailed = true;
         }
 
         if (geminiFailed && openaiApiKey) {

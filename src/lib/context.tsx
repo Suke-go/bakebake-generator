@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, useMemo, useRef, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useMemo, useRef, useEffect, ReactNode } from 'react';
 
 // === Types ===
 export type HandleId = 'A' | 'B' | 'C' | 'D' | 'E' | 'free';
@@ -96,9 +96,48 @@ const initialState: AppState = {
 
 const AppContext = createContext<AppContextType | null>(null);
 
+const SESSION_STORAGE_KEY = 'yokai_app_state';
+
+/** Keys to exclude from sessionStorage (non-serializable or too large) */
+const PERSIST_EXCLUDE_KEYS: (keyof AppState)[] = ['generatedImageUrl'];
+
+function loadPersistedState(): AppState | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = sessionStorage.getItem(SESSION_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<AppState>;
+    // Merge with initialState to fill any missing fields
+    return { ...initialState, ...parsed, generatedImageUrl: null };
+  } catch {
+    return null;
+  }
+}
+
+function persistState(state: AppState) {
+  if (typeof window === 'undefined') return;
+  try {
+    const toSave: Record<string, unknown> = { ...state };
+    for (const key of PERSIST_EXCLUDE_KEYS) {
+      delete toSave[key];
+    }
+    sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(toSave));
+  } catch {
+    // sessionStorage full or unavailable — silently ignore
+  }
+}
+
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<AppState>(initialState);
+  const [state, setState] = useState<AppState>(() => loadPersistedState() ?? initialState);
   const backOverrideRef = useRef<(() => boolean) | null>(null);
+
+  // Debounced persistence to sessionStorage
+  const persistTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (persistTimerRef.current) clearTimeout(persistTimerRef.current);
+    persistTimerRef.current = setTimeout(() => persistState(state), 300);
+    return () => { if (persistTimerRef.current) clearTimeout(persistTimerRef.current); };
+  }, [state]);
 
   const goToPhase = useCallback((phase: number) => {
     setState(prev => ({ ...prev, currentPhase: phase }));
@@ -166,6 +205,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const resetState = useCallback(() => {
     setState(initialState);
+    try { sessionStorage.removeItem(SESSION_STORAGE_KEY); } catch { /* ignore */ }
   }, []);
 
   const contextValue = useMemo(() => ({

@@ -1,4 +1,4 @@
-\documentclass[sigconf,authorversion,nonacm]{acmart}
+﻿\documentclass[sigconf,authorversion,nonacm]{acmart}
 
 \AtBeginDocument{%
   \providecommand\BibTeX{{%
@@ -131,7 +131,7 @@ The system comprises five phases that map onto the historical y\=okai generation
 
 \subsection{Entry and Elicitation (Phases 0--1)}
 
-Participants enter the installation by scanning a QR code, which binds their session to a unique identifier stored in a Supabase backend. A pre-experience survey captures demographic information and the participant's existing perception of y\=okai through a forced-choice item with options including ``entertainment character,'' ``cultural tradition,'' ``psychological phenomenon,'' and ``something I rarely think about.'' This survey provides the baseline against which post-experience shifts are measured.
+Participants enter the installation by scanning a QR code, which binds their session to a unique identifier stored in a Supabase backend. A pre-experience survey collects demographic information (age group, origin, visitor category), folklore familiarity (five-point Likert), generative AI experience (five-point Likert), and a free-text association (``What is the first word or image that comes to mind when you hear `y\=okai'?''). Critically, a six-option forced-choice item records the participant's baseline y\=okai perception, with categories spanning entertainment characters, atmospheric fear, place-bound folklore, naming of the inexplicable, spiritual entities, and absence of prior reflection. This item provides the baseline against which a structurally parallel post-experience item measures perceptual shift.
 
 The participant then encounters a guided elicitation interface. Curated thematic prompts, such as ``a sound you cannot explain'' or ``a place that feels wrong,'' reduce input friction on touch devices while preserving the essential act of articulating an unformulated experience. Participants may also enter free-text descriptions. This phase corresponds to the initial perceptual stage of the historical workflow, in which a community member articulated an encounter with the unexplained.
 
@@ -163,23 +163,25 @@ This phase corresponds to Sekien's distribution stage, in which woodblock-printe
 
 The evaluation is designed to answer the research question stated in Section 1. We employ a mixed-methods approach following Braun and Clarke's reflexive thematic analysis framework~\cite{braun2006}.
 
-\subsection{Pre-Post Perceptual Measurement}
+\subsection{Two-Layer Perceptual Measurement}
 
-Participants complete iPad-based surveys upon entry (pre) and exit (post). The pre-survey records the participant's existing y\=okai perception through a forced-choice item. The post-survey asks ``What was this artwork about?'' as a free-text response, followed by behavioral intention items assessing whether the experience prompted interest in investigating local folklore or sharing the encounter with others. The shift between pre-perception and post-interpretation constitutes the primary quantitative measure.
+Participants complete smartphone-based surveys upon entry (pre) and exit (post). The evaluation employs two complementary measurement layers.
 
-\subsection{Deductive Coding Framework}
+The \textbf{quantitative layer} uses a forced-choice item administered at both entry and exit. The pre-survey and post-survey items share the same six response categories but employ different phrasing and option ordering to minimize recognition effects. The shift between pre-perception and post-perception on this shared scale constitutes the primary quantitative measure. Additionally, the post-survey presents seven thematic descriptions of the artwork (A through G) from which participants select up to two. These descriptions map onto the coding categories defined in Section~4.2.
 
-Free-text responses are analyzed using a five-category coding framework aligned with the research question.
+The \textbf{qualitative layer} captures open-ended responses. The post-survey asks ``What was this artwork about?'' and ``What moment left the strongest impression?'' as free-text items. A behavioral intention item assesses whether the experience prompted interest in investigating local folklore (five-point Likert).
+
+Free-text responses and forced-choice selections are analyzed using a five-category coding framework aligned with the research question. The seven forced-choice descriptions (A--G) provide a first-pass quantitative distribution; the free-text responses are then coded through reflexive thematic analysis to capture richer detail.
 
 \begin{itemize}
-  \item \textbf{C1 (Character Consumption):} The participant describes y\=okai as entertainment or collectible content. This indicates no perceptual shift.
-  \item \textbf{C2 (Technology Focus):} The participant focuses on the novelty of the AI system or the visual quality of the output. This indicates engagement with the medium rather than the cultural content.
-  \item \textbf{C3 (Spatial or Cultural Anchoring):} The participant references place, memory, or local tradition. This indicates partial engagement with the cultural substrate.
-  \item \textbf{C4 (Anxiety Externalization):} The participant describes the experience as confronting, naming, or externalizing a personal fear. This indicates core engagement with the y\=okai generation mechanism.
-  \item \textbf{C5 (Ephemeral Reflection):} The participant references the fading ink, the transience of the receipt, or the lifecycle of memory. This indicates engagement with the materiality design.
+  \item \textbf{C1 (Character Consumption):} Y\=okai perceived as entertainment content (forced-choice A). No perceptual shift.
+  \item \textbf{C2 (Technology Focus):} Emphasis on AI novelty or visual quality (forced-choice B, D). Engagement with the medium rather than the cultural content.
+  \item \textbf{C3 (Cultural Anchoring):} References to place, oral tradition, or local narrative (forced-choice C). Partial engagement with the cultural substrate.
+  \item \textbf{C4 (Anxiety Externalization):} The experience as confronting or naming a personal fear (forced-choice E). Core engagement with the y\=okai generation mechanism.
+  \item \textbf{C5 (Ephemeral Reflection):} References to the fading ink, transience, or the lifecycle of memory (forced-choice F). Engagement with the materiality design.
 \end{itemize}
 
-A predominance of C3, C4, and C5 codes across participants would support an affirmative answer to the research question.
+A predominance of C3, C4, and C5 codes, together with measurable shifts on the pre-post forced-choice item, would support an affirmative answer to the research question.
 
 \subsection{Behavioral Observation}
 
@@ -195,7 +197,7 @@ BAKEBAKE\_XR makes a specific claim about the role of generative AI in cultural 
 
 This mapping is not metaphorical. The structural correspondence between Sekien's workflow and the system pipeline is direct. Sekien collected oral accounts, interpreted them within the conventions of his artistic tradition, assigned names and visual forms, and distributed the results through a mass-reproduction medium. BAKEBAKE\_XR replaces the human artist with a constrained generative model, the woodblock press with a thermal printer, and the Edo-period readership with the individual exhibition participant. The participant's role, providing the perceptual report that initiates the generative process, remains unchanged.
 
-The evaluation framework is designed to determine whether this structural correspondence produces measurable consequences for participant perception. If participants predominantly produce C1 (character consumption) or C2 (technology focus) codes in the post-experience survey, the system has failed to activate the cultural mechanism it reconstructs. If participants predominantly produce C3, C4, or C5 codes, the system has successfully shifted perception toward the generative practice.
+The evaluation framework is designed to determine whether this structural correspondence produces measurable consequences for participant perception. If the pre-post forced-choice measure shows no shift, or if C1 and C2 codes dominate the thematic analysis, the system has failed to activate the cultural mechanism it reconstructs. Conversely, measurable shifts toward the naming-practice and oral-tradition categories, combined with a predominance of C3, C4, and C5 codes, would indicate that the computational reconstruction successfully reactivated the generative practice.
 
 Preliminary findings and full quantitative results will be reported following the exhibition deployment.
 

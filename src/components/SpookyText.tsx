@@ -128,6 +128,14 @@ function useMojibake(
     };
 }
 
+// --- Deterministic per-char size hash (no randomness, stable across renders) ---
+function charSizeScale(charIndex: number, textLength: number, variation: number): number {
+    // Simple hash to get a stable value per character position
+    const hash = Math.sin(charIndex * 127.1 + textLength * 311.7) * 43758.5453;
+    const t = hash - Math.floor(hash); // 0..1
+    return 1 + (t - 0.5) * 2 * variation; // e.g. variation=0.12 → 0.88..1.12
+}
+
 // --- SpookyText component ---
 
 interface SpookyTextProps {
@@ -139,6 +147,7 @@ interface SpookyTextProps {
     mojibakeOptions?: MojibakeOptions;
     charAnimation?: boolean;
     charDelayStep?: number; // ms between each char's animation-delay (default: 60)
+    charSizeVariation?: number; // 0-1, per-char font size jitter (e.g. 0.12 = ±12%)
 }
 
 export default function SpookyText({
@@ -150,6 +159,7 @@ export default function SpookyText({
     mojibakeOptions,
     charAnimation = false,
     charDelayStep = 60,
+    charSizeVariation = 0,
 }: SpookyTextProps) {
     const { display, resolved } = useMojibake(text, mojibake, mojibakeOptions);
 
@@ -163,8 +173,8 @@ export default function SpookyText({
         return () => mq.removeEventListener('change', handler);
     }, []);
 
-    // If no character animation, render as simple text
-    if (!charAnimation || reducedMotion) {
+    // If no character animation and no size variation, render as simple text
+    if ((!charAnimation && !charSizeVariation) || reducedMotion) {
         return (
             <Tag className={className} style={style}>
                 {display}
@@ -172,19 +182,23 @@ export default function SpookyText({
         );
     }
 
-    // Per-character wrapping with staggered animation
+    // Per-character wrapping with optional staggered animation and size variation
     const displayChars = display.split('');
+    const textLen = text.length;
 
     return (
         <Tag className={className} style={style}>
             {displayChars.map((char, i) => {
                 if (char === ' ') return ' ';
+                const sizeScale = charSizeVariation ? charSizeScale(i, textLen, charSizeVariation) : 1;
                 return (
                     <span
                         key={`${i}-${char}`}
-                        className="spooky-char"
+                        className={charAnimation ? 'spooky-char' : undefined}
                         style={{
-                            animationDelay: `${i * charDelayStep}ms`,
+                            display: 'inline-block',
+                            ...(charAnimation ? { animationDelay: `${i * charDelayStep}ms` } : {}),
+                            ...(charSizeVariation ? { fontSize: `${sizeScale}em` } : {}),
                         }}
                     >
                         {char}

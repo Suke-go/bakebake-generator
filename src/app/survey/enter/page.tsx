@@ -16,23 +16,24 @@ const PREFECTURES = [
 ];
 
 const YOKAI_PERCEPTION_OPTIONS = [
-    { value: 'character', label: 'エンタメ・キャラクター（ゲゲゲの鬼太郎、妖怪ウォッチなど）' },
-    { value: 'culture', label: '日本の伝統文化・民俗の一部' },
-    { value: 'psychology', label: '人間の不安や恐怖の表れ' },
+    { value: 'character', label: 'アニメやゲームに出てくるキャラクター' },
+    { value: 'scary', label: '夜道や暗い場所で感じる「怖いもの」' },
+    { value: 'culture', label: '昔話や言い伝えに出てくる、土地にまつわる存在' },
+    { value: 'psychology', label: '説明できないものに人間がつけた名前' },
+    { value: 'spiritual', label: '神社やお寺、祭りなどに関係する存在' },
     { value: 'none', label: 'あまり考えたことがない' }
 ];
 
-function ConsentScreen({ onAccept }: { onAccept: () => void }) {
-    const router = useRouter();
+function ConsentScreen({ onAccept, onDecline, isDeclining }: { onAccept: () => void; onDecline: () => void; isDeclining: boolean }) {
 
     const infoItems = [
         {
             title: '研究の目的',
-            body: '本アンケートは、インタラクティブ・アート作品「BAKEBAKE XR」の体験評価を目的とした学術研究の一環として実施されます。'
+            body: '本アンケートは、「BAKEBAKE XR」の体験評価の一環として実施されます。'
         },
         {
             title: '回答の取扱い',
-            body: '回答は匿名で収集され、個人を特定する情報は取得しません。収集したデータは統計的に処理し、研究目的以外には使用しません。'
+            body: '回答は匿名で収集され、個人を特定する情報は取得しません。収集したデータは統計的に処理し、研究・体験評価・改善目的以外には使用しません。'
         },
         {
             title: '所要時間',
@@ -136,7 +137,8 @@ function ConsentScreen({ onAccept }: { onAccept: () => void }) {
                         同意してアンケートに進む
                     </button>
                     <button
-                        onClick={() => router.push('/')}
+                        onClick={onDecline}
+                        disabled={isDeclining}
                         className="body-text"
                         style={{
                             background: 'none',
@@ -149,7 +151,7 @@ function ConsentScreen({ onAccept }: { onAccept: () => void }) {
                             padding: '0.5rem'
                         }}
                     >
-                        参加しない
+                        {isDeclining ? '処理中...' : 'アンケートには回答せず体験に進む'}
                     </button>
                 </div>
             </div>
@@ -160,6 +162,7 @@ function ConsentScreen({ onAccept }: { onAccept: () => void }) {
 export default function SurveyEnterPage() {
     const router = useRouter();
     const [consentAccepted, setConsentAccepted] = useState(false);
+    const [isDeclining, setIsDeclining] = useState(false);
     const [visitorType, setVisitorType] = useState("");
     const [origin, setOrigin] = useState("");
     const [familiarity, setFamiliarity] = useState<number | null>(null);
@@ -237,8 +240,33 @@ export default function SurveyEnterPage() {
         );
     }
 
+    const handleDecline = async () => {
+        setIsDeclining(true);
+        try {
+            const { data, error: dbError } = await supabase
+                .from('surveys')
+                .insert([{ survey_declined: true }])
+                .select();
+            if (dbError) throw dbError;
+            if (data && data.length > 0) {
+                const newId = data[0].id;
+                localStorage.setItem('yokai_ticket_id', newId);
+                router.push(`/survey/ticket/${newId}`);
+            }
+        } catch (err) {
+            console.error(err);
+            setIsDeclining(false);
+        }
+    };
+
     if (!consentAccepted) {
-        return <ConsentScreen onAccept={() => setConsentAccepted(true)} />;
+        return (
+            <ConsentScreen
+                onAccept={() => setConsentAccepted(true)}
+                onDecline={handleDecline}
+                isDeclining={isDeclining}
+            />
+        );
     }
 
     return (

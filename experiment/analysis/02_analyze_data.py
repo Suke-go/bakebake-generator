@@ -11,7 +11,7 @@ plt.rcParams['font.sans-serif'] = ['Hiragino Maru Gothic Pro', 'Yu Gothic', 'Mei
 def analyze_data():
     """
     BAKEBAKE_XR: SIGGRAPH Art Paper 向けの初期データ分析スクリプト
-    RQ1/RQ2: 参加者の「妖怪観」が体験前後でどう変容したか（キャラクター消費→文化的営みへの移行）
+    RQ: 参加者の「妖怪観」が体験前後でどう変容したか（キャラクター消費→文化的営みへの移行）
     """
     data_path = Path('../data/surveys_valid.csv')
     
@@ -31,38 +31,78 @@ def analyze_data():
     print(df['visitor_type'].value_counts())
     print("\n【事前の妖怪への親しみ (pre_familiarity)】")
     print(df['pre_familiarity'].value_counts())
+    print("\n【年齢層 (pre_age)】")
+    print(df['pre_age'].value_counts())
     
     # ---------------------------------------------------------
-    # 2. 生成された妖怪と選択されたテクスチャの傾向
+    # 2. 🔴 Pre-Post 妖怪知覚シフト（メインRQ定量指標）
     # ---------------------------------------------------------
-    print("\n=== 2. 生成傾向 ===")
-    print("【選ばれた質感 (texture)】")
-    print(df['texture'].value_counts().head(5))
+    print("\n=== 2. Pre-Post 妖怪知覚シフト (PRIMARY MEASURE) ===")
+    if 'post_yokai_perception' in df.columns:
+        shift_df = df[['pre_yokai_perception', 'post_yokai_perception']].dropna()
+        print(f"有効ペア数: {len(shift_df)}")
+        
+        # クロス集計
+        cross = pd.crosstab(
+            shift_df['pre_yokai_perception'], 
+            shift_df['post_yokai_perception'],
+            margins=True
+        )
+        print("\n【Pre→Post クロス集計】")
+        print(cross)
+        
+        # シフト率
+        shifted = (shift_df['pre_yokai_perception'] != shift_df['post_yokai_perception']).sum()
+        print(f"\n認識シフト率: {shifted}/{len(shift_df)} ({shifted/len(shift_df)*100:.1f}%)")
+        
+        # 年代別クロス集計
+        if 'pre_age' in df.columns:
+            print("\n【年代別シフト率】")
+            age_shift = df[['pre_age', 'pre_yokai_perception', 'post_yokai_perception']].dropna()
+            for age_group in age_shift['pre_age'].unique():
+                subset = age_shift[age_shift['pre_age'] == age_group]
+                s = (subset['pre_yokai_perception'] != subset['post_yokai_perception']).sum()
+                print(f"  {age_group}: {s}/{len(subset)} ({s/len(subset)*100:.1f}%)")
+    else:
+        print("post_yokai_perception カラムが存在しません。")
     
     # ---------------------------------------------------------
-    # 3. 体験後の解釈 (Thematic Shifts) - SIGGRAPH 向けの最重要データ
+    # 3. 生成された妖怪と選択されたテクスチャの傾向
     # ---------------------------------------------------------
-    print("\n=== 3. 体験後の解釈 (post_theme) ===")
-    # post_theme は「何についての作品だと思いましたか？」の回答
-    theme_counts = df['post_theme'].value_counts()
-    print(theme_counts)
-    
-    # 可視化: 参加者の作品解釈の分布
-    plt.figure(figsize=(10, 6))
-    sns.countplot(y='post_theme', data=df, order=df['post_theme'].value_counts().index, palette='viridis')
-    plt.title('Distribution of Post-Experience Thematic Interpretation\n(RQ: Shift from Character to Cultural Phenomenon)', pad=20)
-    plt.xlabel('Number of Participants')
-    plt.ylabel('Selected Theme')
-    plt.tight_layout()
-    plt.savefig('post_theme_distribution.png')
-    print("Saved plot -> post_theme_distribution.png")
+    print("\n=== 3. 生成傾向 ===")
+    if 'texture' in df.columns:
+        print("【選ばれた質感 (texture)】")
+        print(df['texture'].value_counts().head(5))
     
     # ---------------------------------------------------------
-    # 4. 自由記述 (Reflexive Thematic Analysis の準備)
+    # 4. 体験後の解釈 (Forced-Choice A-G) - SIGGRAPH 向けの定量データ
     # ---------------------------------------------------------
-    print("\n=== 4. 定性分析の準備 (Qualitative Data) ===")
+    print("\n=== 4. 体験後の解釈 (post_selections A-G) ===")
+    # A-G → C1-C5 マッピング
+    selection_map = {
+        'A': 'C1 (Character Consumption)',
+        'B': 'C2 (Technology Focus)',
+        'C': 'C3 (Cultural Anchoring)',
+        'D': 'C2-variant (Tourism/PR)',
+        'E': 'C4 (Anxiety Externalization)',
+        'F': 'C5 (Ephemeral Reflection)',
+        'G': 'Unclear'
+    }
+    
+    if 'post_selections' in df.columns:
+        # post_selections は text[] なので展開
+        all_selections = df['post_selections'].dropna().explode()
+        sel_counts = all_selections.value_counts()
+        print("【選択分布】")
+        for val, count in sel_counts.items():
+            mapped = selection_map.get(str(val).strip("{}' "), '?')
+            print(f"  {val} ({mapped}): {count}")
+    
+    # ---------------------------------------------------------
+    # 5. 体験後の自由記述 (Reflexive Thematic Analysis の準備)
+    # ---------------------------------------------------------
+    print("\n=== 5. 定性分析の準備 (Qualitative Data) ===")
     print("事前イメージ (pre_image) と 事後感想 (post_impression) のペアを抽出しました。")
-    print("※これをLLM（Gemini/OpenAI）に投げて、感情の変容（Affective Shift）をコーディングしてください。")
     
     qualitative_df = df[['id', 'pre_image', 'post_impression']].dropna()
     qualitative_path = 'qualitative_pairs.csv'
@@ -76,10 +116,11 @@ def analyze_data():
 SIGGRAPH Art Paper の Evaluation として、参加者の認識が以下のように変容したか（Affective Shift）を分析してください。
 
 [コーディング軸]
-- C1 (Negative): 妖怪を単なるポップカルチャーのキャラクターとして消費したままである
-- C2 (Positive): デジタル技術（AI/VR）の目新しさに驚いている
-- C3 (Core Success): 妖怪を「自身の不安」や「見えない気配」の具現化（文化的営み）として再解釈した
-- C4 (Core Success): 感熱紙（レシート）の儚さや物質性（Tangibility）に言及し、記憶や伝承の性質と結びつけている
+- C1 (Character Consumption): 妖怪を単なるポップカルチャーのキャラクターとして消費したままである
+- C2 (Technology Focus): デジタル技術（AI/VR）の目新しさに驚いている
+- C3 (Cultural Anchoring): 妖怪を「地域や語りと結びつく文化的営み」として再解釈した
+- C4 (Anxiety Externalization): 妖怪を「人間の不安や恐怖の具現化」（名づけの実践）として再解釈した
+- C5 (Ephemeral Reflection): 感熱紙の儚さや物質性に言及し、記憶や伝承の性質と結びつけている
 
 各回答を上記の軸で分類し、RQ「本展示は妖怪の認識をキャラクター消費から文化的営みへと移行させたか？」に対する結論をサマリーしてください。
     ''')

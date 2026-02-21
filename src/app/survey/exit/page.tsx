@@ -11,7 +11,19 @@ const THEME_OPTIONS = [
     { value: 'C', label: '地域の語りや場所と結びつく“妖怪文化”を扱う展示' },
     { value: 'D', label: 'デジタル技術を使った観光・地域PR' },
     { value: 'E', label: '人間の不安や恐怖を可視化する展示' },
-    { value: 'F', label: 'よくわからない' }
+    { value: 'F', label: '記憶や伝承の"消えゆく"性質を体感する展示' },
+    { value: 'G', label: 'よくわからない' }
+];
+
+// Post yokai perception: disguised mirror of pre-survey Q7
+// Wording and option order deliberately differ from pre-survey to avoid priming
+const POST_YOKAI_PERCEPTION_OPTIONS = [
+    { value: 'spiritual', label: '神仏や自然の中にある、目に見えない力' },
+    { value: 'psychology', label: '人間が名前のつかない不安を形にしたもの' },
+    { value: 'scary', label: 'なんとなく怖い、不気味なもの' },
+    { value: 'culture', label: '地域や時代に根ざした文化的な営み' },
+    { value: 'character', label: 'アニメやゲームでおなじみのキャラクター' },
+    { value: 'none', label: '特に印象は変わらない' },
 ];
 
 const SYSTEM_OPTIONS = [
@@ -34,6 +46,7 @@ function ExitSurveyForm() {
     const [impression, setImpression] = useState("");
     const [selections, setSelections] = useState<string[]>([]);
     const [actionLog, setActionLog] = useState<number | null>(null);
+    const [postYokaiPerception, setPostYokaiPerception] = useState("");
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState("");
@@ -126,7 +139,8 @@ function ExitSurveyForm() {
                     post_impression: impression.trim(),
                     post_selections: selections,
                     post_action: actionLog,
-                    post_systems: systems
+                    post_systems: systems,
+                    post_yokai_perception: postYokaiPerception || null
                 })
                 .eq('id', id);
 
@@ -165,8 +179,8 @@ function ExitSurveyForm() {
             setShowIdlePrompt(true);
             resetTimerRef.current = setTimeout(() => {
                 router.push('/generator');
-            }, 5000);
-        }, 10000);
+            }, 10000);
+        }, 30000);
     }, [clearIdleTimers, router]);
 
     useEffect(() => {
@@ -177,11 +191,13 @@ function ExitSurveyForm() {
         startIdleTimers();
         const restart = () => startIdleTimers();
         window.addEventListener('pointerdown', restart);
+        window.addEventListener('pointermove', restart);
         window.addEventListener('keydown', restart);
         return () => {
             clearTimeout(t1); clearTimeout(t2); clearTimeout(t3);
             clearIdleTimers();
             window.removeEventListener('pointerdown', restart);
+            window.removeEventListener('pointermove', restart);
             window.removeEventListener('keydown', restart);
         };
     }, [isComplete, startIdleTimers, clearIdleTimers]);
@@ -393,6 +409,27 @@ function ExitSurveyForm() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', opacity: 0.6 }}>
                         <span>思わない</span>
                         <span>強く思う</span>
+                    </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                    <label className="body-text">
+                        6. この体験を通じて、「妖怪」に対するあなたの印象に最も近いものはどれですか？
+                    </label>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        {POST_YOKAI_PERCEPTION_OPTIONS.map(opt => (
+                            <label key={opt.value} style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', cursor: 'pointer' }}>
+                                <input
+                                    type="radio"
+                                    name="post_yokai_perception"
+                                    value={opt.value}
+                                    checked={postYokaiPerception === opt.value}
+                                    onChange={() => setPostYokaiPerception(opt.value)}
+                                    style={{ width: '1.2rem', height: '1.2rem', accentColor: 'var(--accent)' }}
+                                />
+                                <span className="body-text" style={{ fontSize: '0.9rem' }}>{opt.label}</span>
+                            </label>
+                        ))}
                     </div>
                 </div>
 

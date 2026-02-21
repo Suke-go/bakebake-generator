@@ -113,7 +113,7 @@ function buildConceptCacheKey(
     const sortedAnswerKeys = Object.keys(answers).sort();
     const normalizedAnswers = sortedAnswerKeys.map((key) => `${key}:${answers[key] ?? ''}`).join(SEARCH_CACHE_KEY_SEPARATOR);
     const folkloreSignature = folklore
-        .slice(0, 5)
+        .slice(0, 3)
         .map((item) => item.id)
         .join(SEARCH_CACHE_KEY_SEPARATOR);
     return `${handle.id}|${normalizedAnswers}|${folkloreSignature}`;

@@ -74,6 +74,19 @@ export default function LandingPage() {
                     </div>
                 </section>
 
+                {/* Reference */}
+                <section style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <h2 style={{ fontSize: '1.3rem', fontWeight: 'normal', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>
+                        参考情報
+                    </h2>
+                    <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.2rem', borderRadius: '8px', fontSize: '0.9rem', lineHeight: 1.6, opacity: 0.85 }}>
+                        <p style={{ marginBottom: '0.8rem' }}>主な参照: 国際日本文化研究センター（日文研）「怪異・妖怪伝承データベース」系譜を参照。</p>
+                        <p style={{ marginBottom: '0.8rem' }}>実データ基盤は data/raw-folklore.json を使い、data/folklore-embeddings.json（ローカル優先）で検索。</p>
+                        <p style={{ marginBottom: '0.8rem' }}>補助データとして CyberAgentAILab/YokaiEval（Wikipedia由来）を併用。</p>
+                        <p>AI構成: 検索・類似度計算は Google Gemini（gemini-embedding-001）、生成は Gemini（gemini-2.5-flash、gemini-2.5-flash-image / gemini-3-pro-image-preview）。必要時に OpenAI（GPT-4o-mini / DALL-E 3）へフォールバック。</p>
+                    </div>
+                </section>
+
                 {/* CTA: 参加登録 */}
                 <section style={{
                     display: 'flex',

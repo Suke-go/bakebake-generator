@@ -1,5 +1,13 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
+/**
+ * Supabase クライアント（ブラウザ + サーバー共用）
+ *
+ * NEXT_PUBLIC_SUPABASE_ANON_KEY は設計上の公開キーであり、セキュリティは
+ * Supabase ダッシュボードの Row Level Security (RLS) ポリシーに依存します。
+ * surveys テーブルには INSERT / UPDATE（自行のみ）の RLS が設定されていることを
+ * 展示前に必ず確認してください。
+ */
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 

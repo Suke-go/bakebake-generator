@@ -147,12 +147,16 @@ export function buildConceptPrompt(
 
 /**
  * 画像生成プロンプトの構築
+ *
+ * ユーザーの体験回答（answers）から雰囲気・環境・トーンを抽出し、
+ * 画像の世界観に反映する。
  */
 export function buildImagePrompt(
     concept: ConceptInfo,
     stylePrompt: string,
     visualInput?: string,
-    negativeHints?: string
+    negativeHints?: string,
+    answers?: UserAnswers
 ): string {
     const parts = [
         stylePrompt,
@@ -161,14 +165,39 @@ export function buildImagePrompt(
         `Description: ${concept.description}`,
     ];
 
+    // ユーザーの体験を画像の世界観に反映
+    if (answers) {
+        const sceneParts: string[] = [];
+        if (answers.where?.trim()) {
+            sceneParts.push(`Setting/environment: ${answers.where}`);
+        }
+        if (answers.when?.trim()) {
+            sceneParts.push(`Time of encounter: ${answers.when}`);
+        }
+        if (answers.perception?.trim()) {
+            sceneParts.push(`The encounter felt like: ${answers.perception}`);
+        }
+        if (answers.impression?.trim()) {
+            sceneParts.push(`Emotional atmosphere: ${answers.impression}`);
+        }
+        if (answers.nature?.trim()) {
+            sceneParts.push(`Nature of the presence: ${answers.nature}`);
+        }
+        if (sceneParts.length > 0) {
+            parts.push('');
+            parts.push('Scene context from the witness encounter:');
+            parts.push(sceneParts.join('. ') + '.');
+        }
+    }
+
     if (visualInput) {
         parts.push(`User's vision: ${visualInput}`);
     }
 
     parts.push('');
     parts.push('The yokai should be the central focus of the image.');
-    parts.push('Capture a sense of mystery, the supernatural, and the uncanny.');
-    parts.push('The atmosphere should feel like encountering something from another world.');
+    parts.push('Fuse the traditional art style\'s qualities (brushwork, materials, composition) with the specific atmosphere of the encounter described above.');
+    parts.push('The scene should feel rooted in Japanese folklore tradition while being shaped by the witness\'s unique experience.');
 
     if (negativeHints) {
         parts.push('');
@@ -183,7 +212,10 @@ export function buildImagePrompt(
  *
  * 怪異・妖怪伝承データベース（国際日本文化研究センター）の
  * 記録形式（番号・呼称・出典・話者・地域・要約）を参照し、
- * 実在の類似伝承のエッセンスを織り込んだ説話を生成する。
+ * 体験者の報告を主軸にした説話を生成する。
+ *
+ * 構造: 体験者の報告 → 怪異情報 → 既存伝承（参考のみ） → 出力ルール
+ * LLMが先行コンテキストに引きずられるため、体験を先頭に置く。
  */
 export function buildNarrativePrompt(
     concept: ConceptInfo,
@@ -197,31 +229,50 @@ export function buildNarrativePrompt(
         })
         .join('\n');
 
+    // 体験者の報告を自然文として構成（フィールド列挙ではなく物語的に）
+    const experienceParts: string[] = [];
+    if (answers.when?.trim()) {
+        experienceParts.push(`${answers.when}のころ`);
+    }
+    if (answers.where?.trim()) {
+        experienceParts.push(`${answers.where}にて`);
+    }
+    if (answers.perception?.trim()) {
+        experienceParts.push(answers.perception);
+    }
+    if (answers.impression?.trim()) {
+        experienceParts.push(`その体験は${answers.impression}`);
+    }
+    if (answers.nature?.trim()) {
+        experienceParts.push(`それは${answers.nature}`);
+    }
+    const experienceText = experienceParts.length > 0
+        ? experienceParts.join('。') + '。'
+        : '（体験の詳細なし）';
+
     return [
         'あなたは民俗学の調査員です。',
-        '以下の「類似する既存の伝承（実在）」と「体験者の報告」を元に、',
+        '以下の「体験者の報告」を主軸にしつつ、類似する既存伝承の語り口や風土感を活かして、',
         '怪異・妖怪伝承データベース（国際日本文化研究センター）の',
-        '要約形式（約100字の伝聞調記録）を模して、新しい伝承を1件作成してください。',
+        '要約形式（約100字の伝聞調記録）を模した新しい伝承を1件作成してください。',
         '',
-        '## 類似する既存の伝承（実在）',
-        folkloreRef || '（該当なし）',
+        '## 体験者の報告（★中核：この体験の固有要素を必ず反映すること）',
+        experienceText,
         '',
         '## 新たに観測された怪異',
         `呼称: ${concept.name}（${concept.reading}）`,
         `説明: ${concept.description}`,
         '',
-        '## 体験者の報告',
-        answers.perception ? `- 知覚: ${answers.perception}` : '',
-        answers.where ? `- 場所: ${answers.where}` : '',
-        answers.when ? `- 時: ${answers.when}` : '',
-        answers.impression ? `- 印象: ${answers.impression}` : '',
-        answers.nature ? `- 性質: ${answers.nature}` : '',
-        '',
+        ...(folkloreRef ? [
+            '## 類似する既存伝承（実在）',
+            folkloreRef,
+            '',
+        ] : []),
         '## 出力ルール',
         '- 「〜という。」「〜と伝えられている。」のような伝聞調で書くこと',
-        '- 上記の既存伝承のディテール（語り口、地域の雰囲気、行動描写）を自然に織り込むこと',
+        '- 体験者の場所・知覚・印象を物語の骨格にすること（ここが他の伝承と違う独自性の源）',
+        '- 既存伝承の語り口・雰囲気・モチーフは積極的に取り入れてよいが、筋書きをそのまま借用しないこと',
         '- 2-3文、50-100文字程度の簡潔な伝承記録として出力すること',
-        '- 地域名や場所の描写を含めること',
         '- 日本語で出力すること',
         '- 伝承テキストのみを出力すること（前置きや説明は不要）',
     ].filter(Boolean).join('\n');

@@ -61,7 +61,7 @@ function cosineSimilarityWithNorms(a: number[], b: number[], normA: number, norm
 class MinHeap<T> {
     private heap: { score: number; value: T }[] = [];
 
-    constructor(private capacity: number) {}
+    constructor(private capacity: number) { }
 
     get size() { return this.heap.length; }
     get minScore() { return this.heap.length > 0 ? this.heap[0].score : -Infinity; }
@@ -180,7 +180,7 @@ function precomputeNorms(entries: FolkloreEntry[]) {
 export function searchByEmbedding(
     queryEmbedding: number[],
     entries: FolkloreEntry[],
-    topK: number = 5
+    topK: number = 3
 ): SearchResult[] {
     if (entries.length === 0) return [];
 

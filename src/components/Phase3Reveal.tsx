@@ -51,7 +51,30 @@ function buildImageRequestKey(
     return `${concept.name}|${concept.reading}|${concept.description}|${artStyle || ''}|${answerSig}|${visualInput}`;
 }
 
-function FogGenerationCanvas({ onComplete }: { onComplete: () => void }) {
+const MOTE_POOL_SIZE = 200;
+
+type Mote = {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    size: number;
+    alpha: number;
+    life: number;
+    active: boolean;
+};
+
+function createMotePool(): Mote[] {
+    return Array.from({ length: MOTE_POOL_SIZE }, () => ({
+        x: 0, y: 0, vx: 0, vy: 0, size: 0, alpha: 0, life: 0, active: false,
+    }));
+}
+
+/**
+ * Fog animation that loops with breathing intensity until apiDone becomes true.
+ * Uses a fixed-size particle pool (swap-remove) to avoid O(n) array splicing.
+ */
+function FogGenerationCanvas({ apiDoneRef }: { apiDoneRef: React.RefObject<boolean> }) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
@@ -86,57 +109,46 @@ function FogGenerationCanvas({ onComplete }: { onComplete: () => void }) {
 
         const startTime = performance.now();
         let active = true;
+        let fadeOutStart = 0;
 
-        type Mote = {
-            x: number;
-            y: number;
-            vx: number;
-            vy: number;
-            size: number;
-            alpha: number;
-            life: number;
-        };
-
-        const motes: Mote[] = [];
+        const pool = createMotePool();
+        let activeCount = 0;
 
         const spawnMote = () => {
+            if (activeCount >= MOTE_POOL_SIZE) return;
+            // Find first inactive slot
+            let slot: Mote | null = null;
+            for (let i = activeCount; i < MOTE_POOL_SIZE; i++) {
+                if (!pool[i].active) { slot = pool[i]; break; }
+            }
+            if (!slot) return;
+
             const w = window.innerWidth;
             const h = window.innerHeight;
             const cx = w / 2;
             const cy = h / 2;
             const edge = Math.floor(Math.random() * 4);
-            let x: number;
-            let y: number;
             switch (edge) {
-                case 0:
-                    x = Math.random() * w;
-                    y = -20;
-                    break;
-                case 1:
-                    x = w + 20;
-                    y = Math.random() * h;
-                    break;
-                case 2:
-                    x = Math.random() * w;
-                    y = h + 20;
-                    break;
-                default:
-                    x = -20;
-                    y = Math.random() * h;
-                    break;
+                case 0: slot.x = Math.random() * w; slot.y = -20; break;
+                case 1: slot.x = w + 20; slot.y = Math.random() * h; break;
+                case 2: slot.x = Math.random() * w; slot.y = h + 20; break;
+                default: slot.x = -20; slot.y = Math.random() * h; break;
             }
 
-            const angle = Math.atan2(cy - y, cx - x) + (Math.random() - 0.5) * 1.2;
+            const angle = Math.atan2(cy - slot.y, cx - slot.x) + (Math.random() - 0.5) * 1.2;
             const speed = 0.4 + Math.random() * 0.8;
-            motes.push({
-                x,
-                y,
-                vx: Math.cos(angle) * speed,
-                vy: Math.sin(angle) * speed,
-                size: 40 + Math.random() * 120,
-                alpha: 0.02 + Math.random() * 0.04,
-                life: 0,
-            });
+            slot.vx = Math.cos(angle) * speed;
+            slot.vy = Math.sin(angle) * speed;
+            slot.size = 40 + Math.random() * 120;
+            slot.alpha = 0.02 + Math.random() * 0.04;
+            slot.life = 0;
+            slot.active = true;
+            // Swap to active region
+            const idx = pool.indexOf(slot);
+            if (idx > activeCount) {
+                [pool[activeCount], pool[idx]] = [pool[idx], pool[activeCount]];
+            }
+            activeCount++;
         };
 
         const render = () => {
@@ -147,29 +159,42 @@ function FogGenerationCanvas({ onComplete }: { onComplete: () => void }) {
             const cx = w / 2;
             const cy = h / 2;
             const elapsed = (performance.now() - startTime) / 1000;
-            const duration = 6.0;
-            const progress = Math.min(elapsed / duration, 1);
+
+            // Breathing sine-based intensity that loops continuously
+            const breathCycle = 8.0; // seconds per breath cycle
+            const rampUp = Math.min(elapsed / 3.0, 1.0); // fade in over 3s
+            const breathe = 0.5 + 0.5 * Math.sin((elapsed / breathCycle) * Math.PI * 2 - Math.PI / 2);
+
+            // Check if API is done → start fade-out
+            const isDone = apiDoneRef.current;
+            if (isDone && fadeOutStart === 0) {
+                fadeOutStart = performance.now();
+            }
+
+            let fadeOut = 1.0;
+            if (fadeOutStart > 0) {
+                fadeOut = 1.0 - Math.min((performance.now() - fadeOutStart) / 1200, 1.0);
+                if (fadeOut <= 0) {
+                    active = false;
+                    return;
+                }
+            }
+
+            const intensity = rampUp * breathe * fadeOut;
 
             ctx.clearRect(0, 0, w, h);
 
-            let intensity: number;
-            if (progress < 0.5) {
-                intensity = progress * 2;
-            } else if (progress < 0.75) {
-                intensity = 1.0;
-            } else {
-                intensity = 1.0 - (progress - 0.75) * 2.5;
-            }
-
-            const spawnRate = progress < 0.6 ? 4 : 1;
+            // Spawn
+            const spawnRate = fadeOutStart === 0 ? 3 : 0;
             for (let i = 0; i < spawnRate; i++) {
-                if (Math.random() < 0.5 + intensity * 0.5) {
+                if (Math.random() < 0.4 + intensity * 0.4) {
                     spawnMote();
                 }
             }
 
-            for (let i = motes.length - 1; i >= 0; i--) {
-                const m = motes[i];
+            // Update & render particles (iterate active region)
+            for (let i = activeCount - 1; i >= 0; i--) {
+                const m = pool[i];
                 m.x += m.vx;
                 m.y += m.vy;
                 m.life += 0.01;
@@ -186,18 +211,22 @@ function FogGenerationCanvas({ onComplete }: { onComplete: () => void }) {
 
                 if (
                     m.life > 3 ||
-                    m.x < -200 ||
-                    m.x > w + 200 ||
-                    m.y < -200 ||
-                    m.y > h + 200
+                    m.x < -200 || m.x > w + 200 ||
+                    m.y < -200 || m.y > h + 200
                 ) {
-                    motes.splice(i, 1);
+                    // Swap-remove: swap with last active, shrink active region
+                    m.active = false;
+                    activeCount--;
+                    if (i < activeCount) {
+                        [pool[i], pool[activeCount]] = [pool[activeCount], pool[i]];
+                    }
                 }
             }
             ctx.globalAlpha = 1.0;
 
-            if (progress > 0.3) {
-                const presenceAlpha = Math.min((progress - 0.3) * 2, 1) * intensity * 0.15;
+            // Center presence glow
+            if (rampUp > 0.5) {
+                const presenceAlpha = Math.min((rampUp - 0.5) * 2, 1) * intensity * 0.15;
                 ctx.globalAlpha = presenceAlpha;
                 ctx.drawImage(offscreen, cx - 200, cy - 200, 400, 400);
                 ctx.globalAlpha = 1.0;
@@ -207,11 +236,6 @@ function FogGenerationCanvas({ onComplete }: { onComplete: () => void }) {
             ctx.fillStyle = `rgba(100, 95, 85, ${washAlpha})`;
             ctx.fillRect(0, 0, w, h);
 
-            if (progress >= 1) {
-                active = false;
-                setTimeout(onComplete, 600);
-                return;
-            }
             requestAnimationFrame(render);
         };
 
@@ -220,7 +244,7 @@ function FogGenerationCanvas({ onComplete }: { onComplete: () => void }) {
             active = false;
             window.removeEventListener('resize', resize);
         };
-    }, [onComplete]);
+    }, [apiDoneRef]);
 
     return (
         <canvas
@@ -237,13 +261,15 @@ function FogGenerationCanvas({ onComplete }: { onComplete: () => void }) {
 
 export default function Phase3Reveal() {
     const { state, goToPhase, setNarrative, setGeneratedImage, resetState } = useApp();
-    const [fogDone, setFogDone] = useState(false);
     const [showImage, setShowImage] = useState(false);
     const [showName, setShowName] = useState(false);
     const [showNarrative, setShowNarrative] = useState(false);
     const [showActions, setShowActions] = useState(false);
     const [imageDataUrl, setImageDataUrl] = useState('');
     const [apiDone, setApiDone] = useState(false);
+    const apiDoneRef = useRef(false);
+    // Track blob URLs for cleanup to prevent memory leaks
+    const blobUrlRef = useRef<string | null>(null);
     const [error, setError] = useState('');
     const [warning, setWarning] = useState('');
     const abortRef = useRef<AbortController | null>(null);
@@ -277,13 +303,18 @@ export default function Phase3Reveal() {
     }, []);
 
     const resetRevealState = useCallback(() => {
-        setFogDone(false);
         setShowImage(false);
         setShowName(false);
         setShowNarrative(false);
         setShowActions(false);
+        // Revoke old blob URL to free memory
+        if (blobUrlRef.current) {
+            URL.revokeObjectURL(blobUrlRef.current);
+            blobUrlRef.current = null;
+        }
         setImageDataUrl('');
         setApiDone(false);
+        apiDoneRef.current = false;
         setError('');
         setWarning('');
         setGeneratedImage('');
@@ -297,7 +328,7 @@ export default function Phase3Reveal() {
     const callApi = useCallback(async () => {
         if (!state.selectedConcept) {
             setError('概念が選択されていません。');
-            setFogDone(true);
+            apiDoneRef.current = true;
             setApiDone(true);
             return;
         }
@@ -317,7 +348,7 @@ export default function Phase3Reveal() {
         if (lastRequestKeyRef.current === requestKey && cachedImageUrl) {
             setImageDataUrl(cachedImageUrl);
             setApiDone(true);
-            setFogDone(true);
+            apiDoneRef.current = true;
             setError('');
             setWarning('');
             return;
@@ -366,9 +397,21 @@ export default function Phase3Reveal() {
 
             setWarning(data.warnings?.length ? data.warnings.join(' / ') : '');
             if (data.imageBase64) {
-                const dataUrl = `data:${data.imageMimeType};base64,${data.imageBase64}`;
-                setImageDataUrl(dataUrl);
-                setGeneratedImage(dataUrl);
+                // Convert Base64 → Blob URL to avoid holding multi-MB strings in state
+                const byteChars = atob(data.imageBase64);
+                const byteArr = new Uint8Array(byteChars.length);
+                for (let i = 0; i < byteChars.length; i++) {
+                    byteArr[i] = byteChars.charCodeAt(i);
+                }
+                const blob = new Blob([byteArr], { type: data.imageMimeType });
+                // Revoke previous blob URL
+                if (blobUrlRef.current) {
+                    URL.revokeObjectURL(blobUrlRef.current);
+                }
+                const blobUrl = URL.createObjectURL(blob);
+                blobUrlRef.current = blobUrl;
+                setImageDataUrl(blobUrl);
+                setGeneratedImage(blobUrl);
             } else {
                 setImageDataUrl('');
                 setGeneratedImage('');
@@ -376,6 +419,7 @@ export default function Phase3Reveal() {
 
             setNarrative(data.narrative);
             setApiDone(true);
+            apiDoneRef.current = true;
 
             // 生成完了時に自動保存
             if (state.ticketId && data.imageBase64) {
@@ -402,14 +446,14 @@ export default function Phase3Reveal() {
                 return;
             }
             if (controller.signal.aborted) {
-                setFogDone(true);
+                apiDoneRef.current = true;
                 setApiDone(true);
                 return;
             }
 
             console.error('Generate image error:', err);
             setError(err instanceof Error ? err.message : '画像生成に失敗しました。');
-            setFogDone(true);
+            apiDoneRef.current = true;
             setApiDone(true);
         } finally {
             if (activeRequestKeyRef.current === requestKey) {
@@ -443,11 +487,8 @@ export default function Phase3Reveal() {
         };
     }, [callApi, abortCurrentRequest]);
 
-    const handleFogComplete = useCallback(() => {
-        setFogDone(true);
-    }, []);
 
-    // Auto-reset: 10s idle → prompt, 5s more → reset
+    // Auto-reset: 30s idle → prompt, 10s more → reset
     const clearIdleTimers = useCallback(() => {
         if (idleTimerRef.current) { clearTimeout(idleTimerRef.current); idleTimerRef.current = null; }
         if (resetTimerRef.current) { clearTimeout(resetTimerRef.current); resetTimerRef.current = null; }
@@ -460,8 +501,8 @@ export default function Phase3Reveal() {
             setShowIdlePrompt(true);
             resetTimerRef.current = setTimeout(() => {
                 resetState();
-            }, 5000);
-        }, 10000);
+            }, 10000);
+        }, 30000);
     }, [clearIdleTimers, resetState]);
 
     useEffect(() => {
@@ -469,17 +510,19 @@ export default function Phase3Reveal() {
         startIdleTimers();
         const restart = () => startIdleTimers();
         window.addEventListener('pointerdown', restart);
+        window.addEventListener('pointermove', restart);
         window.addEventListener('keydown', restart);
         return () => {
             clearIdleTimers();
             window.removeEventListener('pointerdown', restart);
+            window.removeEventListener('pointermove', restart);
             window.removeEventListener('keydown', restart);
         };
     }, [showActions, startIdleTimers, clearIdleTimers]);
 
 
 
-    const isGenerating = !fogDone || !apiDone;
+    const isGenerating = !apiDone;
 
     useEffect(() => {
         if (!isGenerating) {
@@ -500,7 +543,7 @@ export default function Phase3Reveal() {
     if (isGenerating) {
         return (
             <>
-                <FogGenerationCanvas onComplete={handleFogComplete} />
+                <FogGenerationCanvas apiDoneRef={apiDoneRef} />
                 <div className="phase" style={{
                     justifyContent: 'center',
                     alignItems: 'center',
