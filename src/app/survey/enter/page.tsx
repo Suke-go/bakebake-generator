@@ -92,111 +92,123 @@ export default function SurveyEnterPage() {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center',
-            gap: '2rem'
+            justifyContent: 'flex-start', // Changed from center to allow scrolling top
+            gap: '2rem',
+            overflowY: 'auto', // Explicitly allow scrolling
+            width: '100%'
         }}>
-            <h1 className="title-text" style={{ fontSize: '2rem' }}>
-                参加者アンケート
-            </h1>
-
-            <p className="body-text" style={{ textAlign: 'center', opacity: 0.8, maxWidth: '600px' }}>
-                妖怪生成体験の前に、ご自身の属性について教えてください。入力内容は研究目的でのみ利用されます。
-            </p>
-
-            <form onSubmit={handleSubmit} style={{
+            <div style={{
                 display: 'flex',
                 flexDirection: 'column',
+                alignItems: 'center',
                 gap: '2rem',
                 width: '100%',
                 maxWidth: '600px',
-                background: 'rgba(255, 255, 255, 0.03)',
-                padding: '2rem',
-                borderRadius: '8px',
-                border: '1px solid rgba(255, 255, 255, 0.1)'
+                marginTop: 'auto', // Push to center if screen is taller
+                marginBottom: 'auto'
             }}>
+                <h1 className="title-text" style={{ fontSize: '2rem', textAlign: 'center' }}>
+                    参加者アンケート
+                </h1>
 
-                {error && <div style={{ color: '#ff6b6b', textAlign: 'center' }}>{error}</div>}
+                <p className="body-text" style={{ textAlign: 'center', opacity: 0.8, maxWidth: '100%' }}>
+                    妖怪生成体験の前に、ご自身の属性について教えてください。入力内容は研究目的でのみ利用されます。
+                </p>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                    <label className="body-text">1. あなたについて</label>
-                    <select
-                        className="glass-input"
-                        value={visitorType}
-                        onChange={e => setVisitorType(e.target.value)}
-                        style={{ padding: '1rem', width: '100%' }}
-                    >
-                        <option value="" disabled>選択してください</option>
-                        <option value="一般来場者">一般来場者</option>
-                        <option value="妖怪・怪談の愛好家">妖怪・怪談の愛好家</option>
-                        <option value="研究者・教育・文化関係者">研究者・教育・文化関係者</option>
-                        <option value="展示・クリエイティブ関係者">展示・クリエイティブ関係者</option>
-                        <option value="その他">その他</option>
-                    </select>
-                </div>
+                <form onSubmit={handleSubmit} style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '2rem',
+                    width: '100%',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    padding: '2rem',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                }}>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                    <label className="body-text">2. どちらからお越しですか？</label>
-                    <select
-                        className="glass-input"
-                        value={origin}
-                        onChange={e => setOrigin(e.target.value)}
-                        style={{ padding: '1rem', width: '100%' }}
-                    >
-                        <option value="" disabled>選択してください</option>
-                        {PREFECTURES.map(pref => (
-                            <option key={pref} value={pref}>{pref}</option>
-                        ))}
-                    </select>
-                </div>
+                    {error && <div style={{ color: '#ff6b6b', textAlign: 'center' }}>{error}</div>}
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                    <label className="body-text">3. 「妖怪」や「伝承」にどれくらい馴染みがありますか？</label>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem' }}>
-                        {[1, 2, 3, 4, 5].map(num => (
-                            <button
-                                key={num}
-                                type="button"
-                                className={`interactive-button ${familiarity === num ? 'active' : ''}`}
-                                onClick={() => setFamiliarity(num)}
-                                style={{
-                                    flex: 1,
-                                    padding: '0.8rem',
-                                    background: familiarity === num ? 'rgba(255,255,255,0.2)' : 'transparent'
-                                }}
-                            >
-                                {num}
-                            </button>
-                        ))}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                        <label className="body-text">1. あなたについて</label>
+                        <select
+                            className="glass-input"
+                            value={visitorType}
+                            onChange={e => setVisitorType(e.target.value)}
+                            style={{ padding: '1rem', width: '100%' }}
+                        >
+                            <option value="" disabled>選択してください</option>
+                            <option value="一般来場者">一般来場者</option>
+                            <option value="妖怪・怪談の愛好家">妖怪・怪談の愛好家</option>
+                            <option value="研究者・教育・文化関係者">研究者・教育・文化関係者</option>
+                            <option value="展示・クリエイティブ関係者">展示・クリエイティブ関係者</option>
+                            <option value="その他">その他</option>
+                        </select>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', opacity: 0.6 }}>
-                        <span>全くない</span>
-                        <span>非常にある</span>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                        <label className="body-text">2. どちらからお越しですか？</label>
+                        <select
+                            className="glass-input"
+                            value={origin}
+                            onChange={e => setOrigin(e.target.value)}
+                            style={{ padding: '1rem', width: '100%' }}
+                        >
+                            <option value="" disabled>選択してください</option>
+                            {PREFECTURES.map(pref => (
+                                <option key={pref} value={pref}>{pref}</option>
+                            ))}
+                        </select>
                     </div>
-                </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                    <label className="body-text">
-                        4. 「妖怪」と聞いて、最初に思い浮かぶイメージや言葉を1つだけ教えてください。
-                    </label>
-                    <input
-                        type="text"
-                        className="glass-input"
-                        placeholder="例：ゲゲゲの鬼太郎、怖い、河童..."
-                        value={preImage}
-                        onChange={e => setPreImage(e.target.value)}
-                        style={{ padding: '1rem', width: '100%' }}
-                    />
-                </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                        <label className="body-text">3. 「妖怪」や「伝承」にどれくらい馴染みがありますか？</label>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem' }}>
+                            {[1, 2, 3, 4, 5].map(num => (
+                                <button
+                                    key={num}
+                                    type="button"
+                                    className={`interactive-button ${familiarity === num ? 'active' : ''}`}
+                                    onClick={() => setFamiliarity(num)}
+                                    style={{
+                                        flex: 1,
+                                        padding: '0.8rem',
+                                        background: familiarity === num ? 'rgba(255,255,255,0.2)' : 'transparent'
+                                    }}
+                                >
+                                    {num}
+                                </button>
+                            ))}
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', opacity: 0.6 }}>
+                            <span>全くない</span>
+                            <span>非常にある</span>
+                        </div>
+                    </div>
 
-                <button
-                    type="submit"
-                    className="interactive-button"
-                    disabled={isSubmitting}
-                    style={{ marginTop: '1rem', padding: '1.2rem', fontSize: '1.1rem' }}
-                >
-                    {isSubmitting ? '処理中...' : 'アンケートを完了する'}
-                </button>
-            </form>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                        <label className="body-text">
+                            4. 「妖怪」と聞いて、最初に思い浮かぶイメージや言葉を1つだけ教えてください。
+                        </label>
+                        <input
+                            type="text"
+                            className="glass-input"
+                            placeholder="例：ゲゲゲの鬼太郎、怖い、河童..."
+                            value={preImage}
+                            onChange={e => setPreImage(e.target.value)}
+                            style={{ padding: '1rem', width: '100%' }}
+                        />
+                    </div>
+
+                    <button
+                        type="submit"
+                        className="interactive-button"
+                        disabled={isSubmitting}
+                        style={{ marginTop: '1rem', padding: '1.2rem', fontSize: '1.1rem' }}
+                    >
+                        {isSubmitting ? '処理中...' : 'アンケートを完了する'}
+                    </button>
+                </form>
+            </div>
         </div>
     );
 }
