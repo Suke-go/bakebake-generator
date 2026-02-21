@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, use } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { supabase } from '@/lib/supabase';
 import '@/app/globals.css';
 
-export default function SurveyTicketPage({ params }: { params: { id: string } }) {
-    const { id } = params;
+export default function SurveyTicketPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = use(params);
 
     const [scannedYokai, setScannedYokai] = useState<{ name: string; b64: string } | null>(null);
 
@@ -169,8 +169,7 @@ export default function SurveyTicketPage({ params }: { params: { id: string } })
                             padding: '1rem',
                             background: '#fff',
                             borderRadius: '8px',
-                            boxShadow: '0 0 30px rgba(255, 255, 255, 0.3)',
-                            mixBlendMode: 'screen'
+                            boxShadow: '0 0 30px rgba(255, 255, 255, 0.3)'
                         }}>
                             <QRCodeSVG
                                 value={id}
@@ -189,11 +188,11 @@ export default function SurveyTicketPage({ params }: { params: { id: string } })
                 )}
             </div>
 
-            {/* Bottom identifier text (optional) */}
+            {/* Bottom identifier text */}
             <div style={{
                 position: 'absolute',
                 bottom: '2rem',
-                opacity: 0.3,
+                opacity: 0.6,
                 fontFamily: 'monospace',
                 fontSize: '0.8rem',
                 zIndex: 10
