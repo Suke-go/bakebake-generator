@@ -3,6 +3,7 @@
 import React, { useEffect, useState, use } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { supabase } from '@/lib/supabase';
+import QRFlameAura from '@/components/QRFlameAura';
 import '@/app/globals.css';
 
 export default function SurveyTicketPage({ params }: { params: Promise<{ id: string }> }) {
@@ -159,26 +160,41 @@ export default function SurveyTicketPage({ params }: { params: Promise<{ id: str
                         </a>
                     </div>
                 ) : (
-                    // 未記録の表示（QRコード）
+                    // 未記録の表示（QRコード + 鬼火オーラ）
                     <>
                         <h2 className="title-text" style={{ fontSize: '1.5rem', textAlign: 'center', letterSpacing: '0.1em' }}>
                             あなたの観測ID
                         </h2>
 
                         <div style={{
-                            padding: '1rem',
-                            background: '#fff',
-                            borderRadius: '8px',
-                            boxShadow: '0 0 30px rgba(255, 255, 255, 0.3)'
+                            position: 'relative',
+                            width: 320,
+                            height: 320,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
                         }}>
-                            <QRCodeSVG
-                                value={id}
-                                size={200}
-                                bgColor="#ffffff"
-                                fgColor="#000000"
-                                level="H"
-                                includeMargin={false}
-                            />
+                            {/* Flame shader background */}
+                            <QRFlameAura size={320} />
+
+                            {/* QR code (on top, fully opaque white bg for scanning) */}
+                            <div style={{
+                                position: 'relative',
+                                zIndex: 1,
+                                padding: '1rem',
+                                background: '#fff',
+                                borderRadius: '8px',
+                                boxShadow: '0 0 30px rgba(100, 50, 200, 0.4)',
+                            }}>
+                                <QRCodeSVG
+                                    value={id}
+                                    size={200}
+                                    bgColor="#ffffff"
+                                    fgColor="#000000"
+                                    level="H"
+                                    includeMargin={false}
+                                />
+                            </div>
                         </div>
 
                         <p className="body-text" style={{ textAlign: 'center', opacity: 0.8, maxWidth: '250px' }}>
