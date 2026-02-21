@@ -22,8 +22,144 @@ const YOKAI_PERCEPTION_OPTIONS = [
     { value: 'none', label: 'あまり考えたことがない' }
 ];
 
+function ConsentScreen({ onAccept }: { onAccept: () => void }) {
+    const router = useRouter();
+
+    const infoItems = [
+        {
+            title: '研究の目的',
+            body: '本アンケートは、インタラクティブ・アート作品「BAKEBAKE XR」の体験評価を目的とした学術研究の一環として実施されます。'
+        },
+        {
+            title: '回答の取扱い',
+            body: '回答は匿名で収集され、個人を特定する情報は取得しません。収集したデータは統計的に処理し、研究目的以外には使用しません。'
+        },
+        {
+            title: '所要時間',
+            body: 'アンケートは体験前・体験後の2回に分かれており、それぞれ1〜2分程度です。'
+        },
+        {
+            title: '参加の任意性',
+            body: '参加は任意です。途中で回答をやめることもできます。回答しなくても体験には一切影響しません。'
+        },
+    ];
+
+    return (
+        <div style={{
+            minHeight: '100dvh',
+            padding: '2rem 1rem 4rem 1rem',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'flex-start',
+            gap: '2rem',
+            overflowY: 'auto',
+            width: '100%'
+        }}>
+            <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '2rem',
+                width: '100%',
+                maxWidth: '600px',
+                marginTop: 'auto',
+                marginBottom: 'auto'
+            }}>
+                <h1 className="title-text" style={{ fontSize: '1.8rem', textAlign: 'center', letterSpacing: '0.1em' }}>
+                    研究参加のご案内
+                </h1>
+
+                <p className="body-text" style={{ textAlign: 'center', opacity: 0.8, lineHeight: 1.8 }}>
+                    アンケートへのご協力をお願いするにあたり、<br />
+                    以下の内容をご確認ください。
+                </p>
+
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '1.2rem',
+                    width: '100%',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    padding: '1.5rem',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                }}>
+                    {infoItems.map((item, i) => (
+                        <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                            <span className="body-text" style={{ fontSize: '0.85rem', opacity: 0.6 }}>
+                                {item.title}
+                            </span>
+                            <p className="body-text" style={{ fontSize: '0.95rem', lineHeight: 1.7, margin: 0 }}>
+                                {item.body}
+                            </p>
+                        </div>
+                    ))}
+                </div>
+
+                {/* 研究者情報 */}
+                <div style={{
+                    width: '100%',
+                    background: 'rgba(255, 255, 255, 0.02)',
+                    padding: '1.2rem 1.5rem',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255, 255, 255, 0.06)'
+                }}>
+                    <span className="body-text" style={{ fontSize: '0.8rem', opacity: 0.5, display: 'block', marginBottom: '0.6rem' }}>
+                        研究実施者
+                    </span>
+                    <div className="body-text" style={{ fontSize: '0.85rem', lineHeight: 1.9, opacity: 0.75 }}>
+                        <p style={{ margin: '0 0 0.2rem 0' }}>一倉 弘毅（筑波大学大学院 システム情報工学研究群）</p>
+                        <p style={{ margin: '0 0 0.2rem 0' }}>干川 未来（筑波大学 システム情報工学研究群）</p>
+                        <p style={{ margin: '0 0 0.2rem 0' }}>清水 紘輔（筑波大学 情報学群 情報メディア創成学類）</p>
+                        <p style={{ margin: '0 0 0.6rem 0' }}>池辺 莉々（日本女子大学 文学部 史学科）</p>
+                        <p style={{ margin: 0, fontSize: '0.8rem' }}>
+                            担当連絡先：清水（shimizu@ai.iit.tsukuba.ac.jp）
+                        </p>
+                    </div>
+                </div>
+
+                {/* CTA */}
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '1rem',
+                    marginTop: '0.5rem',
+                    width: '100%'
+                }}>
+                    <button
+                        onClick={onAccept}
+                        className="interactive-button"
+                        style={{ padding: '1.2rem', fontSize: '1.1rem', width: '100%' }}
+                    >
+                        同意してアンケートに進む
+                    </button>
+                    <button
+                        onClick={() => router.push('/')}
+                        className="body-text"
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            color: 'inherit',
+                            cursor: 'pointer',
+                            fontSize: '0.85rem',
+                            opacity: 0.4,
+                            textDecoration: 'underline',
+                            padding: '0.5rem'
+                        }}
+                    >
+                        参加しない
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export default function SurveyEnterPage() {
     const router = useRouter();
+    const [consentAccepted, setConsentAccepted] = useState(false);
     const [visitorType, setVisitorType] = useState("");
     const [origin, setOrigin] = useState("");
     const [familiarity, setFamiliarity] = useState<number | null>(null);
@@ -99,6 +235,10 @@ export default function SurveyEnterPage() {
                 <p className="body-text" style={{ opacity: 0.5 }}>以前の記録を確認中...</p>
             </div>
         );
+    }
+
+    if (!consentAccepted) {
+        return <ConsentScreen onAccept={() => setConsentAccepted(true)} />;
     }
 
     return (

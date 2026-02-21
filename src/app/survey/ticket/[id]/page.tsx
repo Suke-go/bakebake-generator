@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, use, useRef } from 'react';
+import React, { useEffect, useState, use, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import QRGlow from '@/components/QRFlameAura';
 import '@/app/globals.css';
@@ -60,7 +60,7 @@ function StyledQR({ value, size = 200 }: { value: string; size?: number }) {
 
 export default function SurveyTicketPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
-    const [scannedYokai, setScannedYokai] = useState<{ name: string; b64: string } | null>(null);
+    const [scannedYokai, setScannedYokai] = useState<{ name: string; b64: string; desc: string } | null>(null);
 
     // Wake Lock
     useEffect(() => {
@@ -87,11 +87,11 @@ export default function SurveyTicketPage({ params }: { params: Promise<{ id: str
         const checkExisting = async () => {
             const { data } = await supabase
                 .from('surveys')
-                .select('yokai_name, yokai_image_b64')
+                .select('yokai_name, yokai_image_b64, yokai_desc')
                 .eq('id', id)
                 .single();
             if (data && data.yokai_name) {
-                setScannedYokai({ name: data.yokai_name, b64: data.yokai_image_b64 });
+                setScannedYokai({ name: data.yokai_name, b64: data.yokai_image_b64, desc: data.yokai_desc || '' });
             }
         };
         checkExisting();
@@ -108,11 +108,11 @@ export default function SurveyTicketPage({ params }: { params: Promise<{ id: str
                         // Use the event as a signal, then fetch full data via REST API.
                         const { data } = await supabase
                             .from('surveys')
-                            .select('yokai_name, yokai_image_b64')
+                            .select('yokai_name, yokai_image_b64, yokai_desc')
                             .eq('id', id)
                             .single();
                         if (data && data.yokai_name) {
-                            setScannedYokai({ name: data.yokai_name, b64: data.yokai_image_b64 });
+                            setScannedYokai({ name: data.yokai_name, b64: data.yokai_image_b64, desc: data.yokai_desc || '' });
                         }
                     }
                 }
@@ -186,41 +186,78 @@ export default function SurveyTicketPage({ params }: { params: Promise<{ id: str
                 </div>
 
                 {scannedYokai ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.2rem' }}>
+                        {/* Thank you message */}
+                        <p style={{
+                            fontFamily: '"Noto Serif JP", serif',
+                            fontSize: '0.75rem',
+                            letterSpacing: '0.15em',
+                            color: 'rgba(40, 40, 30, 0.5)',
+                            margin: 0,
+                            textAlign: 'center',
+                        }}>
+                            ご参加ありがとうございました
+                        </p>
+
+                        {/* Yokai image */}
                         {scannedYokai.b64 && (
                             <img
                                 src={scannedYokai.b64}
                                 alt={scannedYokai.name}
                                 style={{
-                                    width: '180px', height: '180px',
+                                    width: '200px', height: '200px',
                                     objectFit: 'cover', borderRadius: '2px',
-                                    border: '1px solid rgba(0,0,0,0.1)'
+                                    border: '1px solid rgba(0,0,0,0.1)',
                                 }}
                             />
                         )}
+
+                        {/* Yokai name */}
                         <p style={{
                             fontFamily: '"Noto Serif JP", serif',
-                            fontSize: '1.1rem',
+                            fontSize: '1.2rem',
                             color: '#2a2a20',
                             margin: 0,
+                            fontWeight: 600,
                         }}>
                             {scannedYokai.name}
                         </p>
-                        <a
-                            href={`/survey/exit?id=${id}`}
-                            style={{
+
+                        {/* Narrative */}
+                        {scannedYokai.desc && (
+                            <p style={{
                                 fontFamily: '"Noto Serif JP", serif',
-                                fontSize: '0.8rem',
-                                padding: '0.8rem 2rem',
-                                textDecoration: 'none',
-                                color: '#ede8d8',
-                                background: '#2a3a28',
-                                borderRadius: '2px',
-                                letterSpacing: '0.1em',
-                            }}
-                        >
-                            事後アンケートへ
-                        </a>
+                                fontSize: '0.75rem',
+                                lineHeight: 2.0,
+                                color: 'rgba(40, 40, 30, 0.7)',
+                                margin: 0,
+                                textAlign: 'left',
+                                width: '100%',
+                            }}>
+                                {scannedYokai.desc}
+                            </p>
+                        )}
+
+                        {/* Download button */}
+                        {scannedYokai.b64 && (
+                            <a
+                                href={scannedYokai.b64}
+                                download={`${scannedYokai.name || 'yokai'}.jpg`}
+                                style={{
+                                    fontFamily: '"Noto Serif JP", serif',
+                                    fontSize: '0.8rem',
+                                    padding: '0.7rem 2rem',
+                                    textDecoration: 'none',
+                                    color: '#ede8d8',
+                                    background: '#2a3a28',
+                                    borderRadius: '2px',
+                                    letterSpacing: '0.1em',
+                                    textAlign: 'center',
+                                }}
+                            >
+                                画像を保存する
+                            </a>
+                        )}
                     </div>
                 ) : (
                     <>
