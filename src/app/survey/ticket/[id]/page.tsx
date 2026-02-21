@@ -30,19 +30,19 @@ function StyledQR({ value, size = 200 }: { value: string; size?: number }) {
                 type: 'canvas',
                 data: value,
                 dotsOptions: {
-                    color: '#2a0808',       // 濃い血の色（黒に近い赤）
+                    color: '#1a0000',       // ほぼ黒の赤 — コントラスト比確保
                     type: 'dots',
                 },
                 cornersSquareOptions: {
-                    color: '#1a0505',       // さらに暗い赤黒
+                    color: '#0d0000',       // 限りなく黒に近い赤
                     type: 'extra-rounded',
                 },
                 cornersDotOptions: {
-                    color: '#4a0808',       // 強い血の赤
+                    color: '#3a0505',       // 暗い血の赤
                     type: 'dot',
                 },
                 backgroundOptions: {
-                    color: '#ffffff',       // 白背景 — スキャン認識のため必須
+                    color: '#f0e6d6',       // 和紙色(薄クリーム) — 白すぎず馴染む
                 },
                 qrOptions: {
                     errorCorrectionLevel: 'H',
@@ -270,14 +270,14 @@ export default function SurveyTicketPage({ params }: { params: Promise<{ id: str
                             {/* GLSL blood glow — 大きく光らせる */}
                             <QRGlow size={320} />
 
-                            {/* QR code: 白背景 + quiet zone で認識率確保 */}
+                            {/* QR code: 和紙色背景 + 最小quiet zone, お札に溶け込む */}
                             <div style={{
                                 position: 'relative',
                                 zIndex: 1,
-                                borderRadius: '4px',
-                                overflow: 'hidden',
-                                padding: '10px',
-                                background: '#ffffff',
+                                borderRadius: '6px',
+                                padding: '6px',
+                                background: 'rgba(240, 230, 214, 0.85)', // 半透明和紙色 — シェーダーが透けつつコントラスト確保
+                                boxShadow: '0 0 20px rgba(160, 20, 10, 0.4), inset 0 0 10px rgba(0,0,0,0.05)',
                             }}>
                                 <StyledQR value={id} size={160} />
                             </div>
