@@ -12,7 +12,7 @@ echo.
 
 :loop
 echo [PrintDaemon] Starting daemon at %TIME%...
-python print_daemon.py --both
+.venv\Scripts\python.exe print_daemon.py --both
 echo.
 echo [PrintDaemon] Process exited at %TIME%. Restarting in 3 seconds...
 echo [PrintDaemon] Press Ctrl+C now to stop.

@@ -1,0 +1,201 @@
+{
+  "exp1_bm25": {
+    "bm25": {
+      "cluster": 0.5206936416184971,
+      "region": 0.55675,
+      "phenomenon": 0.5228571428571429
+    }
+  },
+  "exp2_ablation": {
+    "axes_2": {
+      "probing": {
+        "topic": 0.9503061529271207,
+        "location": 0.8487500000000001
+      },
+      "retrieval": {
+        "topic": 0.9754913294797689,
+        "location": 0.6755
+      }
+    },
+    "axes_3": {
+      "probing": {
+        "topic": 0.9514582266598396,
+        "location": 0.85,
+        "phenomenon": 0.9298800259403373
+      },
+      "retrieval": {
+        "topic": 0.9745664739884393,
+        "location": 0.68,
+        "phenomenon": 0.9127272727272728
+      }
+    },
+    "dim_64": {
+      "probing": {
+        "topic": 0.9491434118450248,
+        "location": 0.8487500000000001,
+        "phenomenon": 0.9246818255512322
+      },
+      "retrieval": {
+        "topic": 0.9747976878612717,
+        "location": 0.6872499999999999,
+        "phenomenon": 0.9031168831168831
+      }
+    },
+    "dim_128": {
+      "probing": {
+        "topic": 0.9514582266598396,
+        "location": 0.85,
+        "phenomenon": 0.9298800259403373
+      },
+      "retrieval": {
+        "topic": 0.9745664739884393,
+        "location": 0.68,
+        "phenomenon": 0.9127272727272728
+      }
+    },
+    "dim_256": {
+      "probing": {
+        "topic": 0.9526209677419355,
+        "location": 0.85375,
+        "phenomenon": 0.9298800259403373
+      },
+      "retrieval": {
+        "topic": 0.9750289017341042,
+        "location": 0.6827500000000001,
+        "phenomenon": 0.9132467532467533
+      }
+    },
+    "lambda_0.0": {
+      "probing": {
+        "topic": 0.9560878562894692,
+        "location": 0.85125,
+        "phenomenon": 0.9298800259403373
+      },
+      "retrieval": {
+        "topic": 0.9747976878612717,
+        "location": 0.67925,
+        "phenomenon": 0.9132467532467533
+      }
+    },
+    "lambda_0.01": {
+      "probing": {
+        "topic": 0.9549357825567503,
+        "location": 0.85125,
+        "phenomenon": 0.9298800259403373
+      },
+      "retrieval": {
+        "topic": 0.9747976878612717,
+        "location": 0.6802499999999999,
+        "phenomenon": 0.9127272727272728
+      }
+    },
+    "lambda_0.1": {
+      "probing": {
+        "topic": 0.9514582266598396,
+        "location": 0.85,
+        "phenomenon": 0.9298800259403373
+      },
+      "retrieval": {
+        "topic": 0.9745664739884393,
+        "location": 0.68,
+        "phenomenon": 0.9127272727272728
+      }
+    },
+    "lambda_0.5": {
+      "probing": {
+        "topic": 0.9468339307048985,
+        "location": 0.8512500000000001,
+        "phenomenon": 0.9272809257457847
+      },
+      "retrieval": {
+        "topic": 0.9745664739884394,
+        "location": 0.67825,
+        "phenomenon": 0.9114285714285715
+      }
+    },
+    "lambda_1.0": {
+      "probing": {
+        "topic": 0.9491487455197132,
+        "location": 0.85375,
+        "phenomenon": 0.9259737759403373
+      },
+      "retrieval": {
+        "topic": 0.9750289017341042,
+        "location": 0.6779999999999999,
+        "phenomenon": 0.9103896103896104
+      }
+    }
+  },
+  "exp3_synthetic": {
+    "original": {
+      "cluster_p_at_k": 0.6700000000000002,
+      "mrr": 0.8688786930495843
+    },
+    "topic": {
+      "cluster_p_at_k": 0.9780000000000001,
+      "mrr": 0.995
+    },
+    "location": {
+      "cluster_p_at_k": 0.19,
+      "mrr": 0.4728882623751157
+    },
+    "phenomenon": {
+      "cluster_p_at_k": 0.142,
+      "mrr": 0.3895204767553107
+    },
+    "full_proj": {
+      "cluster_p_at_k": 0.872,
+      "mrr": 0.9569090909090909
+    }
+  },
+  "exp5_bootstrap": {
+    "original": {
+      "cluster_p_at_k": {
+        "mean": 0.6277456647398844,
+        "ci_lo": 0.6046242774566474,
+        "ci_hi": 0.6494797687861271
+      },
+      "region_p_at_k": {
+        "mean": 0.52525,
+        "ci_lo": 0.50525,
+        "ci_hi": 0.54775
+      }
+    },
+    "topic": {
+      "cluster_p_at_k": {
+        "mean": 0.9747976878612717,
+        "ci_lo": 0.96878612716763,
+        "ci_hi": 0.9803468208092485
+      },
+      "region_p_at_k": {
+        "mean": 0.35725000000000007,
+        "ci_lo": 0.335,
+        "ci_hi": 0.3795
+      }
+    },
+    "location": {
+      "cluster_p_at_k": {
+        "mean": 0.1946820809248555,
+        "ci_lo": 0.17942196531791907,
+        "ci_hi": 0.2115606936416185
+      },
+      "region_p_at_k": {
+        "mean": 0.6615000000000001,
+        "ci_lo": 0.6392500000000001,
+        "ci_hi": 0.6822499999999999
+      }
+    },
+    "phenomenon": {
+      "cluster_p_at_k": {
+        "mean": 0.1717919075144509,
+        "ci_lo": 0.15722543352601157,
+        "ci_hi": 0.18728323699421964
+      },
+      "region_p_at_k": {
+        "mean": 0.26025,
+        "ci_lo": 0.245,
+        "ci_hi": 0.2765
+      }
+    }
+  }
+}

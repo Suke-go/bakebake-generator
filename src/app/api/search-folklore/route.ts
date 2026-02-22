@@ -1,9 +1,9 @@
 import { GoogleGenAI } from '@google/genai';
 import { NextResponse } from 'next/server';
-import { loadEmbeddings, searchByEmbedding } from '@/lib/folklore-search';
+import { loadEmbeddings, searchByEmbedding, searchByAspects, initAspectSearch } from '@/lib/folklore-search';
 import { buildSearchQuery } from '@/lib/prompt-builder';
 import { getStatusCode, toErrorMessage, withExponentialBackoff } from '@/lib/genai-utils';
-import type { SearchResult } from '@/lib/folklore-search';
+import type { SearchResult, AspectSearchResult } from '@/lib/folklore-search';
 
 const MAX_RETRY_ATTEMPTS = 3;
 const INITIAL_RETRY_DELAY_MS = 300;
@@ -16,6 +16,7 @@ const NERF_OLD_MEMORY_SEARCH =
     process.env.NEXT_PUBLIC_DISABLE_OLD_MEMORY_SEARCH === 'true' || process.env.DISABLE_OLD_MEMORY_SEARCH === 'true';
 
 let searchRateLimitUntil = 0;
+let aspectSearchInitialized = false;
 
 function isRateLimitError(error: unknown): boolean {
     const status = getStatusCode(error);
@@ -155,6 +156,19 @@ async function runSearchFallback(
     if (!queryEmbedding) {
         const fallback = buildFallbackFolklore(entries, handleId, answers);
         return { folklore: fallback, searchQuery };
+    }
+
+    // アスペクト分離検索を非同期初期化（初回のみ）
+    if (!aspectSearchInitialized) {
+        aspectSearchInitialized = true;
+        await initAspectSearch();
+    }
+
+    // アスペクト分離検索を優先、なければ従来検索にフォールバック
+    const userRegion = answers.where?.trim() || undefined;
+    const aspectResults = searchByAspects(queryEmbedding, 5, userRegion);
+    if (aspectResults) {
+        return { folklore: aspectResults, searchQuery };
     }
 
     const results = searchByEmbedding(queryEmbedding, entries, 5);

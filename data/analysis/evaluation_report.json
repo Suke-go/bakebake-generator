@@ -1,0 +1,623 @@
+{
+  "probing_topic_to_cluster": {
+    "accuracy": 0.9514635603345281,
+    "std": 0.016129377955497053,
+    "n_samples": 865,
+    "n_classes": 73,
+    "n_folds": 4
+  },
+  "probing_location_to_region": {
+    "accuracy": 0.8400000000000001,
+    "std": 0.02518680209951236,
+    "n_samples": 800,
+    "n_classes": 8,
+    "n_folds": 5
+  },
+  "probing_phenomenon_to_phenomenon": {
+    "accuracy": 0.9272859922178989,
+    "std": 0.014617087273528659,
+    "n_samples": 770,
+    "n_classes": 8,
+    "n_folds": 3
+  },
+  "probing_original_to_cluster": {
+    "accuracy": 0.13294184161119643,
+    "std": 0.017076166637316596,
+    "n_samples": 865,
+    "n_classes": 73,
+    "n_folds": 4
+  },
+  "probing_original_to_region": {
+    "accuracy": 0.51375,
+    "std": 0.014999999999999998,
+    "n_samples": 800,
+    "n_classes": 8,
+    "n_folds": 5
+  },
+  "probing_original_to_phenomenon": {
+    "accuracy": 0.5454867866407264,
+    "std": 0.02167150859478755,
+    "n_samples": 770,
+    "n_classes": 8,
+    "n_folds": 3
+  },
+  "cross_topic_to_region": {
+    "accuracy": 0.49124999999999996,
+    "std": 0.010897247358851685,
+    "n_samples": 800,
+    "n_classes": 8,
+    "n_folds": 5
+  },
+  "cross_topic_to_phenomenon": {
+    "accuracy": 0.6142945444228275,
+    "std": 0.02586696058184058,
+    "n_samples": 770,
+    "n_classes": 8,
+    "n_folds": 3
+  },
+  "cross_location_to_cluster": {
+    "accuracy": 0.20233294930875576,
+    "std": 0.031242109097862982,
+    "n_samples": 865,
+    "n_classes": 73,
+    "n_folds": 4
+  },
+  "cross_location_to_phenomenon": {
+    "accuracy": 0.4091024238002594,
+    "std": 0.011408221509402584,
+    "n_samples": 770,
+    "n_classes": 8,
+    "n_folds": 3
+  },
+  "cross_phenomenon_to_cluster": {
+    "accuracy": 0.22541709336064172,
+    "std": 0.02137107740226131,
+    "n_samples": 865,
+    "n_classes": 73,
+    "n_folds": 4
+  },
+  "cross_phenomenon_to_region": {
+    "accuracy": 0.35625000000000007,
+    "std": 0.021650635094610952,
+    "n_samples": 800,
+    "n_classes": 8,
+    "n_folds": 5
+  },
+  "retrieval_original": {
+    "cluster_precision_at_k": 0.6217341040462429,
+    "region_precision_at_k": 0.52425,
+    "phenomenon_precision_at_k": 0.5607792207792207
+  },
+  "retrieval_topic": {
+    "cluster_precision_at_k": 0.9747976878612717,
+    "region_precision_at_k": 0.35725000000000007,
+    "phenomenon_precision_at_k": 0.5192207792207794
+  },
+  "retrieval_location": {
+    "cluster_precision_at_k": 0.1946820809248555,
+    "region_precision_at_k": 0.6615000000000001,
+    "phenomenon_precision_at_k": 0.30493506493506495
+  },
+  "retrieval_phenomenon": {
+    "cluster_precision_at_k": 0.1717919075144509,
+    "region_precision_at_k": 0.26025,
+    "phenomenon_precision_at_k": 0.9122077922077924
+  },
+  "retrieval_full_proj": {
+    "cluster_precision_at_k": 0.8610404624277456,
+    "region_precision_at_k": 0.5215000000000001,
+    "phenomenon_precision_at_k": 0.7080519480519482
+  },
+  "examples": [
+    {
+      "query": {
+        "name": "金魚の幽霊",
+        "location": "長野県、信濃国",
+        "region": "中部",
+        "cluster_id": 3,
+        "phenomenon": "死霊",
+        "summary": "金魚の幽霊（きんぎょのゆうれい）は江戸時代の戯作者・山東京伝による小説『梅花氷裂』にある妖怪、幽霊。名称は妖怪漫画家・水木しげるの著書によるもので、原典では「藻之花の怨魂、金魚に着す」とある（画像参照）。"
+      },
+      "results": [
+        {
+          "name": "畑怨霊",
+          "location": "富山県",
+          "cluster_id": 3,
+          "phenomenon": "死霊",
+          "scores": {
+            "topic": 0.686,
+            "location": 0.527,
+            "phenomenon": 0.512,
+            "original": 0.253,
+            "combined": 0.575
+          },
+          "match": {
+            "topic": true,
+            "region": true,
+            "phenomenon": true
+          }
+        },
+        {
+          "name": "力持ち幽霊",
+          "location": "石川県",
+          "cluster_id": 3,
+          "phenomenon": "死霊",
+          "scores": {
+            "topic": 0.693,
+            "location": 0.505,
+            "phenomenon": 0.315,
+            "original": 0.263,
+            "combined": 0.504
+          },
+          "match": {
+            "topic": true,
+            "region": true,
+            "phenomenon": true
+          }
+        },
+        {
+          "name": "札返し",
+          "location": "日本各地",
+          "cluster_id": 3,
+          "phenomenon": "死霊",
+          "scores": {
+            "topic": 0.741,
+            "location": 0.129,
+            "phenomenon": 0.511,
+            "original": 0.236,
+            "combined": 0.46
+          },
+          "match": {
+            "topic": true,
+            "region": false,
+            "phenomenon": true
+          }
+        },
+        {
+          "name": "死神",
+          "location": "静岡県、京都府、岡山県",
+          "cluster_id": 6,
+          "phenomenon": "死霊",
+          "scores": {
+            "topic": 0.144,
+            "location": 0.524,
+            "phenomenon": 0.683,
+            "original": 0.234,
+            "combined": 0.45
+          },
+          "match": {
+            "topic": false,
+            "region": true,
+            "phenomenon": true
+          }
+        },
+        {
+          "name": "片輪車",
+          "location": "長野県、滋賀県、近江国",
+          "cluster_id": 30,
+          "phenomenon": "死霊",
+          "scores": {
+            "topic": 0.243,
+            "location": 0.59,
+            "phenomenon": 0.507,
+            "original": 0.245,
+            "combined": 0.446
+          },
+          "match": {
+            "topic": false,
+            "region": true,
+            "phenomenon": true
+          }
+        }
+      ]
+    },
+    {
+      "query": {
+        "name": "だいだらぼうし、だいだら法師",
+        "location": "茨城県、兵庫県、常陸国",
+        "region": "関東",
+        "cluster_id": 57,
+        "phenomenon": "水界",
+        "summary": "ダイダラボッチは、日本の各地で伝承される巨人。類似の名称が数多く存在するが、以下では便宜的にダイダラボッチと呼称する。山や湖沼を作ったという伝承が多く、元々は国づくりの神に対する巨人信仰がダイダラボッチ伝承を生んだと考えられている（鬼や大男"
+      },
+      "results": [
+        {
+          "name": "だんだん法師",
+          "location": "茨城県、兵庫県、常陸国",
+          "cluster_id": 57,
+          "phenomenon": "水界",
+          "scores": {
+            "topic": 0.948,
+            "location": 0.496,
+            "phenomenon": 0.765,
+            "original": 0.325,
+            "combined": 0.736
+          },
+          "match": {
+            "topic": true,
+            "region": true,
+            "phenomenon": true
+          }
+        },
+        {
+          "name": "ダイダラボッチ",
+          "location": "茨城県、兵庫県、常陸国",
+          "cluster_id": 57,
+          "phenomenon": "水界",
+          "scores": {
+            "topic": 0.966,
+            "location": 0.568,
+            "phenomenon": 0.655,
+            "original": 0.327,
+            "combined": 0.73
+          },
+          "match": {
+            "topic": true,
+            "region": true,
+            "phenomenon": true
+          }
+        },
+        {
+          "name": "大太郎坊",
+          "location": "茨城県、兵庫県、常陸国",
+          "cluster_id": 57,
+          "phenomenon": "水界",
+          "scores": {
+            "topic": 0.936,
+            "location": 0.603,
+            "phenomenon": 0.477,
+            "original": 0.323,
+            "combined": 0.672
+          },
+          "match": {
+            "topic": true,
+            "region": true,
+            "phenomenon": true
+          }
+        },
+        {
+          "name": "ガウル、ガオロ",
+          "location": "北海道、岩手県、茨城県",
+          "cluster_id": 4,
+          "phenomenon": "水界",
+          "scores": {
+            "topic": 0.365,
+            "location": 0.535,
+            "phenomenon": 0.621,
+            "original": 0.25,
+            "combined": 0.507
+          },
+          "match": {
+            "topic": false,
+            "region": false,
+            "phenomenon": true
+          }
+        },
+        {
+          "name": "九頭竜",
+          "location": "兵庫県、近江国、摂津国",
+          "cluster_id": 57,
+          "phenomenon": null,
+          "scores": {
+            "topic": 0.824,
+            "location": 0.427,
+            "phenomenon": 0.22,
+            "original": 0.257,
+            "combined": 0.49
+          },
+          "match": {
+            "topic": true,
+            "region": false,
+            "phenomenon": false
+          }
+        }
+      ]
+    },
+    {
+      "query": {
+        "name": "夜泣石",
+        "location": "長野県、静岡県、岡山県",
+        "region": "中部",
+        "cluster_id": 41,
+        "phenomenon": "音声",
+        "summary": "夜泣き石（よなきいし）は、石にまつわる日本の伝説の一つ。各地にさまざまな夜泣き石が存在する。"
+      },
+      "results": [
+        {
+          "name": "杓子岩",
+          "location": "長野県、静岡県、岡山県",
+          "cluster_id": 41,
+          "phenomenon": "音声",
+          "scores": {
+            "topic": 0.936,
+            "location": 0.748,
+            "phenomenon": 0.631,
+            "original": 0.33,
+            "combined": 0.772
+          },
+          "match": {
+            "topic": true,
+            "region": true,
+            "phenomenon": true
+          }
+        },
+        {
+          "name": "物岩",
+          "location": "長野県、静岡県、岡山県",
+          "cluster_id": 41,
+          "phenomenon": "音声",
+          "scores": {
+            "topic": 0.952,
+            "location": 0.63,
+            "phenomenon": 0.638,
+            "original": 0.329,
+            "combined": 0.74
+          },
+          "match": {
+            "topic": true,
+            "region": true,
+            "phenomenon": true
+          }
+        },
+        {
+          "name": "おまんの母",
+          "location": "長野県、静岡県、岡山県",
+          "cluster_id": 41,
+          "phenomenon": "音声",
+          "scores": {
+            "topic": 0.928,
+            "location": 0.654,
+            "phenomenon": 0.584,
+            "original": 0.323,
+            "combined": 0.722
+          },
+          "match": {
+            "topic": true,
+            "region": true,
+            "phenomenon": true
+          }
+        },
+        {
+          "name": "こそこそ岩",
+          "location": "長野県、静岡県、岡山県",
+          "cluster_id": 41,
+          "phenomenon": "音声",
+          "scores": {
+            "topic": 0.94,
+            "location": 0.475,
+            "phenomenon": 0.558,
+            "original": 0.329,
+            "combined": 0.658
+          },
+          "match": {
+            "topic": true,
+            "region": true,
+            "phenomenon": true
+          }
+        },
+        {
+          "name": "鳴釜",
+          "location": "岡山県",
+          "cluster_id": 1,
+          "phenomenon": "音声",
+          "scores": {
+            "topic": 0.388,
+            "location": 0.323,
+            "phenomenon": 0.698,
+            "original": 0.262,
+            "combined": 0.47
+          },
+          "match": {
+            "topic": false,
+            "region": false,
+            "phenomenon": true
+          }
+        }
+      ]
+    },
+    {
+      "query": {
+        "name": "海海女",
+        "location": "福井県、静岡県、三重県",
+        "region": "中部",
+        "cluster_id": 27,
+        "phenomenon": "水界",
+        "summary": "トモカヅキは、三重県鳥羽市や志摩市に伝わる、海の妖怪である。"
+      },
+      "results": [
+        {
+          "name": "共潜、伴かづぎ",
+          "location": "福井県、静岡県、三重県",
+          "cluster_id": -1,
+          "phenomenon": "水界",
+          "scores": {
+            "topic": 0.786,
+            "location": 0.831,
+            "phenomenon": 0.793,
+            "original": 0.312,
+            "combined": 0.804
+          },
+          "match": {
+            "topic": false,
+            "region": true,
+            "phenomenon": true
+          }
+        },
+        {
+          "name": "浜姫",
+          "location": "石川県、福岡県、佐賀県",
+          "cluster_id": 27,
+          "phenomenon": "水界",
+          "scores": {
+            "topic": 0.847,
+            "location": 0.518,
+            "phenomenon": 0.588,
+            "original": 0.267,
+            "combined": 0.651
+          },
+          "match": {
+            "topic": true,
+            "region": true,
+            "phenomenon": true
+          }
+        },
+        {
+          "name": "磯姫",
+          "location": "石川県、福岡県、佐賀県",
+          "cluster_id": 27,
+          "phenomenon": "水界",
+          "scores": {
+            "topic": 0.794,
+            "location": 0.425,
+            "phenomenon": 0.645,
+            "original": 0.267,
+            "combined": 0.621
+          },
+          "match": {
+            "topic": true,
+            "region": true,
+            "phenomenon": true
+          }
+        },
+        {
+          "name": "磯女",
+          "location": "石川県、福岡県、佐賀県",
+          "cluster_id": 27,
+          "phenomenon": "水界",
+          "scores": {
+            "topic": 0.862,
+            "location": 0.47,
+            "phenomenon": 0.454,
+            "original": 0.267,
+            "combined": 0.595
+          },
+          "match": {
+            "topic": true,
+            "region": true,
+            "phenomenon": true
+          }
+        },
+        {
+          "name": "桐一兵衛",
+          "location": "新潟県",
+          "cluster_id": 71,
+          "phenomenon": "水界",
+          "scores": {
+            "topic": 0.21,
+            "location": 0.745,
+            "phenomenon": 0.752,
+            "original": 0.248,
+            "combined": 0.569
+          },
+          "match": {
+            "topic": false,
+            "region": true,
+            "phenomenon": true
+          }
+        }
+      ]
+    },
+    {
+      "query": {
+        "name": "提灯お化け",
+        "location": "山形県",
+        "region": "東北",
+        "cluster_id": 48,
+        "phenomenon": "変化",
+        "summary": "提灯お化け（ちょうちんおばけ）は、日本の妖怪の一種で、提灯の妖怪。「ちょうちん（提灯）」「化け提灯」「お化け提灯」「提灯小僧」などとも呼ばれる。"
+      },
+      "results": [
+        {
+          "name": "提灯お岩",
+          "location": "山形県",
+          "cluster_id": 48,
+          "phenomenon": "変化",
+          "scores": {
+            "topic": 0.913,
+            "location": 0.811,
+            "phenomenon": 0.781,
+            "original": 0.331,
+            "combined": 0.835
+          },
+          "match": {
+            "topic": true,
+            "region": true,
+            "phenomenon": true
+          }
+        },
+        {
+          "name": "傘化け",
+          "location": "新潟県、奈良県",
+          "cluster_id": 48,
+          "phenomenon": "変化",
+          "scores": {
+            "topic": 0.865,
+            "location": 0.339,
+            "phenomenon": 0.749,
+            "original": 0.283,
+            "combined": 0.651
+          },
+          "match": {
+            "topic": true,
+            "region": false,
+            "phenomenon": true
+          }
+        },
+        {
+          "name": "雨傘",
+          "location": "新潟県、奈良県",
+          "cluster_id": 48,
+          "phenomenon": "変化",
+          "scores": {
+            "topic": 0.832,
+            "location": 0.136,
+            "phenomenon": 0.672,
+            "original": 0.28,
+            "combined": 0.547
+          },
+          "match": {
+            "topic": true,
+            "region": false,
+            "phenomenon": true
+          }
+        },
+        {
+          "name": "からかさ（小僧）",
+          "location": "新潟県、奈良県",
+          "cluster_id": 48,
+          "phenomenon": "変化",
+          "scores": {
+            "topic": 0.846,
+            "location": 0.113,
+            "phenomenon": 0.673,
+            "original": 0.283,
+            "combined": 0.544
+          },
+          "match": {
+            "topic": true,
+            "region": false,
+            "phenomenon": true
+          }
+        },
+        {
+          "name": "幽霊傘",
+          "location": "新潟県、奈良県",
+          "cluster_id": 48,
+          "phenomenon": "変化",
+          "scores": {
+            "topic": 0.819,
+            "location": 0.155,
+            "phenomenon": 0.618,
+            "original": 0.284,
+            "combined": 0.531
+          },
+          "match": {
+            "topic": true,
+            "region": false,
+            "phenomenon": true
+          }
+        }
+      ]
+    }
+  ]
+}

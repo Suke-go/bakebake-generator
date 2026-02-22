@@ -1,7 +1,7 @@
 /**
  * Vercel Blob アップロードスクリプト
  *
- * folklore-embeddings.json を Vercel Blob Storage にアップロードする。
+ * 検索データ一式を Vercel Blob Storage にアップロードする。
  *
  * Usage: npx tsx scripts/upload-to-blob.ts
  *
@@ -16,7 +16,17 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: path.join(process.cwd(), '.env.local') });
 
 const DATA_DIR = path.join(process.cwd(), 'data');
-const INPUT_FILE = path.join(DATA_DIR, 'folklore-embeddings.json');
+
+// アップロード対象ファイル
+const FILES_TO_UPLOAD = [
+    { local: path.join(DATA_DIR, 'folklore-embeddings.json'), blobName: 'folklore-embeddings.json', contentType: 'application/json' },
+    { local: path.join(DATA_DIR, 'analysis', 'projection-matrix.bin'), blobName: 'projection-matrix.bin', contentType: 'application/octet-stream' },
+    { local: path.join(DATA_DIR, 'analysis', 'projected-vectors.bin'), blobName: 'projected-vectors.bin', contentType: 'application/octet-stream' },
+    { local: path.join(DATA_DIR, 'analysis', 'projected-meta.json'), blobName: 'projected-meta.json', contentType: 'application/json' },
+    // JSON fallbacks (kept for compatibility)
+    { local: path.join(DATA_DIR, 'analysis', 'projected-embeddings.json'), blobName: 'projected-embeddings.json', contentType: 'application/json' },
+    { local: path.join(DATA_DIR, 'analysis', 'projection-matrix.json'), blobName: 'projection-matrix.json', contentType: 'application/json' },
+];
 
 async function main() {
     const token = process.env.BLOB_READ_WRITE_TOKEN;
@@ -26,29 +36,40 @@ async function main() {
         process.exit(1);
     }
 
-    if (!fs.existsSync(INPUT_FILE)) {
-        console.error(`Error: ${INPUT_FILE} が見つかりません。compute-embeddings.ts を先に実行してください。`);
-        process.exit(1);
+    const envLines: string[] = [];
+
+    for (const file of FILES_TO_UPLOAD) {
+        if (!fs.existsSync(file.local)) {
+            console.warn(`⚠ ${file.local} が見つかりません、スキップ`);
+            continue;
+        }
+
+        const content = fs.readFileSync(file.local);
+        const sizeMB = (content.length / 1024 / 1024).toFixed(1);
+        console.log(`\nアップロード: ${file.blobName} (${sizeMB} MB)...`);
+
+        const blob = await put(file.blobName, content, {
+            access: 'public',
+            contentType: file.contentType,
+            allowOverwrite: true,
+            token,
+        });
+
+        console.log(`  ✓ URL: ${blob.url}`);
+
+        // 環境変数名の生成
+        const envKey = file.blobName
+            .replace('.json', '')
+            .replace(/-/g, '_')
+            .toUpperCase() + '_BLOB_URL';
+        envLines.push(`${envKey}=${blob.url}`);
     }
 
-    const content = fs.readFileSync(INPUT_FILE);
-    const sizeMB = (content.length / 1024 / 1024).toFixed(1);
-    console.log(`アップロードファイル: ${INPUT_FILE} (${sizeMB} MB)`);
-
-    console.log('Vercel Blob にアップロード中...');
-
-    const blob = await put('folklore-embeddings.json', content, {
-        access: 'public',
-        contentType: 'application/json',
-        token,
-    });
-
     console.log(`\n=== アップロード完了 ===`);
-    console.log(`URL: ${blob.url}`);
-    console.log(`\nPrivate Blob のため、読み込みには BLOB_READ_WRITE_TOKEN が必要です。`);
-    console.log(`Vercel の環境変数に BLOB_READ_WRITE_TOKEN が設定されていることを確認してください。`);
-    console.log(`\n.env.local に以下を追加してください:`);
-    console.log(`FOLKLORE_BLOB_URL=${blob.url}`);
+    console.log(`\n.env.local に以下を追加してください:\n`);
+    for (const line of envLines) {
+        console.log(line);
+    }
 }
 
 main().catch(err => {

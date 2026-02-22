@@ -1,4 +1,4 @@
-# dependencies
+﻿# dependencies
 /node_modules
 /.pnp
 .pnp.*
@@ -35,13 +35,22 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# ── generated data (large / binary) ──
+# generated data (large / binary)
 /data/*.npy
 /data/folklore-embeddings.json
 /data/embedding-progress.json
 /data/analysis/*.npy
+/data/analysis/*.bin
+/data/analysis/*.pt
 /data/analysis/*.html
 /data/analysis/nichibunken-cache.json
+/data/analysis/projection-matrix.json
+/data/analysis/projected-embeddings.json
+/data/analysis/projected-meta.json
 
-# python analysis venv
-.venv-analysis/
+# python
+.venv*/
+.venv/
+**/.venv/
+__pycache__/
+*.pyc

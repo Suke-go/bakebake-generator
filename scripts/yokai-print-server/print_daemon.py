@@ -161,11 +161,17 @@ def decode_image(image_b64):
 # ──────────────────────────────────────────────
 # Print Function
 # ──────────────────────────────────────────────
+def _raw_text(text):
+    """Encode text as CP932 (Shift_JIS) and send to printer."""
+    printer._raw(text.encode("cp932", errors="replace"))
+
+
 def print_yokai(data):
     """
     Print a yokai receipt.
     `data` is a dict with keys: yokai_name, yokai_desc, yokai_image_b64 (optional).
     Thread-safe via print_lock.
+    Uses raw ESC/POS with Kanji mode for Japanese text support.
     """
     name = data.get("yokai_name", "名無しの妖")
     desc = data.get("yokai_desc", "")
@@ -175,12 +181,24 @@ def print_yokai(data):
     with print_lock:
         print(f"[PRINT] Job {record_id}: {name}")
         try:
-            # Header
-            printer.set(align="center", text_type="B", width=2, height=2)
-            printer.text("BAKEBAKE_XR\n")
-            printer.set(align="center", text_type="NORMAL", width=1, height=1)
-            printer.text("━━━━━━━━━━━━━━━━━━\n")
-            printer.text("【 観測記録 】\n\n")
+            # ESC @ — Initialize printer
+            printer._raw(b"\x1b\x40")
+            # FS & — Select Kanji character mode
+            printer._raw(b"\x1c\x26")
+            # FS C 1 — Shift_JIS code system
+            printer._raw(b"\x1c\x43\x01")
+
+            # Header: center, bold, double size
+            printer._raw(b"\x1b\x61\x01")  # center
+            printer._raw(b"\x1b\x45\x01")  # bold ON
+            printer._raw(b"\x1d\x21\x11")  # double width+height
+            _raw_text("BAKEBAKE_XR\n")
+
+            # Normal size
+            printer._raw(b"\x1d\x21\x00")
+            printer._raw(b"\x1b\x45\x00")  # bold OFF
+            _raw_text("━━━━━━━━━━━━━━━━━━\n")
+            _raw_text("【 観測記録 】\n\n")
 
             # Image
             if image_b64:
@@ -188,27 +206,35 @@ def print_yokai(data):
                     img = decode_image(image_b64)
                     img = prepare_image(img)
                     printer.image(img)
-                    printer.text("\n")
+                    _raw_text("\n")
+                    # Re-enable Kanji mode after image (image command may reset)
+                    printer._raw(b"\x1c\x26")
+                    printer._raw(b"\x1c\x43\x01")
                 except Exception as img_err:
                     print(f"[PRINT] Image error (skipping): {img_err}")
 
-            # Name
-            printer.set(align="center", text_type="B", width=2, height=2)
-            printer.text(f"{name}\n")
-            printer.set(align="center", text_type="NORMAL", width=1, height=1)
-            printer.text("\n")
+            # Name: center, bold, double size
+            printer._raw(b"\x1b\x61\x01")
+            printer._raw(b"\x1b\x45\x01")
+            printer._raw(b"\x1d\x21\x11")
+            _raw_text(f"{name}\n")
+            printer._raw(b"\x1d\x21\x00")
+            printer._raw(b"\x1b\x45\x00")
+            _raw_text("\n")
 
-            # Description
+            # Description: left align
             if desc:
-                printer.set(align="left")
-                printer.text(f"{desc}\n\n")
+                printer._raw(b"\x1b\x61\x00")  # left align
+                _raw_text(f"{desc}\n\n")
 
-            # Footer
-            printer.set(align="center")
-            printer.text("━━━━━━━━━━━━━━━━━━\n")
-            printer.text("この記録は感熱紙に印刷されています。\n")
-            printer.text("時間が経てば、この記憶も消えます。\n\n\n\n")
-            printer.cut()
+            # Footer: center
+            printer._raw(b"\x1b\x61\x01")
+            _raw_text("━━━━━━━━━━━━━━━━━━\n")
+            _raw_text("この記録は感熱紙に印刷されています。\n")
+            _raw_text("時間が経てば、この記憶も消えます。\n\n\n\n")
+
+            # Cut
+            printer._raw(b"\x1d\x56\x00")
 
             print(f"[PRINT] Done: {record_id}")
             _recent_jobs.append({"id": record_id, "name": name, "time": time.strftime("%H:%M:%S")})
@@ -352,6 +378,8 @@ def start_offline_mode():
 # Main
 # ──────────────────────────────────────────────
 def main():
+    global PRINTER_NAME, LOCAL_PORT
+
     parser = argparse.ArgumentParser(description="BAKEBAKE_XR Print Daemon")
     parser.add_argument("--offline", action="store_true", help="Run in offline mode (local HTTP API only)")
     parser.add_argument("--both", action="store_true", help="Run both online (Supabase) and offline (HTTP) modes")
@@ -359,7 +387,6 @@ def main():
     parser.add_argument("--port", type=int, default=LOCAL_PORT, help="HTTP API port for offline mode")
     args = parser.parse_args()
 
-    global PRINTER_NAME, LOCAL_PORT
     if args.printer:
         PRINTER_NAME = args.printer
     LOCAL_PORT = args.port

@@ -27,26 +27,48 @@ def list_printers():
         return []
 
 
+def _raw_text(p, text):
+    """Send text encoded as CP932 (Shift_JIS) for Japanese support."""
+    p._raw(text.encode("cp932", errors="replace"))
+
+
 def test_print(printer_name):
-    """Send a test receipt to the printer."""
+    """Send a test receipt to the printer using raw ESC/POS with Kanji mode."""
     from escpos.printer import Win32Raw
 
     print(f"\nConnecting to: {printer_name}")
     p = Win32Raw(printer_name)
 
     print("Sending test print...")
-    p.set(align="center", text_type="B", width=2, height=2)
-    p.text("BAKEBAKE_XR\n")
-    p.set(align="center", text_type="NORMAL", width=1, height=1)
-    p.text("━━━━━━━━━━━━━━━━━━\n")
-    p.text("Printer Test OK\n")
-    p.text("TM-T90II via APD\n")
-    p.text("━━━━━━━━━━━━━━━━━━\n\n")
+
+    # ESC @ — Initialize printer
+    p._raw(b"\x1b\x40")
+    # FS & — Select Kanji character mode
+    p._raw(b"\x1c\x26")
+    # FS C 1 — Select Kanji code system: Shift_JIS
+    p._raw(b"\x1c\x43\x01")
+
+    # Center align
+    p._raw(b"\x1b\x61\x01")
+    # Bold ON + double width/height
+    p._raw(b"\x1b\x45\x01")
+    p._raw(b"\x1d\x21\x11")
+    _raw_text(p, "BAKEBAKE_XR\n")
+
+    # Normal size, bold OFF
+    p._raw(b"\x1d\x21\x00")
+    p._raw(b"\x1b\x45\x00")
+    _raw_text(p, "━━━━━━━━━━━━━━━━━━\n")
+    _raw_text(p, "Printer Test OK\n")
+    _raw_text(p, "TM-T90II via APD\n")
+    _raw_text(p, "━━━━━━━━━━━━━━━━━━\n\n")
 
     # Test Japanese text
-    p.text("日本語テスト: 妖怪観測記録\n")
-    p.text("感熱紙に印刷されています。\n\n\n")
-    p.cut()
+    _raw_text(p, "日本語テスト: 妖怪観測記録\n")
+    _raw_text(p, "感熱紙に印刷されています。\n\n\n")
+
+    # Cut
+    p._raw(b"\x1d\x56\x00")
 
     print("Test print sent successfully!")
     print("Check the printer for output.")
