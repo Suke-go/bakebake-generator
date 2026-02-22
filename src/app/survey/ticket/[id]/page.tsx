@@ -29,20 +29,21 @@ function StyledQR({ value, size = 200 }: { value: string; size?: number }) {
                 height: size,
                 type: 'canvas',
                 data: value,
+                margin: 8,                  // quiet zone 確保 — スキャン精度向上
                 dotsOptions: {
-                    color: '#1a0000',       // ほぼ黒の赤 — コントラスト比確保
-                    type: 'dots',
+                    color: '#1a0505',       // 暗い赤黒 — 高コントラスト
+                    type: 'rounded',        // 丸みを持ちつつスキャナー認識可能
                 },
                 cornersSquareOptions: {
-                    color: '#0d0000',       // 限りなく黒に近い赤
-                    type: 'extra-rounded',
+                    color: '#000000',       // ファインダーパターンは真黒 — 認識の要
+                    type: 'square',         // スキャナーが必ず検出できる正方形
                 },
                 cornersDotOptions: {
-                    color: '#3a0505',       // 暗い血の赤
-                    type: 'dot',
+                    color: '#000000',       // 中心ドットも真黒
+                    type: 'square',         // 正確な形状を維持
                 },
                 backgroundOptions: {
-                    color: '#f0e6d6',       // 和紙色(薄クリーム) — 白すぎず馴染む
+                    color: '#ffffff',       // 白背景 — 最大コントラスト確保
                 },
                 qrOptions: {
                     errorCorrectionLevel: 'H',
@@ -275,11 +276,10 @@ export default function SurveyTicketPage({ params }: { params: Promise<{ id: str
                                 position: 'relative',
                                 zIndex: 1,
                                 borderRadius: '6px',
-                                padding: '6px',
-                                background: 'rgba(240, 230, 214, 0.85)', // 半透明和紙色 — シェーダーが透けつつコントラスト確保
-                                boxShadow: '0 0 20px rgba(160, 20, 10, 0.4), inset 0 0 10px rgba(0,0,0,0.05)',
+                                overflow: 'hidden',
+                                boxShadow: '0 0 24px rgba(160, 20, 10, 0.5)',
                             }}>
-                                <StyledQR value={id} size={160} />
+                                <StyledQR value={id} size={200} />
                             </div>
                         </div>
 
