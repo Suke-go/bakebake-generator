@@ -131,8 +131,12 @@ export default function SurveyTicketPage({ params }: { params: Promise<{ id: str
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center',
+            justifyContent: scannedYokai ? 'flex-start' : 'center',
             backgroundColor: '#0a0a0a',
+            overflowY: 'auto',
+            WebkitOverflowScrolling: 'touch',   // iOS momentum scroll
+            paddingTop: scannedYokai ? '2rem' : 0,
+            paddingBottom: scannedYokai ? '2rem' : 0,
         }}>
             {/* 漆黒の背景 with subtle vignette */}
             <div style={{
