@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 const PROTECTED_PATHS = ['/admin', '/generator'];
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
     const { pathname } = req.nextUrl;
 
     // Only protect specific paths

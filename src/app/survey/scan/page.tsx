@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { Html5QrcodeScanner, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import '@/app/globals.css';
 
 export default function SurveyScanPage() {
@@ -24,9 +24,17 @@ export default function SurveyScanPage() {
     useEffect(() => {
         if (scannerRef.current || hasScanned.current) return;
 
+        const qrboxSize = Math.min(Math.floor(window.innerWidth * 0.7), 300);
         const scanner = new Html5QrcodeScanner(
             "qr-reader",
-            { fps: 10, qrbox: { width: 250, height: 250 } },
+            {
+                fps: 15,
+                qrbox: { width: qrboxSize, height: qrboxSize },
+                formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+                experimentalFeatures: {
+                    useBarCodeDetectorIfSupported: true,
+                },
+            },
             false
         );
         scannerRef.current = scanner;

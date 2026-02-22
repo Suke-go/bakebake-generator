@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useApp, ArtStyle } from '@/lib/context';
+import { useCallback } from 'react';
 import ProgressDots from './ProgressDots';
 
 const ART_STYLES: { id: ArtStyle; name: string; desc: string }[] = [
@@ -23,7 +24,7 @@ const ART_STYLES: { id: ArtStyle; name: string; desc: string }[] = [
     {
         id: 'manga',
         name: '漫画風',
-        desc: '水木しげるの点描に始まる現代妖怪画。',
+        desc: '点描と綻密な背景が織りなす現代妖怪画。',
     },
     {
         id: 'dennou',
@@ -33,7 +34,7 @@ const ART_STYLES: { id: ArtStyle; name: string; desc: string }[] = [
 ];
 
 export default function Phase3() {
-    const { state, goToPhase, setVisualInput, setArtStyle } = useApp();
+    const { state, goToPhase, setVisualInput, setArtStyle, backOverrideRef } = useApp();
     const [step, setStep] = useState<'style' | 'describe'>('style');
     const [selectedStyle, setSelectedStyle] = useState<ArtStyle>(null);
     const [showStyleIntro, setShowStyleIntro] = useState(false);
@@ -41,6 +42,31 @@ export default function Phase3() {
     const [input, setInput] = useState('');
     const [showDescribe, setShowDescribe] = useState(false);
     const [isTransitioning, setIsTransitioning] = useState(false);
+
+    // describe ステップから style 選択に戻る
+    const goBackToStyle = useCallback(() => {
+        setShowDescribe(false);
+        setTimeout(() => {
+            setStep('style');
+            setSelectedStyle(null);
+            setArtStyle(null);
+            setInput('');
+            setIsTransitioning(false);
+        }, 300);
+    }, [setArtStyle]);
+
+    // ←ボタンにサブステップ戻りを登録
+    useEffect(() => {
+        if (step === 'describe') {
+            backOverrideRef.current = () => {
+                goBackToStyle();
+                return true;
+            };
+        } else {
+            backOverrideRef.current = null;
+        }
+        return () => { backOverrideRef.current = null; };
+    }, [step, goBackToStyle, backOverrideRef]);
 
     useEffect(() => {
         if (step === 'style') {

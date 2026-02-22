@@ -64,8 +64,7 @@ function ExitSurveyForm() {
                 const { error } = await supabase
                     .from('surveys')
                     .update({ print_triggered: true })
-                    .eq('id', id)
-                    .eq('print_triggered', false);
+                    .eq('id', id);
 
                 if (error) throw error;
                 setTriggerSent(true);
@@ -304,7 +303,9 @@ function ExitSurveyForm() {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: '2rem'
+            gap: '2rem',
+            overflowY: 'auto',
+            width: '100%',
         }}>
             <h1 className="title-text" style={{ fontSize: '2rem' }}>
                 体験のふりかえり

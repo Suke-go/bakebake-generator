@@ -376,7 +376,7 @@ export default function SurveyEnterPage() {
                         <input
                             type="text"
                             className="glass-input"
-                            placeholder="例：ゲゲゲの鬼太郎、怖い、河童..."
+                            placeholder="例：怖い、河童、不思議な音..."
                             value={preImage}
                             onChange={e => setPreImage(e.target.value)}
                             style={{ padding: '1rem', width: '100%' }}

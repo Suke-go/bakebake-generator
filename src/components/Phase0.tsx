@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useApp } from '@/lib/context';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { Html5QrcodeScanner, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 
 /**
  * Phase 0: タイトル表示 + QR常時スキャン
@@ -38,9 +38,17 @@ export default function Phase0() {
 
         // DOMが準備できるまで少し待つ
         const initTimer = setTimeout(() => {
+            const qrboxSize = Math.min(Math.floor(window.innerWidth * 0.7), 300);
             const scanner = new Html5QrcodeScanner(
                 'phase0-qr-reader',
-                { fps: 10, qrbox: { width: 220, height: 220 } },
+                {
+                    fps: 15,                    // スキャン頻度向上
+                    qrbox: { width: qrboxSize, height: qrboxSize },
+                    formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],  // QRのみ → デコード高速化
+                    experimentalFeatures: {
+                        useBarCodeDetectorIfSupported: true,  // Chrome BarcodeDetector API活用
+                    },
+                },
                 false
             );
             scannerRef.current = scanner;

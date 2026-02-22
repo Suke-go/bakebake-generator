@@ -9,7 +9,7 @@ import '@/app/globals.css';
  * StyledQR — qr-code-styling によるcanvas QR
  * 墨色ドット・和紙背景
  */
-function StyledQR({ value, size = 200 }: { value: string; size?: number }) {
+function StyledQR({ value, size = 260 }: { value: string; size?: number }) {
     const containerRef = useRef<HTMLDivElement>(null);
     const qrRef = useRef<any>(null);
 
@@ -29,10 +29,10 @@ function StyledQR({ value, size = 200 }: { value: string; size?: number }) {
                 height: size,
                 type: 'canvas',
                 data: value,
-                margin: 8,                  // quiet zone 確保 — スキャン精度向上
+                margin: 12,                 // 広めのquiet zone — スキャン精度向上
                 dotsOptions: {
-                    color: '#1a0505',       // 暗い赤黒 — 高コントラスト
-                    type: 'rounded',        // 丸みを持ちつつスキャナー認識可能
+                    color: '#0a0000',       // ほぼ真黒に微かな赤み — 美観維持+高コントラスト
+                    type: 'extra-rounded',  // 柔らかい丸みを保ちつつデコード認識向上
                 },
                 cornersSquareOptions: {
                     color: '#000000',       // ファインダーパターンは真黒 — 認識の要
@@ -273,19 +273,34 @@ export default function SurveyTicketPage({ params }: { params: Promise<{ id: str
                             marginTop: 'auto',
                         }}>
                             {/* GLSL blood glow — 大きく光らせる */}
-                            <QRGlow size={320} />
+                            <QRGlow size={380} />
 
-                            {/* QR code: 和紙色背景 + 最小quiet zone, お札に溶け込む */}
+                            {/* QR code: 白paddingで囲みGLSLグロー干渉を防止 */}
                             <div style={{
                                 position: 'relative',
                                 zIndex: 1,
                                 borderRadius: '6px',
                                 overflow: 'hidden',
                                 boxShadow: '0 0 24px rgba(160, 20, 10, 0.5)',
+                                background: '#ffffff',
+                                padding: '8px',        // 白padding層でquiet zone確保
                             }}>
-                                <StyledQR value={id} size={200} />
+                                <StyledQR value={id} size={260} />
                             </div>
                         </div>
+
+                        {/* 画面輝度ガイダンス */}
+                        <p style={{
+                            fontFamily: '"Noto Serif JP", serif',
+                            fontSize: '0.65rem',
+                            letterSpacing: '0.1em',
+                            color: 'rgba(255, 255, 255, 0.4)',
+                            textAlign: 'center',
+                            margin: 0,
+                            animation: 'breathe 4s ease-in-out infinite',
+                        }}>
+                            画面の明るさを最大にしてください
+                        </p>
 
                         {/* 指示テキスト — 最小限のpill型黒背景 + 白文字 */}
                         <p style={{

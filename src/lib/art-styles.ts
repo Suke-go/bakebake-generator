@@ -78,22 +78,22 @@ export const ART_STYLE_PROMPTS: Record<string, {
 
     manga: {
         prompt: [
-            // 系譜
-            "In the style of Mizuki Shigeru's (水木しげる) GeGeGe no Kitarō (ゲゲゲの鬼太郎, 1965–).",
+            // 系譜（作家名なし・技法ジャンルで特定）
+            "Japanese horror manga illustration (妖怪漫画) in the gekiga (劇画) tradition of 1960s–70s yokai comics.",
             // 媒体
             "Medium: black India ink (製図インク) on Kent paper, pen nib and brush illustration.",
-            // 水木の具体的技法 — 点描
-            "Technique: dense stippling (点描) applied to yokai skin and shadows — hundreds of tiny ink dots creating an eerie, grainy texture distinct from smooth tones.",
+            // 点描＋ハッチングの重ね技法
+            "Technique: dense stippling (点描) applied to yokai skin and shadows — hundreds of tiny ink dots creating an eerie, grainy texture. Hatching and cross-hatching layered over stippling for maximum tonal depth.",
             // ベタの使用
             "Heavy beta (ベタ) solid black ink fills for deep shadows and night sky, creating stark high-contrast light/dark areas.",
-            // 背景の緻密描写（水木プロの背景ストック手法）
-            "Background: hyper-detailed realistic environment (trees, buildings, grass rendered with obsessive cross-hatching and fine linework) contrasting with the simpler yokai character design.",
-            // キャラクターデザインの具体的特徴
-            "Character design: rounded, slightly cartoonish yokai with simple dot-eyes and exaggerated expressions, placed against the photorealistic detailed background.",
+            // 背景の綻密描写
+            "Background: hyper-detailed realistic environment (trees, buildings, grass rendered with obsessive cross-hatching, fine linework, and photographic reference-level precision) creating stark contrast with the simpler yokai character design.",
+            // キャラクターデザイン
+            "Character design: yokai with rounded, slightly cartoonish proportions — simple dot-eyes or slit-eyes, exaggerated expressions — juxtaposed against the obsessively rendered background.",
             // トーン表現
             "No screentone (スクリーントーン): all shading achieved through hand-drawn stippling, hatching, and solid black areas only.",
             // 雰囲気
-            "Mood: warmly humorous yet genuinely eerie — the uncanny made approachable.",
+            "Mood: eerie and atmospheric with a sense of lived-in familiarity — the boundary between the mundane and the supernatural rendered ambiguous.",
         ].join(' '),
         negativeHints: 'photograph, photorealistic, 3D, oil painting, watercolor, realistic shading, gradient, digital coloring, screentone dots, anime cel shading, color, watermark',
     },

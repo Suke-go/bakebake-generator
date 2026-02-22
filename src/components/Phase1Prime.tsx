@@ -69,27 +69,37 @@ export default function Phase1Prime() {
     const [history, setHistory] = useState<Array<{ question: string; answer: string }>>([]);
     const scrollRef = useRef<HTMLDivElement>(null);
 
-    // サブステップを1つ戻す
-    const goBackStep = useCallback(() => {
-        if (currentStep <= 0) return;
+    // 指定したステップまで巻き戻す（そのステップ以降の回答を消去）
+    const goBackToStep = useCallback((targetStep: number) => {
+        if (targetStep < 0 || targetStep >= currentStep) return;
         setVisible(false);
         setCustomText('');
         setTimeout(() => {
-            const stepToUndo = STEPS[currentStep - 1];
+            // targetStep 以降のすべての回答を消去
             setAnswers(prev => {
                 const next = { ...prev };
-                delete next[stepToUndo.id];
+                for (let i = targetStep; i < STEPS.length; i++) {
+                    delete next[STEPS[i].id];
+                }
                 return next;
             });
-            setHistory(prev => prev.slice(0, -1));
-            if (stepToUndo.id === 'impression') {
-                setTexture('');
-                setStance('');
+            setHistory(prev => prev.slice(0, targetStep));
+            // 消去されたステップに紐づくコンテキストもリセット
+            for (let i = targetStep; i < currentStep; i++) {
+                if (STEPS[i].id === 'impression') {
+                    setTexture('');
+                    setStance('');
+                }
+                if (STEPS[i].id === 'nature') setAbsenceQuality(null);
             }
-            if (stepToUndo.id === 'nature') setAbsenceQuality(null);
-            setCurrentStep(currentStep - 1);
+            setCurrentStep(targetStep);
         }, 320);
     }, [currentStep, setTexture, setStance, setAbsenceQuality]);
+
+    // サブステップを1つ戻す（←ボタン用）
+    const goBackStep = useCallback(() => {
+        goBackToStep(currentStep - 1);
+    }, [currentStep, goBackToStep]);
 
     // ページレベルの戻るボタンにサブステップ戻りを登録
     useEffect(() => {
@@ -166,10 +176,17 @@ export default function Phase1Prime() {
                     {history.map((h, i) => (
                         <div
                             key={i}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => goBackToStep(i)}
                             style={{
                                 padding: '8px 0',
                                 opacity: Math.max(0.16, 0.52 - (history.length - 1 - i) * 0.06),
+                                cursor: 'pointer',
+                                transition: 'opacity 0.2s ease',
                             }}
+                            onPointerEnter={e => (e.currentTarget.style.opacity = '0.7')}
+                            onPointerLeave={e => (e.currentTarget.style.opacity = String(Math.max(0.16, 0.52 - (history.length - 1 - i) * 0.06)))}
                         >
                             <p
                                 style={{
@@ -252,11 +269,7 @@ export default function Phase1Prime() {
                                     e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
                                 }, 300);
                             }}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' && customText.trim()) {
-                                    answerStep(customText.trim());
-                                }
-                            }}
+
                             style={{ flex: 1, maxWidth: 'none' }}
                         />
                         {customText.trim() && (

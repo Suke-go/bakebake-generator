@@ -65,6 +65,8 @@ export async function POST(req: NextRequest) {
         }
 
         // Also try direct push to local daemon
+        // If successful, immediately mark printed=true to prevent double-print
+        // from Supabase poller in --both mode
         let localResult: string = 'skipped';
         try {
             const resp = await fetch(`${LOCAL_DAEMON_URL}/print`, {
@@ -77,7 +79,13 @@ export async function POST(req: NextRequest) {
                     yokai_image_b64: record.yokai_image_b64,
                 }),
             });
-            localResult = resp.ok ? 'sent' : `error:${resp.status}`;
+            if (resp.ok) {
+                localResult = 'sent';
+                // Mark printed=true so online poller won't re-print
+                await supabase.from('surveys').update({ printed: true }).eq('id', id);
+            } else {
+                localResult = `error:${resp.status}`;
+            }
         } catch {
             localResult = 'daemon_offline';
         }

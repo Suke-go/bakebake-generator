@@ -25,6 +25,9 @@ Requirements:
 
 import os
 import sys
+
+# Force unbuffered stdout so daemon thread prints are visible immediately
+sys.stdout.reconfigure(line_buffering=True)
 import json
 import time
 import base64
@@ -38,6 +41,18 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Supabase client for offline mode (mark printed=true after successful local print)
+_supabase_client = None
+def _get_supabase():
+    global _supabase_client
+    if _supabase_client is None and SUPABASE_URL and SUPABASE_KEY:
+        try:
+            from supabase import create_client
+            _supabase_client = create_client(SUPABASE_URL, SUPABASE_KEY)
+        except Exception as e:
+            print(f"[SUPABASE] Could not create client: {e}")
+    return _supabase_client
+
 # ──────────────────────────────────────────────
 # Configuration
 # ──────────────────────────────────────────────
@@ -50,18 +65,22 @@ LOCAL_PORT = 5555            # HTTP API port for offline mode
 
 
 # ──────────────────────────────────────────────
-# Printer Initialization
+# Printer Configuration
 # ──────────────────────────────────────────────
-def init_printer():
+PRINTER_PROFILE = "TM-L90"  # Closest match for TM-T90II (same DPI/width: 203dpi, 576px)
+
+def open_printer():
     """
-    Try Win32Raw (APD on Windows) first.
-    Fall back to Dummy for testing on macOS/Linux.
+    Create a fresh printer connection.
+    IMPORTANT: Win32Raw.open() calls StartDocPrinter/StartPagePrinter.
+    You MUST call printer.close() after printing to trigger
+    EndPagePrinter/EndDocPrinter, which flushes the Windows spooler.
+    Without close(), data stays in the spooler and never reaches the printer.
     """
     try:
         from escpos.printer import Win32Raw
-        printer = Win32Raw(PRINTER_NAME)
-        print(f"[PRINTER] Connected: {PRINTER_NAME} (Win32Raw via APD)")
-        return printer
+        p = Win32Raw(PRINTER_NAME, profile=PRINTER_PROFILE)
+        return p
     except ImportError:
         print("[PRINTER] Win32Raw not available. Using Dummy printer.")
         from escpos.printer import Dummy
@@ -81,8 +100,12 @@ def init_printer():
         from escpos.printer import Dummy
         return Dummy()
 
+# Verify printer is accessible on startup
+_test_printer = open_printer()
+print(f"[PRINTER] Verified: {PRINTER_NAME} (profile={PRINTER_PROFILE})")
+_test_printer.close()
+del _test_printer
 
-printer = init_printer()
 # Thread lock so two modes don't print at the same time.
 print_lock = threading.Lock()
 
@@ -161,9 +184,9 @@ def decode_image(image_b64):
 # ──────────────────────────────────────────────
 # Print Function
 # ──────────────────────────────────────────────
-def _raw_text(text):
+def _raw_text(p, text):
     """Encode text as CP932 (Shift_JIS) and send to printer."""
-    printer._raw(text.encode("cp932", errors="replace"))
+    p._raw(text.encode("cp932", errors="replace"))
 
 
 def print_yokai(data):
@@ -171,7 +194,8 @@ def print_yokai(data):
     Print a yokai receipt.
     `data` is a dict with keys: yokai_name, yokai_desc, yokai_image_b64 (optional).
     Thread-safe via print_lock.
-    Uses raw ESC/POS with Kanji mode for Japanese text support.
+    Opens a fresh printer connection per job and closes it after,
+    which triggers EndDocPrinter/EndPagePrinter to flush the Windows spooler.
     """
     name = data.get("yokai_name", "名無しの妖")
     desc = data.get("yokai_desc", "")
@@ -180,61 +204,68 @@ def print_yokai(data):
 
     with print_lock:
         print(f"[PRINT] Job {record_id}: {name}")
+        p = None
         try:
+            p = open_printer()
+
             # ESC @ — Initialize printer
-            printer._raw(b"\x1b\x40")
+            p._raw(b"\x1b\x40")
             # FS & — Select Kanji character mode
-            printer._raw(b"\x1c\x26")
+            p._raw(b"\x1c\x26")
             # FS C 1 — Shift_JIS code system
-            printer._raw(b"\x1c\x43\x01")
+            p._raw(b"\x1c\x43\x01")
 
             # Header: center, bold, double size
-            printer._raw(b"\x1b\x61\x01")  # center
-            printer._raw(b"\x1b\x45\x01")  # bold ON
-            printer._raw(b"\x1d\x21\x11")  # double width+height
-            _raw_text("BAKEBAKE_XR\n")
+            p._raw(b"\x1b\x61\x01")  # center
+            p._raw(b"\x1b\x45\x01")  # bold ON
+            p._raw(b"\x1d\x21\x11")  # double width+height
+            _raw_text(p, "BAKEBAKE_XR\n")
 
             # Normal size
-            printer._raw(b"\x1d\x21\x00")
-            printer._raw(b"\x1b\x45\x00")  # bold OFF
-            _raw_text("━━━━━━━━━━━━━━━━━━\n")
-            _raw_text("【 観測記録 】\n\n")
+            p._raw(b"\x1d\x21\x00")
+            p._raw(b"\x1b\x45\x00")  # bold OFF
+            _raw_text(p, "━━━━━━━━━━━━━━━━━━\n")
+            _raw_text(p, "【 観測記録 】\n\n")
 
             # Image
             if image_b64:
                 try:
                     img = decode_image(image_b64)
                     img = prepare_image(img)
-                    printer.image(img)
-                    _raw_text("\n")
+                    p.image(img)
+                    _raw_text(p, "\n")
                     # Re-enable Kanji mode after image (image command may reset)
-                    printer._raw(b"\x1c\x26")
-                    printer._raw(b"\x1c\x43\x01")
+                    p._raw(b"\x1c\x26")
+                    p._raw(b"\x1c\x43\x01")
                 except Exception as img_err:
                     print(f"[PRINT] Image error (skipping): {img_err}")
 
             # Name: center, bold, double size
-            printer._raw(b"\x1b\x61\x01")
-            printer._raw(b"\x1b\x45\x01")
-            printer._raw(b"\x1d\x21\x11")
-            _raw_text(f"{name}\n")
-            printer._raw(b"\x1d\x21\x00")
-            printer._raw(b"\x1b\x45\x00")
-            _raw_text("\n")
+            p._raw(b"\x1b\x61\x01")
+            p._raw(b"\x1b\x45\x01")
+            p._raw(b"\x1d\x21\x11")
+            _raw_text(p, f"{name}\n")
+            p._raw(b"\x1d\x21\x00")
+            p._raw(b"\x1b\x45\x00")
+            _raw_text(p, "\n")
 
             # Description: left align
             if desc:
-                printer._raw(b"\x1b\x61\x00")  # left align
-                _raw_text(f"{desc}\n\n")
+                p._raw(b"\x1b\x61\x00")  # left align
+                _raw_text(p, f"{desc}\n\n")
 
             # Footer: center
-            printer._raw(b"\x1b\x61\x01")
-            _raw_text("━━━━━━━━━━━━━━━━━━\n")
-            _raw_text("この記録は感熱紙に印刷されています。\n")
-            _raw_text("時間が経てば、この記憶も消えます。\n\n\n\n")
+            p._raw(b"\x1b\x61\x01")
+            _raw_text(p, "━━━━━━━━━━━━━━━━━━\n")
+            _raw_text(p, "この記録は感熱紙に印刷されています。\n")
+            _raw_text(p, "時間が経てば、この記憶も消えます。\n\n\n\n")
 
             # Cut
-            printer._raw(b"\x1d\x56\x00")
+            p._raw(b"\x1d\x56\x00")
+
+            # Close triggers EndDocPrinter → flush to physical printer
+            p.close()
+            p = None
 
             print(f"[PRINT] Done: {record_id}")
             _recent_jobs.append({"id": record_id, "name": name, "time": time.strftime("%H:%M:%S")})
@@ -245,6 +276,13 @@ def print_yokai(data):
         except Exception as e:
             print(f"[PRINT] Error: {e}")
             return False
+        finally:
+            # Ensure printer is closed even on error
+            if p is not None:
+                try:
+                    p.close()
+                except Exception:
+                    pass
 
 
 # ──────────────────────────────────────────────
@@ -276,20 +314,36 @@ def start_online_mode():
 
     # Polling loop
     print(f"[ONLINE] Polling every {POLL_INTERVAL}s...")
+    tick = 0
     while True:
         try:
             time.sleep(POLL_INTERVAL)
+            tick += 1
+            # Lightweight query: only fetch IDs to detect pending jobs
+            # Avoids pulling multi-MB yokai_image_b64 on every poll
             resp = (
                 supabase.table("surveys")
-                .select("*")
+                .select("id")
                 .eq("print_triggered", True)
                 .eq("printed", False)
                 .execute()
             )
             if resp.data:
                 print(f"[ONLINE] {len(resp.data)} pending job(s).")
-                for record in resp.data:
-                    _handle_online_job(supabase, record)
+                for stub in resp.data:
+                    # Now fetch full record for this specific job
+                    full = (
+                        supabase.table("surveys")
+                        .select("*")
+                        .eq("id", stub["id"])
+                        .single()
+                        .execute()
+                    )
+                    if full.data:
+                        _handle_online_job(supabase, full.data)
+            elif tick % 6 == 0:
+                # Log a heartbeat every ~60s so we know the poller is alive
+                print(f"[ONLINE] Heartbeat (tick {tick}): no pending jobs.")
         except KeyboardInterrupt:
             break
         except Exception as e:
@@ -362,6 +416,16 @@ def start_offline_mode():
         success = print_yokai(data)
 
         if success:
+            # Mark as printed in Supabase so admin dashboard reflects reality
+            record_id = data.get("id")
+            if record_id:
+                sb = _get_supabase()
+                if sb:
+                    try:
+                        sb.table("surveys").update({"printed": True}).eq("id", record_id).execute()
+                        print(f"[OFFLINE] Marked {record_id} as printed in Supabase.")
+                    except Exception as db_err:
+                        print(f"[OFFLINE] Supabase update failed (print was OK): {db_err}")
             return jsonify({"status": "printed", "yokai_name": name})
         else:
             # Enqueue for retry on next daemon cycle
