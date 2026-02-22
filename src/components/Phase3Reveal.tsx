@@ -422,24 +422,52 @@ export default function Phase3Reveal() {
             apiDoneRef.current = true;
 
             // 生成完了時に自動保存
-            if (state.ticketId && data.imageBase64) {
+            if (data.imageBase64) {
                 try {
                     const compressedB64 = await compressImage(
                         `data:${data.imageMimeType};base64,${data.imageBase64}`
                     );
-                    await supabase
-                        .from('surveys')
-                        .update({
-                            yokai_name: state.selectedConcept!.name,
-                            yokai_desc: data.narrative,
-                            yokai_image_b64: compressedB64,
-                        })
-                        .eq('id', state.ticketId);
-                    setSaveSuccess(true);
+                    const yokaiPayload = {
+                        yokai_name: state.selectedConcept!.name,
+                        yokai_desc: data.narrative,
+                        yokai_image_b64: compressedB64,
+                    };
+
+                    if (state.ticketId) {
+                        // ticketId あり → 既存行を UPDATE
+                        console.log('[Phase3Reveal] Updating yokai in DB for ticketId:', state.ticketId);
+                        const { error: updateError } = await supabase
+                            .from('surveys')
+                            .update(yokaiPayload)
+                            .eq('id', state.ticketId);
+                        if (updateError) {
+                            console.error('[Phase3Reveal] Supabase update error:', updateError);
+                            setSaveError(`DB保存エラー: ${updateError.message}`);
+                        } else {
+                            console.log('[Phase3Reveal] Yokai updated successfully');
+                            setSaveSuccess(true);
+                        }
+                    } else {
+                        // ticketId なし → 新規行を INSERT（展示端末のみの体験など）
+                        console.warn('[Phase3Reveal] No ticketId — inserting new row');
+                        const { data: inserted, error: insertError } = await supabase
+                            .from('surveys')
+                            .insert([yokaiPayload])
+                            .select();
+                        if (insertError) {
+                            console.error('[Phase3Reveal] Supabase insert error:', insertError);
+                            setSaveError(`DB保存エラー: ${insertError.message}`);
+                        } else {
+                            console.log('[Phase3Reveal] Yokai inserted as new row:', inserted?.[0]?.id);
+                            setSaveSuccess(true);
+                        }
+                    }
                 } catch (saveErr) {
-                    console.error('Auto-save error:', saveErr);
+                    console.error('[Phase3Reveal] Auto-save exception:', saveErr);
                     setSaveError('記録の自動保存に失敗しました。');
                 }
+            } else {
+                console.warn('[Phase3Reveal] No image data, skipping DB save');
             }
         } catch (err) {
             if (!mountedRef.current || requestId !== reqRef.current) {

@@ -35,7 +35,7 @@
 html,
 body {
   width: 100%;
-  height: 100%;
+  min-height: 100dvh;
   overflow: auto;
   background: radial-gradient(circle at 50% 40%, hsl(230, 15%, 8%) 0%, hsl(230, 24%, 2%) 100%);
   color: var(--text-bright);
@@ -43,8 +43,22 @@ body {
   font-weight: 400;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* user-select:none は展示端末（generator）のみに適用 */
+[data-yokai-zone="generator-main"] {
   -webkit-user-select: none;
   user-select: none;
+}
+
+/* =======================================================
+   Survey pages (participant smartphone) — scroll & input fixes
+   ======================================================= */
+[data-yokai-zone^="survey"] {
+  -webkit-user-select: auto;
+  user-select: auto;
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto !important;
 }
 
 /* === Layout — tablet-first === */

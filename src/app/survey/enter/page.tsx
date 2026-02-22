@@ -46,7 +46,7 @@ function ConsentScreen({ onAccept, onDecline, isDeclining }: { onAccept: () => v
     ];
 
     return (
-        <div style={{
+        <div data-yokai-zone="survey-enter-consent" style={{
             minHeight: '100dvh',
             padding: '2rem 1rem 4rem 1rem',
             display: 'flex',
@@ -270,7 +270,7 @@ export default function SurveyEnterPage() {
     }
 
     return (
-        <div style={{
+        <div data-yokai-zone="survey-enter-page" style={{
             minHeight: '100dvh',
             padding: '2rem 1rem 4rem 1rem',
             display: 'flex',
