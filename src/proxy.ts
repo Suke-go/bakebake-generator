@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
  * PIN-based protection for /admin and /generator routes.
  * Checks for a valid auth cookie; redirects to /auth if missing.
  */
-const PROTECTED_PATHS = ['/admin', '/generator'];
+const PROTECTED_PATHS = ['/admin', '/generator', '/collection'];
 
 export function proxy(req: NextRequest) {
     const { pathname } = req.nextUrl;
@@ -29,5 +29,5 @@ export function proxy(req: NextRequest) {
 }
 
 export const config = {
-    matcher: ['/admin/:path*', '/generator/:path*'],
+    matcher: ['/admin/:path*', '/generator/:path*', '/collection/:path*'],
 };
