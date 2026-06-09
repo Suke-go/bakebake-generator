@@ -47,6 +47,25 @@ next-env.d.ts
 /data/analysis/projection-matrix.json
 /data/analysis/projected-embeddings.json
 /data/analysis/projected-meta.json
+/data/analysis/paper_experiments/
+/data/analysis/shuken/
+/data/analysis/structure_bias/
+/data/analysis/structure_bias_highfreq/
+/data/analysis/tda/
+/data/analysis/contrastive-pairs.json
+/data/nichibun/
+
+# experiment data (raw participant material, large image dirs)
+/experiment/data/surveys_*.csv
+/experiment/data/yokai_gallery.html
+/experiment/data/all_images/
+/experiment/data/cluster_images/
+/experiment/data/img_samples/
+
+# paper artifacts (privacy / large / superseded)
+/paper/siggraph/figures/EXPO/
+/paper/siggraph/siggraph_art_paper_draft_v3.pdf
+/paper/drafts/figures/
 
 # python
 .venv*/
@@ -54,3 +73,20 @@ next-env.d.ts
 **/.venv/
 __pycache__/
 *.pyc
+
+# LaTeX build artifacts
+*.aux
+*.log
+*.fls
+*.fdb_latexmk
+*.out
+*.spl
+*.bbl
+*.blg
+*.synctex.gz
+missfont.log
+texput.*
+lualatex*.fls
+.texcache/
+.texmf-var/
+.tmp/

@@ -1,0 +1,191 @@
+﻿N post-completed: 37
+
+================================================================================
+ALL POST-COMPLETED RESPONSES (sorted by date)
+================================================================================
+
+[ 1] 2026-02-21 | 一般来場者 | nan | pre_image='妖怪ウォッチ' | yokai='夕冷'
+     Pre/post perception: nan -> nan
+     Theme: 妖怪の文化自体の理解を支援する体験
+     Impression: nan
+
+[ 2] 2026-02-21 | 一般来場者 | 40代 | pre_image='な' | yokai='背後霊'
+     Pre/post perception: psychology -> culture
+     Theme: z
+     Impression: nan
+
+[ 3] 2026-02-21 | 妖怪・怪談の愛好家 | 10代 | pre_image='ばっけもん' | yokai='脚'
+     Pre/post perception: scary -> psychology
+     Theme: 人の認識や疑問を具象化して、受容するための作品。
+     Impression: 類似の妖怪が一覧になって出てきた後、名前をつける場面。
+
+[ 4] 2026-02-22 | その他 | 40代 | pre_image='電源よこせ' | yokai='道紛いの'
+     Pre/post perception: character -> scary
+     Theme: bh
+     Impression: nan
+
+[ 5] 2026-02-22 | 一般来場者 | 30代 | pre_image='空亡' | yokai='水辺の眼'
+     Pre/post perception: culture -> psychology
+     Theme: 監視者
+     Impression: nan
+
+[ 6] 2026-02-22 | 展示・クリエイティブ関係者 | 40代 | pre_image='寛容' | yokai='帰置物'
+     Pre/post perception: psychology -> psychology
+     Theme: 妖怪
+     Impression: 姿が意外だった
+
+[ 7] 2026-02-22 | 妖怪・怪談の愛好家 | 20代 | pre_image='かわいい' | yokai='帰置物'
+     Pre/post perception: culture -> culture
+     Theme: 感覚
+     Impression: nan
+
+[ 8] 2026-02-22 | その他 | 40代 | pre_image='かわいい' | yokai='腹切夢'
+     Pre/post perception: psychology -> psychology
+     Theme: 自分の中の不思議を目に見えて納得感が増し、そうなんだあと言う感じ。
+     Impression: nan
+
+[ 9] 2026-02-22 | 妖怪・怪談の愛好家 | 30代 | pre_image='地域文化' | yokai='ソコカシコ'
+     Pre/post perception: culture -> culture
+     Theme: 妖怪存在の生成プロセスの追体験
+     Impression: 名前の生成
+
+[10] 2026-02-22 | 一般来場者 | 50代以上 | pre_image='こなきじじい' | yokai='夜道足音'
+     Pre/post perception: culture -> culture
+     Theme: のっぺらぼう
+     Impression: 映像が妖怪感があってよかった
+
+[11] 2026-02-22 | 妖怪・怪談の愛好家 | 40代 | pre_image='怖い' | yokai='視線彷徨'
+     Pre/post perception: scary -> spiritual
+     Theme: 見えないものの実体化
+     Impression: Ai生成
+
+[12] 2026-02-22 | 一般来場者 | 30代 | pre_image='怖い、不思議' | yokai='ソコハカ'
+     Pre/post perception: culture -> character
+     Theme: 妖怪
+     Impression: nan
+
+[13] 2026-02-22 | 妖怪・怪談の愛好家 | 10代 | pre_image='ほとんど見えない' | yokai='潜視'
+     Pre/post perception: character -> culture
+     Theme: 妖怪の恐ろしさ
+     Impression: 妖怪作り
+
+[14] 2026-02-22 | 一般来場者 | 10代 | pre_image='不思議' | yokai='コエダマ'
+     Pre/post perception: culture -> none
+     Theme: 現象の視覚化
+     Impression: nan
+
+[15] 2026-02-22 | 展示・クリエイティブ関係者 | 30代 | pre_image='日本の生活と地続き' | yokai='チロリ'
+     Pre/post perception: culture -> culture
+     Theme: 伝承の普及
+     Impression: アニメーション
+
+[16] 2026-02-22 | 一般来場者 | 20代 | pre_image='空想的' | yokai='工場夕影'
+     Pre/post perception: character -> scary
+     Theme: 現代社会で身の回りにひそむ妖怪の可視化や再解釈に関する作品だと思った．
+     Impression: AIの力で何となく怖いと感じていた現象を実体化できた事
+
+[17] 2026-02-22 | 一般来場者 | 10代 | pre_image='文化的' | yokai='通り月'
+     Pre/post perception: psychology -> psychology
+     Theme: 現代の妖怪について
+     Impression: 自分の経験から妖怪を生成でき、妖怪に親近感が湧いた
+
+[18] 2026-02-22 | その他 | 40代 | pre_image='おもしろい' | yokai='寝際声聞'
+     Pre/post perception: psychology -> psychology
+     Theme: 妖怪
+     Impression: 自分の体験が簡単に妖怪となる
+
+[19] 2026-02-28 | 一般来場者 | 20代 | pre_image='不気味' | yokai='ソコカシコ'
+     Pre/post perception: culture -> psychology
+     Theme: 妖怪を身近に感じてもらう
+     Impression: 元々存在している妖怪のデータベースから検索している場面。
+
+[20] 2026-02-28 | その他 | 20代 | pre_image='夜' | yokai='視線彷徨'
+     Pre/post perception: psychology -> none
+     Theme: 妖怪退治（安倍晴明物語のような）
+     Impression: nan
+
+[21] 2026-02-28 | 研究者・教育・文化関係者 | 40代 | pre_image='日文研' | yokai='冷魂様'
+     Pre/post perception: culture -> psychology
+     Theme: 文化認知
+     Impression: 制作体験の楽しさ
+
+[22] 2026-02-28 | 研究者・教育・文化関係者 | 30代 | pre_image='奇妙' | yokai='夕暮足音'
+     Pre/post perception: character -> psychology
+     Theme: 現代人の考える妖怪性の具体化
+     Impression: nan
+
+[23] 2026-02-28 | 一般来場者 | 20代 | pre_image='柳田國男' | yokai='ソコハナイ'
+     Pre/post perception: culture -> spiritual
+     Theme: 怪異
+     Impression: 画像の生成
+
+[24] 2026-03-12 | その他 | 20代 | pre_image='和風の不気味さ' | yokai='験収不順'
+     Pre/post perception: none -> none
+     Theme: 不思議を具現化するもの
+     Impression: 背景の丸いお化けが妖怪とは思えないようなキャラだったこと
+
+[25] 2026-03-13 | 研究者・教育・文化関係者 | 20代 | pre_image='怖い' | yokai='ヒヤヒヤ'
+     Pre/post perception: culture -> psychology
+     Theme: 妖怪に親しもうのもの
+     Impression: 体験に似た妖怪の例が出てくるのが面白かった。
+
+[26] 2026-03-14 | 一般来場者 | 20代 | pre_image='日本風の妖怪。女性' | yokai='アハアハ化け化け'
+     Pre/post perception: psychology -> psychology
+     Theme: 素粒子とアハ体験についてのお化け的体験の作品
+     Impression: 印象に残ったのは，素粒子が宇宙からきているという宇宙線の概念をきちんと絵として生成出来ているのがとても印象的でした．
+しかし，アハ体験はアハっとなる必要があるので，アハ的な画像は生成されていなかった．
+
+[27] 2026-03-14 | 一般来場者 | 10代 | pre_image='昔話' | yokai='猫視無人（びょうしむじん）'
+     Pre/post perception: culture -> psychology
+     Theme: 人が何を怪奇現象だと思うかを理解する作品．抽象的な想像を具体的なイメージに落とし込む，妖怪にすることで，人の思う不思議を可視化する
+     Impression: 妖怪の画像生成
+
+[28] 2026-03-25 | 一般来場者 | 10代 | pre_image='恐ろしい' | yokai='室棲霊'
+     Pre/post perception: culture -> scary
+     Theme: みえないものを見えるようにすること
+     Impression: 妖怪の見た目を可視化できること
+
+[29] 2026-03-25 | 一般来場者 | 10代 | pre_image='かわいい' | yokai='電'
+     Pre/post perception: psychology -> psychology
+     Theme: 妖怪についての作品だと思いました。
+     Impression: nan
+
+[30] 2026-03-25 | 一般来場者 | 10代 | pre_image='白い' | yokai='チロリ'
+     Pre/post perception: culture -> psychology
+     Theme: 想像上の生き物を具現化できる作品
+     Impression: V R体験は文化財をどんな環境でも見ることができる画期的なアイデアだなと思いました。近いうちに広まっていく可能性もあるので先取りで体験できてよかったです
+
+[31] 2026-05-08 | 一般来場者 | 30代 | pre_image='ろくろっ首' | yokai='気配'
+     Pre/post perception: character -> psychology
+     Theme: 妖怪
+     Impression: 絵をおみやげとしてもらえるところ
+
+[32] 2026-05-12 | 一般来場者 | 10代 | pre_image='妖怪' | yokai='トツトツ'
+     Pre/post perception: culture -> none
+     Theme: 妖怪の生成
+     Impression: nan
+
+[33] 2026-05-12 | 一般来場者 | 40代 | pre_image='ファンタジー' | yokai='戸越し影'
+     Pre/post perception: culture -> psychology
+     Theme: 妖怪と聞いて、自分の中にある不安やわからない感情を可視化する作品
+     Impression: QRコードを読み取った後のアンケート
+
+[34] 2026-05-12 | 一般来場者 | 20代 | pre_image='愛らしい' | yokai='彩子'
+     Pre/post perception: culture -> culture
+     Theme: 画像生成と探索
+     Impression: 妖怪がでてくるまえに情景を想起させるところ
+
+[35] 2026-05-12 | 一般来場者 | 20代 | pre_image='古典' | yokai='置忘神'
+     Pre/post perception: culture -> psychology
+     Theme: 潜在意識の可視化
+     Impression: nan
+
+[36] 2026-05-12 | その他 | 20代 | pre_image='ぬらりひょん' | yokai='暗がり辻の'
+     Pre/post perception: character -> spiritual
+     Theme: 妖怪に関する作品。ユーザーの感情を元に、新しい妖怪を生み出し・提案してくれる作品
+     Impression: 妖怪の命名候補を出すときの演出
+
+[37] 2026-05-12 | 展示・クリエイティブ関係者 | 20代 | pre_image='ぬーべー' | yokai='ソコハカニ'
+     Pre/post perception: character -> psychology
+     Theme: 地獄の絵巻図にでてきそう
+     Impression: nan

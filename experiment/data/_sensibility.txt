@@ -1,0 +1,79 @@
+﻿================================================================================
+SENSIBILITY CODING — Contemporary cluster (8) vs Other generated (58)
+================================================================================
+Code                                Cluster (n=8)        Other (n=58)         Ratio     
+-------------------------------------------------------------------------------------
+perception/invisibility             6/8 (  75%)         34/58 (  59%)         1.3x
+perception/presence-felt            4/8 (  50%)         45/58 (  78%)         0.6x
+perception/cold-temperature         2/8 (  25%)         9/58 (  16%)         1.6x
+perception/silence-stillness        0/8 (   0%)         4/58 (   7%)         0.0x
+effect/drain-erosion                2/8 (  25%)         3/58 (   5%)         4.8x
+effect/multiplication-stagnation    2/8 (  25%)         0/58 (   0%)         —
+effect/disappearance                0/8 (   0%)         4/58 (   7%)         0.0x
+effect/intrusion-of-image           1/8 (  12%)         0/58 (   0%)         —
+locus/workplace                     5/8 (  62%)         0/58 (   0%)         —
+locus/institutional-data            1/8 (  12%)         0/58 (   0%)         —
+locus/infrastructure                1/8 (  12%)         0/58 (   0%)         —
+locus/photographic                  2/8 (  25%)         0/58 (   0%)         —
+locus/screen-mediated               0/8 (   0%)         0/58 (   0%)         —
+time/night-overtime                 3/8 (  38%)         23/58 (  40%)         0.9x
+time/twilight-boundary              2/8 (  25%)         11/58 (  19%)         1.3x
+agency/no-named-cause               4/8 (  50%)         25/58 (  43%)         1.2x
+
+================================================================================
+CORPUS BASELINE — frequency of code tokens in 35,305 Nichibunken entries
+================================================================================
+Code                                Corpus %  
+---------------------------------------------
+perception/invisibility              0.67%
+perception/presence-felt             0.56%
+perception/cold-temperature          0.71%
+perception/silence-stillness         0.18%
+effect/drain-erosion                 0.50%
+effect/multiplication-stagnation     0.28%
+effect/disappearance                 4.06%
+effect/intrusion-of-image            0.00%
+locus/workplace                      0.00%
+locus/institutional-data             0.07%
+locus/infrastructure                 0.00%
+locus/photographic                   0.12%
+locus/screen-mediated                0.00%
+time/night-overtime                 12.41%
+time/twilight-boundary               1.89%
+agency/no-named-cause                1.51%
+
+================================================================================
+PER-YOKAI CODE PROFILE
+================================================================================
+
+  夕冷:
+    codes: locus/workplace, time/night-overtime, time/twilight-boundary
+    desc: 薄暮の街の職場や学校で、夕方になると「夕冷」に遭うと伝えられる。財布などが見つからずひやりとし、物が戻っても置いた覚えがないのは、夜闇に溶けた記憶を幻に変える仕業という。
+
+  チリン:
+    codes: perception/invisibility, perception/presence-felt, perception/cold-temperature, locus/photographic, time/night-overtime, agency/no-named-cause
+    desc: とある地域の夜の道、通勤・通学路で「チリン」と呼ばれる怪異が伝えられている。幽霊機関車のごとく姿は見えぬが、冷たい風鈴の音と共に写真の奥から視線を感じ、人々は凍てつくような寒気に見舞われるという。
+
+  断電彷徨:
+    codes: perception/invisibility, perception/presence-felt, perception/cold-temperature, effect/drain-erosion, locus/infrastructure, agency/no-named-cause
+    desc: イベント会場にて、準備不足の折に現れるという怪異。「断電彷徨」と名付けられ、姿は見えぬが、冷たい気配が電源断の後に場を彷徨うと伝えられる。それはまるで人の熱気を吸い取る黒い影のようだと聞く。
+
+  忘置返:
+    codes: perception/presence-felt, locus/workplace
+    desc: 職場や学校にて、物を置き忘れたかと思えば、いつの間にか元の場所へ戻っていることがあるという。人知れぬ気配はあるものの、姿は見せず、日常に現れる「忘置返（わすれおきがえし）」の仕業と伝えられている。
+
+  通り月:
+    codes: perception/invisibility, effect/drain-erosion, effect/intrusion-of-image, locus/workplace
+    desc: 職場や学校にて、苦手な知人の影が脳裏を通り過ぎると、まるで重い月に捕らわれたように体が動かず、不快と寂しさが募るという。姿は見えぬが、心身を深く蝕む通り月と伝えられている。
+
+  工場夕影:
+    codes: perception/invisibility, perception/presence-felt, locus/photographic, time/twilight-boundary, agency/no-named-cause
+    desc: 逢魔時、町工場に現れる怪異といい、撮影された写真には、顔が抜け落ちた人が写ると伝えられる。それは姿なき気配のみを伴い、見る者を底知れぬ深淵へ誘う工場夕影の仕業という。
+
+  増殖残業:
+    codes: perception/invisibility, effect/multiplication-stagnation, locus/workplace, time/night-overtime, agency/no-named-cause
+    desc: 夜、職場や学校にて、どれほど仕事を片付けても決して減らず、むしろ帳尻が合わぬほど増える怪異と伝わる。目に見えぬ力で作業が膨らむため、人々はこれを増殖残業と呼ぶという。
+
+  験収不順:
+    codes: perception/invisibility, effect/multiplication-stagnation, locus/workplace, locus/institutional-data
+    desc: 職場や学校の、資料が澱む水際に験収不順は現れるという。人の気分に左右され、姿は見えねどデータ収率を狂わせ、調査を消化不良にすると伝えられる。
