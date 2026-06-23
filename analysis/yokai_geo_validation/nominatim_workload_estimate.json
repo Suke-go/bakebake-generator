@@ -1,0 +1,210 @@
+{
+  "input": "data/nichibun/nichibun_ner.json",
+  "records": 33378,
+  "unique_prefecture_place_queries": 9015,
+  "first_50_queries": [
+    {
+      "prefecture": "青森県",
+      "place": "阿弥陀"
+    },
+    {
+      "prefecture": "青森県",
+      "place": "梵珠山"
+    },
+    {
+      "prefecture": "青森県",
+      "place": "野内村"
+    },
+    {
+      "prefecture": "福岡県",
+      "place": "根子岳"
+    },
+    {
+      "prefecture": "長野県",
+      "place": "国分寺"
+    },
+    {
+      "prefecture": "長野県",
+      "place": "須川池"
+    },
+    {
+      "prefecture": "石川県",
+      "place": "倉嶽村"
+    },
+    {
+      "prefecture": "新潟県",
+      "place": "越後"
+    },
+    {
+      "prefecture": "新潟県",
+      "place": "佐渡"
+    },
+    {
+      "prefecture": "和歌山県",
+      "place": "金剛院"
+    },
+    {
+      "prefecture": "愛知県",
+      "place": "王塚"
+    },
+    {
+      "prefecture": "山口県",
+      "place": "瀬戸"
+    },
+    {
+      "prefecture": "長野県",
+      "place": "松原"
+    },
+    {
+      "prefecture": "長野県",
+      "place": "伏見稲荷"
+    },
+    {
+      "prefecture": "長野県",
+      "place": "狐憑き"
+    },
+    {
+      "prefecture": "千葉県",
+      "place": "宗像村"
+    },
+    {
+      "prefecture": "和歌山県",
+      "place": "伏見稲荷"
+    },
+    {
+      "prefecture": "静岡県",
+      "place": "川根村"
+    },
+    {
+      "prefecture": "北海道",
+      "place": "ミンツチ"
+    },
+    {
+      "prefecture": "岩手県",
+      "place": "北上川"
+    },
+    {
+      "prefecture": "熊本県",
+      "place": "天草"
+    },
+    {
+      "prefecture": "長崎県",
+      "place": "対馬"
+    },
+    {
+      "prefecture": "佐賀県",
+      "place": "肥前"
+    },
+    {
+      "prefecture": "京都府",
+      "place": "祇園祭"
+    },
+    {
+      "prefecture": "徳島県",
+      "place": "阿波"
+    },
+    {
+      "prefecture": "大阪府",
+      "place": "ショーモン"
+    },
+    {
+      "prefecture": "大分県",
+      "place": "豊後"
+    },
+    {
+      "prefecture": "佐賀県",
+      "place": "潮見神社"
+    },
+    {
+      "prefecture": "佐賀県",
+      "place": "春日神社"
+    },
+    {
+      "prefecture": "岩手県",
+      "place": "日田"
+    },
+    {
+      "prefecture": "長野県",
+      "place": "東筑摩郡"
+    },
+    {
+      "prefecture": "長野県",
+      "place": "中山村"
+    },
+    {
+      "prefecture": "長野県",
+      "place": "松本村"
+    },
+    {
+      "prefecture": "長野県",
+      "place": "弘法山"
+    },
+    {
+      "prefecture": "長野県",
+      "place": "鉢伏山"
+    },
+    {
+      "prefecture": "長野県",
+      "place": "西山"
+    },
+    {
+      "prefecture": "長野県",
+      "place": "本郷村"
+    },
+    {
+      "prefecture": "長野県",
+      "place": "宗賀村"
+    },
+    {
+      "prefecture": "長野県",
+      "place": "北新"
+    },
+    {
+      "prefecture": "長野県",
+      "place": "島立村"
+    },
+    {
+      "prefecture": "長野県",
+      "place": "信州"
+    },
+    {
+      "prefecture": "長野県",
+      "place": "明神"
+    },
+    {
+      "prefecture": "石川県",
+      "place": "末吉村"
+    },
+    {
+      "prefecture": "石川県",
+      "place": "上野村"
+    },
+    {
+      "prefecture": "石川県",
+      "place": "上野"
+    },
+    {
+      "prefecture": "山口県",
+      "place": "伊予"
+    },
+    {
+      "prefecture": "愛媛県",
+      "place": "松山"
+    },
+    {
+      "prefecture": "愛知県",
+      "place": "須弥壇"
+    },
+    {
+      "prefecture": "岡山県",
+      "place": "阿弥陀堂"
+    },
+    {
+      "prefecture": "神奈川県",
+      "place": "善波峠"
+    }
+  ],
+  "estimated_public_nominatim_runtime_seconds_at_1rps": 9015,
+  "estimated_public_nominatim_runtime_hours_at_1rps": 2.504,
+  "note": "Dry-run workload estimate only; no public Nominatim requests were made."
+}

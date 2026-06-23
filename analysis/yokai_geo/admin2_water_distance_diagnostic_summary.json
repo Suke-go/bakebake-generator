@@ -1,0 +1,194 @@
+{
+  "input_records": 33378,
+  "admin2_records_with_water_distance": 1231,
+  "unique_admin2_units": 452,
+  "kappa_admin2_records": 48,
+  "kappa_unique_admin2_units": 35,
+  "kappa_prefecture_count": 21,
+  "permutations": 10000,
+  "seed": 20260615,
+  "null_model": "category labels shuffled within prefecture among admin2-refined records",
+  "results": [
+    {
+      "category": "カッパ",
+      "category_n": 48,
+      "metric": "median_dist_water_km",
+      "observed": 0.371,
+      "expected": 0.29494,
+      "z_score": -1.52186,
+      "empirical_p": 0.93591
+    },
+    {
+      "category": "カッパ",
+      "category_n": 48,
+      "metric": "mean_dist_water_km",
+      "observed": 0.35806,
+      "expected": 0.38961,
+      "z_score": 0.2815,
+      "empirical_p": 0.41976
+    },
+    {
+      "category": "カッパ",
+      "category_n": 48,
+      "metric": "share_within_2km",
+      "observed": 1.0,
+      "expected": 0.99059,
+      "z_score": 0.79491,
+      "empirical_p": 0.58494
+    },
+    {
+      "category": "カッパ",
+      "category_n": 48,
+      "metric": "share_within_0_5km",
+      "observed": 0.72917,
+      "expected": 0.73487,
+      "z_score": -0.11018,
+      "empirical_p": 0.62214
+    },
+    {
+      "category": "ヘビ・リュウ",
+      "category_n": 80,
+      "metric": "median_dist_water_km",
+      "observed": 0.2425,
+      "expected": 0.25832,
+      "z_score": 0.5981,
+      "empirical_p": 0.43866
+    },
+    {
+      "category": "ヘビ・リュウ",
+      "category_n": 80,
+      "metric": "mean_dist_water_km",
+      "observed": 0.32877,
+      "expected": 0.45613,
+      "z_score": 0.93325,
+      "empirical_p": 0.05929
+    },
+    {
+      "category": "ヘビ・リュウ",
+      "category_n": 80,
+      "metric": "share_within_2km",
+      "observed": 0.9875,
+      "expected": 0.97825,
+      "z_score": 0.70288,
+      "empirical_p": 0.43376
+    },
+    {
+      "category": "ヘビ・リュウ",
+      "category_n": 80,
+      "metric": "share_within_0_5km",
+      "observed": 0.8,
+      "expected": 0.74415,
+      "z_score": 1.35228,
+      "empirical_p": 0.11479
+    },
+    {
+      "category": "ユウレイ",
+      "category_n": 56,
+      "metric": "median_dist_water_km",
+      "observed": 0.3535,
+      "expected": 0.28432,
+      "z_score": -1.54326,
+      "empirical_p": 0.89561
+    },
+    {
+      "category": "ユウレイ",
+      "category_n": 56,
+      "metric": "mean_dist_water_km",
+      "observed": 0.52521,
+      "expected": 0.43908,
+      "z_score": -0.65505,
+      "empirical_p": 0.91001
+    },
+    {
+      "category": "ユウレイ",
+      "category_n": 56,
+      "metric": "share_within_2km",
+      "observed": 0.96429,
+      "expected": 0.98307,
+      "z_score": -1.27252,
+      "empirical_p": 0.9604
+    },
+    {
+      "category": "ユウレイ",
+      "category_n": 56,
+      "metric": "share_within_0_5km",
+      "observed": 0.71429,
+      "expected": 0.71611,
+      "z_score": -0.03444,
+      "empirical_p": 0.58404
+    },
+    {
+      "category": "キツネ",
+      "category_n": 108,
+      "metric": "median_dist_water_km",
+      "observed": 0.221,
+      "expected": 0.26836,
+      "z_score": 1.76883,
+      "empirical_p": 0.0412
+    },
+    {
+      "category": "キツネ",
+      "category_n": 108,
+      "metric": "mean_dist_water_km",
+      "observed": 0.36499,
+      "expected": 0.38517,
+      "z_score": 0.38432,
+      "empirical_p": 0.35306
+    },
+    {
+      "category": "キツネ",
+      "category_n": 108,
+      "metric": "share_within_2km",
+      "observed": 1.0,
+      "expected": 0.99867,
+      "z_score": 0.39133,
+      "empirical_p": 0.86241
+    },
+    {
+      "category": "キツネ",
+      "category_n": 108,
+      "metric": "share_within_0_5km",
+      "observed": 0.66667,
+      "expected": 0.69936,
+      "z_score": -0.89914,
+      "empirical_p": 0.84902
+    },
+    {
+      "category": "テング",
+      "category_n": 46,
+      "metric": "median_dist_water_km",
+      "observed": 0.216,
+      "expected": 0.27389,
+      "z_score": 1.16049,
+      "empirical_p": 0.06809
+    },
+    {
+      "category": "テング",
+      "category_n": 46,
+      "metric": "mean_dist_water_km",
+      "observed": 0.29587,
+      "expected": 0.35705,
+      "z_score": 1.43493,
+      "empirical_p": 0.06519
+    },
+    {
+      "category": "テング",
+      "category_n": 46,
+      "metric": "share_within_2km",
+      "observed": 1.0,
+      "expected": 0.9967,
+      "z_score": 0.40464,
+      "empirical_p": 0.85411
+    },
+    {
+      "category": "テング",
+      "category_n": 46,
+      "metric": "share_within_0_5km",
+      "observed": 0.80435,
+      "expected": 0.75783,
+      "z_score": 0.83903,
+      "empirical_p": 0.26477
+    }
+  ],
+  "interpretation": "This is a diagnostic on municipality representative points and nearest water features (W05 rivers plus Natural Earth lakes), not a test of exact narrative locations."
+}

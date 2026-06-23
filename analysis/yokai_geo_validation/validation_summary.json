@@ -1,0 +1,36 @@
+{
+  "records": 33378,
+  "has_ner_file": true,
+  "records_with_place_mentions": 9361,
+  "place_mention_coverage": 0.2805,
+  "mean_place_mentions": 0.4063,
+  "median_place_mentions": 0.0,
+  "records_with_terrain_terms": 20242,
+  "terrain_term_coverage": 0.6064,
+  "mean_terrain_terms": 1.0766,
+  "median_terrain_terms": 1.0,
+  "terrain_class_counts": {
+    "coastal": 17983,
+    "plain": 10151,
+    "mountain": 4056,
+    "inland_water": 327,
+    "valley": 861
+  },
+  "geo_level_counts": {
+    "prefecture": 33378
+  },
+  "top_categories": {
+    "その他": 19084,
+    "キツネ": 3618,
+    "ヘビ・リュウ": 2335,
+    "ユウレイ": 1641,
+    "カッパ": 1412,
+    "タヌキ": 1268,
+    "テング": 1224,
+    "オニ": 807,
+    "ヤマノカミ": 722,
+    "イヌガミ": 552,
+    "ネコ": 466,
+    "ヒノタマ": 249
+  }
+}

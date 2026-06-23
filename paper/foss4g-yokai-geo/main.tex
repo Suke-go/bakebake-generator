@@ -1,0 +1,307 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{siunitx}
+\usepackage{natbib}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{xurl}
+
+\geometry{margin=25mm}
+\graphicspath{{../../analysis/yokai_geo/}{../../analysis/yokai_geo_validation/}}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  citecolor=blue!50!black,
+  urlcolor=blue!50!black
+}
+\sisetup{
+  round-mode=places,
+  round-precision=3,
+  detect-weight=true,
+  detect-family=true
+}
+
+\title{An Open-Source Terrain-Aware Geographic Visualization Pipeline for the Nichibun Yokai Archive}
+\author{Kosuke Yokai Project}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Yokai folklore has long been discussed in relation to geography: water spirits are associated with rivers and irrigation networks, mountain beings with ridgelines and forests, and boundary phenomena with passes, roads, and transitional spaces. Yet the large-scale Nichibun Kaii-Yokai Densho Database remains primarily accessible through keyword search and tabular browsing, making it difficult to inspect whether yokai records show terrain-based clustering, center-periphery diffusion patterns, or anomalies that call for closer reading. We present an open-source geographic visualization system that transforms 33,378 cleaned Nichibun records into terrain-aware GeoJSON features and serves them through an interactive MapLibre GL map. The pipeline combines structured prefecture metadata, GiNZA-based Japanese place-name extraction, rule-based terrain-term extraction, an optional cached OpenStreetMap Nominatim refinement stage, GeoPandas enrichment with GADM and Natural Earth layers, and a Next.js API. The interface provides point, density, and terrain views for moving between individual records, large-scale concentration patterns, and landscape context. In the reported reproducible baseline, all records receive prefecture-level coordinates; 9,361 records (28.1\%) contain extracted place mentions; and 20,242 records (60.6\%) contain terrain terms. Text-aware enrichment assigns records to five terrain classes: coastal, plain, mountain, valley, and inland-water. A category-by-terrain diagnostic shows a statistically significant but modest association ($\chi^2=2090.40$, df = 44, $p<10^{-300}$, Cramer's $V=0.125$), with strong residuals for expected patterns such as yama-no-kami in mountain contexts and snake/dragon records in inland-water contexts. Because the current experiment uses prefecture centroids, these results validate the reproducible pipeline and expose metadata-level spatial structure rather than prove fine-grained ecological relationships. The contribution is a FOSS4G stack for making yokai geography inspectable, extensible, and ready for higher-resolution geocoding and hypothesis testing.
+\end{abstract}
+
+\section{Introduction}
+
+Japanese yokai traditions are deeply spatial. In classic folklore scholarship, supernatural beings, phenomena, and anomalies are not only narrative motifs but also geographical phenomena. Water-related beings such as kappa are expected to appear near rivers, ponds, and irrigation systems; mountain beings such as tengu or yama-no-kami are expected to appear in upland and forested settings; and boundary beings are often narrated at passes, roads, bridges, and village edges. Yanagita Kunio's work on yokai and his diffusion-oriented account of cultural distribution further suggest that cultural forms may radiate from centers and persist in older forms at the periphery \citep{yanagita1930kagyuko}.
+
+Testing such ideas at archive scale requires seeing the geographic structure of the data without losing the uncertainty of historical and folkloric metadata. The Nichibun Kaii-Yokai Densho Database is a major digital collection of Japanese yokai and uncanny folklore records \citep{nichibun_yokai_database}. It contains tens of thousands of entries with names, regional metadata, source references, and short summaries. However, the archive is primarily designed for keyword lookup and table browsing. A researcher can find records by name or region, but cannot directly ask where water-related records concentrate relative to hydrological features, whether mountain-associated categories are inland, or whether category distributions show center-periphery structure.
+
+We present an open-source geospatial visualization system for the Nichibun yokai archive. The system transforms cleaned text records into enriched geospatial features and serves them through an interactive MapLibre GL map. It supports three analytic views: individual points for close reading, heatmap density for concentration patterns, and terrain bands for comparison with coast and water proximity. The purpose is not to replace philological interpretation, but to create a reproducible exploratory instrument where hypotheses about landscape, ecology, and diffusion can be generated, inspected, and prepared for formal testing.
+
+\section{Related Work and Motivation}
+
+Folklore geography has long treated narrative distribution as evidence for regional ecology, historical transmission, and local ritual practice. Yokai studies frequently connect beings to landscape categories: rivers, mountains, fields, shorelines, roads, settlement edges, and sacred or liminal sites \citep{foster2015book}. Digital humanities work has made large cultural archives searchable, but search does not automatically make spatial structure visible. GIS methods can bridge this gap, yet proprietary map stacks and manually geocoded datasets can make reproduction difficult.
+
+The system described here is designed around FOSS4G principles. The pipeline uses Python, spaCy, GiNZA, GeoPandas, Shapely, PyProj, geopy, OpenStreetMap Nominatim, GADM, Natural Earth, Next.js, and MapLibre GL \citep{python,spacy,ginza,geopandas,shapely,pyproj,geopy,nominatim,gadm,naturalearth,nextjs,maplibre}. The web map uses OpenStreetMap raster tiles rather than proprietary basemaps \citep{osm}. The pipeline is script-based and writes intermediate JSON and CSV files so that researchers can inspect, replace, or audit each stage.
+
+Table~\ref{tab:foss-stack} separates open-source software components from open data sources and public services. This distinction matters for reproducibility: Natural Earth is public domain, GADM is freely available for academic and non-commercial use, and public Nominatim and OpenStreetMap tile services have operational usage policies rather than being bulk-computation infrastructure \citep{naturalearth_terms,gadm_data,nominatim_policy}.
+
+\begin{table}[tbp]
+\centering
+\caption{Software, data, and service dependencies used by the pipeline.}
+\label{tab:foss-stack}
+\begin{tabular}{p{0.24\linewidth}p{0.25\linewidth}p{0.39\linewidth}}
+\toprule
+Component & Role & Reproducibility note \\
+\midrule
+Python, GeoPandas, Shapely, PyProj & Spatial processing & Open-source Python stack; local execution. \\
+GiNZA, spaCy & Japanese NER & Open-source NLP stack; model version should be pinned for final archival runs. \\
+GADM v4.1 & Administrative boundaries & Academic/non-commercial data; not treated as unrestricted redistributable data. \\
+Natural Earth 10m & Coast, rivers, lakes & Public-domain cartographic vector data. \\
+OpenStreetMap Nominatim & Optional geocoding & Public service limited to light use; local instance or frozen cache recommended for full runs. \\
+MapLibre GL JS & Web map renderer & Open-source browser map renderer. \\
+OpenStreetMap raster tiles & Basemap & Public tile service; self-hosted tiles recommended for heavy demos. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Data}
+
+The input dataset is \texttt{data/nichibun/nichibun\_cleaned.json}, containing 33,378 cleaned Nichibun records. Each record includes an identifier, yokai name, name reading, prefecture, region, major category, phenomenon description, summary, and embedding text field. The present experiment uses all 33,378 records.
+
+Category counts are highly imbalanced: Other has 19,084 records, followed by Kitsune (3,618), Snake/Dragon (2,335), Yurei (1,641), Kappa (1,412), Tanuki (1,268), Tengu (1,224), Oni (807), Yama-no-kami (722), Inugami (552), Neko (466), and Hitodama (249). This imbalance motivates reporting effect sizes and category-level uncertainty rather than interpreting statistical significance alone.
+
+\section{System Pipeline}
+
+\subsection{Prefecture-Centroid Georeferencing}
+
+The first stage assigns a coordinate to every record using its structured \texttt{prefecture} field. The script \texttt{scripts/analysis/geocode\_prefecture.py} defines all 47 Japanese prefectures in a built-in centroid dictionary and appends \texttt{\_lat}, \texttt{\_lng}, and \texttt{\_geo\_level = "prefecture"}. The output is \texttt{data/nichibun/nichibun\_georef.json}. On the current cleaned dataset, all 33,378 records received coordinates.
+
+\subsection{Place Mention and Terrain Term Extraction}
+
+The second stage, \texttt{scripts/analysis/extract\_place\_names.py}, reads the georeferenced JSON and applies GiNZA, an open-source Japanese NLP pipeline, to the \texttt{summary} field \citep{ginza}. It stores place entities as \texttt{\_place\_mentions} and rule-based topographic words as \texttt{\_terrain\_terms}. The rule-based terrain vocabulary includes terms for mountains, rivers, passes, coasts, marshes, forests, rice paddies, bridges, roads, caves, rocks, and waterfalls. The script uses \texttt{data/nichibun/ner\_cache.json} so that long runs can be resumed without repeating completed records.
+
+\subsection{Optional Nominatim Refinement}
+
+The third stage, \texttt{scripts/analysis/geocode\_nominatim.py}, refines extracted place mentions with OpenStreetMap Nominatim through geopy \citep{nominatim,geopy}. The implementation uses a dedicated user agent, rate-limits requests to one per second, caches results in \texttt{data/nichibun/nominatim\_cache.json}, and constrains queries to Japan. A prefecture consistency check rejects results whose returned prefecture differs from the record's original prefecture. Successful records are upgraded to \texttt{\_geo\_level = "municipality"} and receive refined coordinates plus a \texttt{\_geocoded\_place} field.
+
+The current paper does not report municipality-level coverage or outcomes. Because public Nominatim use is rate-limited and full-archive refinement is a long-running process, the reported experiment is intentionally restricted to the completed prefecture-resolution run. This prevents partial geocoding from being mistaken for a validated sampling frame.
+
+\subsection{Terrain Enrichment}
+
+The terrain enrichment script, \texttt{scripts/analysis/terrain\_enrich.py}, downloads and caches GADM v4.1 Japan level 2 administrative boundaries, Natural Earth river centerlines, Natural Earth lakes, and Natural Earth coastlines \citep{gadm,naturalearth}. It joins each point to a GADM level 2 administrative unit and computes nearest distances to combined river/lake features and coastline using a projected coordinate reference system. Each record receives \texttt{\_dist\_water\_km}, \texttt{\_dist\_coast\_km}, \texttt{\_admin2}, and \texttt{\_terrain\_class}.
+
+The terrain classifier is deliberately simple and auditable. Records within 10 km of coast are labeled \texttt{coastal}; inland records more than 50 km from coast and within 2 km of water are labeled \texttt{valley}; records with mountain-related terms are labeled \texttt{mountain}; lake, pond, or marsh terms near water are labeled \texttt{inland\_water}; and remaining records are labeled \texttt{plain}. In the present run, coast and water distances are still computed from prefecture-centroid coordinates, but the mountain and inland-water classes are supplied by extracted terrain terms. The result should therefore be read as text-aware metadata geography, not fine-grained event geography.
+
+\subsection{GeoJSON API and Map Interface}
+
+The Next.js API route \path{src/app/api/yokai-geo/route.ts} lazily loads \path{data/nichibun/nichibun_enriched.json} into memory and serves a GeoJSON FeatureCollection. It supports filtering by category, geocoding level, terrain class, limit, and whether summaries should be included.
+
+The map interface at \texttt{/map} uses MapLibre GL with OpenStreetMap tiles \citep{maplibre,osm}. It supports three tabs: Points, Density, and Terrain. Points shows individual records colored by major category with popup summaries. Density uses a MapLibre heatmap layer. Terrain colors records by coast and water proximity and terrain class. For performance, if a filtered point set exceeds 5,000 records and the zoom is below 7, the Points and Terrain views display a deterministic 10\% sample; the Density view keeps the full filtered set because heatmap aggregation is handled client-side by MapLibre.
+
+\subsection{Analytical Views}
+
+The interface is organized around the folklore-geographic questions that motivate the system. The point view displays individual records colored by yokai category and links map locations back to names, prefectures, summaries, terrain class, and geocoding level. This view supports close reading of local clusters and anomalous records, such as a mountain-associated category appearing in an apparently coastal setting. The density view renders category-filtered archive density with a MapLibre heatmap layer, making broad concentration patterns easier to inspect than in a table of prefectures. The terrain view colors records by terrain class and distance filters, allowing researchers to compare category distributions against coast and water proximity.
+
+These views are intentionally exploratory. They are designed to make terrain-based and diffusion-based hypotheses inspectable before stronger statistical modeling is attempted. The system therefore preserves the resolution of each record through \texttt{\_geo\_level} and reports centroid-bias diagnostics in the analysis outputs. In the present experiment, all coordinates remain at prefecture-centroid resolution, so the interface should be read as a reproducible baseline for archive-scale spatial reasoning rather than as a final map of exact narrative locations.
+
+\section{Experiments}
+
+\subsection{Reproducible Setup}
+
+Experiments are implemented in \texttt{scripts/analysis/yokai\_geo\_experiments.py}. The script reads \texttt{data/nichibun/nichibun\_enriched.json} and writes outputs to \texttt{analysis/yokai\_geo/}: an experiment summary JSON file, category-terrain contingency tables, distance summaries, prefecture counts, and figures. The current run used prefecture centroids for all records. This resolution is sufficient to validate the data-processing and analysis pipeline and reveal coarse regional structure, but it cannot resolve local river, shrine, village, or pass-level relationships.
+
+\subsection{Terrain Distribution}
+
+The enrichment stage classified the 33,378 records as shown in Table~\ref{tab:terrain-counts}. This distribution partly reflects the use of prefecture centroids. Coastal prefectural capitals can make records from large inland prefectures appear more coastal than they would under municipality-level or locality-level geocoding. The result is therefore best treated as a diagnostic of pipeline behavior and geocoding uncertainty.
+
+A direct centroid-bias diagnostic confirms this issue: among the 47 prefecture centroids, 28 are classified as coastal, 17 as plain, and 2 as valley. Since every record in a prefecture inherits the same centroid coordinates in the reported run, each prefecture contributes a single terrain class regardless of within-prefecture topographic diversity. This is precisely why the system keeps \texttt{\_geo\_level} in every record and why the paper reports the experiment as a prefecture-centroid baseline.
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=0.62\linewidth]{fig_prefecture_centroid_bias.png}
+\caption{Terrain classes assigned to the 47 prefecture centroids. This diagnostic shows that the reported experiment measures metadata geography at prefecture resolution, not fine-grained narrative locations.}
+\label{fig:centroid-bias}
+\end{figure}
+
+\begin{table}[tbp]
+\centering
+\caption{Terrain class counts in the reported prefecture-centroid experiment.}
+\label{tab:terrain-counts}
+\begin{tabular}{lrr}
+\toprule
+Terrain class & Records & Share \\
+\midrule
+Coastal & 17,983 & 53.88\% \\
+Plain & 10,151 & 30.41\% \\
+Mountain & 4,056 & 12.15\% \\
+Valley & 861 & 2.58\% \\
+Inland-water & 327 & 0.98\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth]{fig_records_by_terrain.png}
+\caption{Record counts by terrain class after full GiNZA terrain-term extraction and text-aware enrichment. Coordinates remain at prefecture-centroid resolution.}
+\label{fig:records-by-terrain}
+\end{figure}
+
+\subsection{Category by Terrain}
+
+The category-terrain contingency table shows a statistically significant association between major category and the five non-empty text-aware terrain classes: $\chi^2=2090.40$, df = 44, $p<10^{-300}$, Cramer's $V=0.125$. The p-value is small because the dataset is large, while the effect size remains modest. The correct interpretation is therefore that category and coarse terrain class are not independent in the present representation, but the magnitude of association is not large enough to support deterministic ecological claims.
+
+Some category-level tendencies are visible in the contingency table and Figure~\ref{fig:terrain-proportions}. Kappa records are 59.2\% coastal under the centroid model, while Yama-no-kami records are 43.4\% mountain and Tengu records are 25.2\% mountain. Kitsune records are comparatively more plain-associated (41.4\%) and less coastal than expected. These are exploratory signals rather than final ecological findings because coordinates remain at prefecture resolution and terrain terms have not yet been manually validated.
+
+Standardized residuals clarify which cells drive the association. Yama-no-kami/mountain is much higher than expected (+24.05), Yama-no-kami/plain is lower than expected (-13.47), Tengu/mountain is higher than expected (+13.06), Snake/Dragon/inland-water is higher than expected (+12.78), and Kitsune/plain is higher than expected (+11.96). Excluding the large Other category increases the effect size from Cramer's $V=0.125$ to $V=0.173$ over 14,294 non-Other records. This sensitivity analysis indicates that the association is not only an artifact of the Other class, but remains best interpreted as a diagnostic pattern rather than a completed ecological test.
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=0.82\linewidth]{fig_category_terrain_standardized_residuals.png}
+\caption{Standardized residuals for the category by text-aware terrain table. Positive cells occur more often than expected under independence; negative cells occur less often.}
+\label{fig:residuals}
+\end{figure}
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth]{fig_category_terrain_proportions.png}
+\caption{Text-aware terrain-class proportions by yokai category. Differences should be read with the geocoding resolution in mind: every point in this experiment is still placed at a prefecture centroid.}
+\label{fig:terrain-proportions}
+\end{figure}
+
+\subsection{Distance to Coast and Water}
+
+Median distance to coast varies by category (Table~\ref{tab:coast-distance} and Figure~\ref{fig:coast-distance}). In the current run, Kappa and Tanuki have median coast distances of 6.315 km, Tengu has 8.098 km, Yama-no-kami has 9.858 km, and Kitsune has 15.763 km. These values are useful for comparing the generated features, but they should not be interpreted as precise distances from narrative events to shorelines.
+
+\begin{table}[tbp]
+\centering
+\caption{Selected category-level median distances in the reported run. Distances are based on prefecture centroids and Natural Earth hydrology.}
+\label{tab:coast-distance}
+\begin{tabular}{lrrr}
+\toprule
+Category & Records & Median coast km & Median major-water km \\
+\midrule
+Kappa & 1,412 & 6.315 & 219.000 \\
+Tanuki & 1,268 & 6.315 & 90.116 \\
+Tengu & 1,224 & 8.098 & 71.040 \\
+Yama-no-kami & 722 & 9.858 & 92.696 \\
+Kitsune & 3,618 & 15.763 & 71.040 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth]{fig_category_median_coast_distance.png}
+\caption{Median distance from prefecture-centroid record locations to coastline, by category.}
+\label{fig:coast-distance}
+\end{figure}
+
+Median distance to major water is less directly interpretable because the Natural Earth river/lake layers contain only coarse hydrological features and the records are placed at prefecture centroids. For example, Kappa records have a median major-water distance of 219.0 km in this run, so the current centroid-plus-Natural-Earth proxy does not recover the expected local river association. This mismatch is a useful diagnostic: the pipeline exposes where current feature resolution is inadequate for water-spirit analysis.
+
+\subsection{Full Extraction Diagnostics}
+
+To check whether the implemented text-extraction stages can support the stronger terrain-aware workflow, we ran GiNZA extraction over all 33,378 records without calling any public geocoding API. This diagnostic is not a final accuracy evaluation, but it exposes extraction coverage and geocoding workload before a full local or cached Nominatim run. Across the full dataset, 9,361 records (28.1\%) received at least one place mention, while 20,242 records (60.6\%) received at least one terrain term. The extracted terrain terms were frequent enough to affect downstream classification: after re-running terrain enrichment with the extracted terrain fields, the full dataset contained 17,983 coastal, 10,151 plain, 4,056 mountain, 861 valley, and 327 inland-water records.
+
+\begin{table}[tbp]
+\centering
+\caption{Full extraction diagnostics on 33,378 records. The run is local and API-free; it estimates coverage and workload rather than final extraction accuracy.}
+\label{tab:pilot-validation}
+\begin{tabular}{p{0.54\linewidth}p{0.34\linewidth}}
+\toprule
+Diagnostic & Value \\
+\midrule
+Records in extraction run & 33,378 \\
+Records with place mentions & 9,361 (28.1\%) \\
+Records with terrain terms & 20,242 (60.6\%) \\
+Unique prefecture-place Nominatim queries & 9,015 \\
+Terrain classes after text-aware enrichment & coastal 17,983; plain 10,151; mountain 4,056; valley 861; inland-water 327 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The most frequent terrain terms in the full run were mountain, river, water, village, road, paddy, sea, river/stream variants, pond, rock, island, pass/checkpoint, valley, field, stream, bridge, settlement, slope, boundary, and marsh terms. This supports the design decision to preserve terrain-context words separately from formal place mentions: many summaries carry environmental information even when they do not contain a geocodable municipality or landmark. The extraction also identified likely NER ambiguities: the most frequent place mentions include religious objects, beings, and common nouns alongside toponyms. For this reason, the validation script exports a 200-record manual review sample and codebook, allowing future work to report precision, recall, and error types before using the extracted locations for hypothesis testing.
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=0.88\linewidth]{fig_terrain_terms_vs_centroid_class.png}
+\caption{Full-run cross-tabulation between extracted terrain-term categories and assigned terrain classes. The figure is a diagnostic for extraction and classification behavior, not a validated ecological result.}
+\label{fig:pilot-terrain-terms}
+\end{figure}
+
+\subsection{Kyoto Distance as a Diffusion Proxy}
+
+The experiment script also computes great-circle distance from Kyoto, a rough proxy for center-periphery diffusion analysis. This is not a formal test of Yanagita's concentric diffusion theory. Rather, it prepares a reproducible feature that can later be modeled jointly with terrain, source period, category, and geocoding uncertainty.
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth]{fig_category_median_kyoto_distance.png}
+\caption{Median great-circle distance from Kyoto by category. The measure is included as an exploratory diffusion proxy, not as a standalone test of cultural transmission.}
+\label{fig:kyoto-distance}
+\end{figure}
+
+\section{Discussion}
+
+The main finding is methodological. The system makes it possible to move from text-table search to spatial inspection with reproducible open-source tools. Even the coarse centroid experiment reveals category-terrain differences and highlights where stronger geocoding is necessary. The Kappa water-distance result is especially informative: the visualization pipeline exposes a mismatch between folklore expectation and current feature resolution. Rather than hiding this limitation, the system makes it visible and measurable.
+
+For digital humanities researchers, this matters because archive-scale folklore analysis often depends on partial metadata. A robust system must preserve uncertainty and resolution level. The \texttt{\_geo\_level} field allows the interface and analysis scripts to distinguish prefecture-level records from any future municipality-level refinements. This helps prevent users from mistaking coarse coordinates for precise event locations.
+
+For FOSS4G, the contribution is a complete geospatial stack that can be adapted to other cultural heritage archives. The same design can process records that have regional fields, short narrative summaries, and partial place names. Researchers can swap the NER model, add historical gazetteers, replace the terrain classifier, or connect a PostGIS backend without changing the basic GeoJSON data contract.
+
+\section{Limitations}
+
+The reported experiment uses prefecture centroids for all records. This is intentionally conservative: it validates the data-processing path, but it does not support fine-grained ecological claims. Municipality-level Nominatim refinement is implemented as a pipeline stage, but this paper does not report a completed full-archive refinement run. The full extraction run produced 9,015 unique prefecture-place queries, which would take at least 2.5 hours at one request per second before retries and policy overhead; a production research run should therefore use a local Nominatim instance, a curated historical gazetteer, or an institutional geocoding cache, and should report both success rates and rejection criteria.
+
+The terrain enrichment currently uses Natural Earth hydrology, which is appropriate for coarse geographic context but too sparse for irrigation canals, village streams, ponds, and small sacred water sites. These local features are central to many yokai traditions. Future work should integrate Japanese national hydrography, land-cover data, elevation, slope, and historical administrative boundaries.
+
+NER on folkloric Japanese is also difficult. Summaries often contain ambiguous local names, obsolete place names, shrine names, and terrain descriptions without formal toponyms. The rule-based terrain term extraction is deliberately simple and should be replaced or augmented with validated annotation in future work.
+
+Finally, the source archive itself is not a uniform sample of all yokai traditions. Record density reflects collection history, publication practices, source survival, and database construction. Spatial density should therefore be read as archive density unless normalized against source availability and collection process.
+
+\section{Conclusion}
+
+This paper presented an open-source geographic visualization pipeline for the Nichibun yokai archive. The system georeferences records, extracts place and terrain cues, enriches points with administrative and terrain context, serves GeoJSON through a Next.js API, and renders interactive Points, Density, and Terrain views with MapLibre GL. On 33,378 records, the current prefecture-level run produced a complete text-aware enriched dataset for the GeoJSON-backed map interface. The full extraction run found place mentions in 28.1\% of records and terrain terms in 60.6\%, and the first experiment found a statistically significant but modest association between yokai category and coarse terrain class. More importantly, it demonstrated a reproducible path from folklore text records to inspectable geospatial evidence. The next research step is to complete higher-resolution geocoding through a local or cached workflow and to test terrain and diffusion hypotheses with models that explicitly account for geocoding uncertainty.
+
+\section*{Reproducibility}
+
+The reported prefecture-level text-aware experiment can be reproduced with:
+
+\begin{verbatim}
+python scripts/analysis/geocode_prefecture.py
+python scripts/analysis/extract_place_names.py
+python scripts/analysis/terrain_enrich.py \
+  --input data/nichibun/nichibun_ner.json \
+  --output data/nichibun/nichibun_enriched.json
+python scripts/analysis/yokai_geo_validation.py
+python scripts/analysis/yokai_geo_experiments.py
+\end{verbatim}
+
+The implemented full pipeline, including optional Nominatim refinement, is:
+
+\begin{verbatim}
+python scripts/analysis/geocode_prefecture.py
+python scripts/analysis/extract_place_names.py
+python scripts/analysis/geocode_nominatim.py
+python scripts/analysis/terrain_enrich.py
+python scripts/analysis/yokai_geo_experiments.py
+npm run build
+npm run dev
+\end{verbatim}
+
+The interactive map is available at \texttt{http://localhost:3000/map} when the development server is running.
+
+\bibliographystyle{plainnat}
+\bibliography{refs}
+
+\end{document}

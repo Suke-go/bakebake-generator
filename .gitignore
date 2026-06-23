@@ -55,6 +55,17 @@ next-env.d.ts
 /data/analysis/contrastive-pairs.json
 /data/nichibun/
 
+# geospatial source downloads / large generated GIS layers
+/data/geo/*.zip
+/data/geo/*.json
+/data/geo/*.geojson
+/data/geo/*.tif
+/data/geo/*.README.txt
+/data/geo/ne_10m_*/
+/data/geo/mlit_w05/
+/data/geo/mlit_w05_test/
+/data/geo/mlit_w05_rivers.geojson
+
 # experiment data (raw participant material, large image dirs)
 /experiment/data/surveys_*.csv
 /experiment/data/yokai_gallery.html

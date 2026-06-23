@@ -1,0 +1,55 @@
+{
+  "terrains": [
+    "coastal",
+    "plain",
+    "valley",
+    "mountain",
+    "inland_water"
+  ],
+  "all": {
+    "records": 33378,
+    "categories": [
+      "その他",
+      "キツネ",
+      "ヘビ・リュウ",
+      "ユウレイ",
+      "カッパ",
+      "タヌキ",
+      "テング",
+      "オニ",
+      "ヤマノカミ",
+      "イヌガミ",
+      "ネコ",
+      "ヒノタマ"
+    ],
+    "chi_square": {
+      "chi_square": 4240.993372272491,
+      "degrees_of_freedom": 44,
+      "p_value": 0.0,
+      "cramers_v": 0.17822706120474655
+    }
+  },
+  "other_excluded": {
+    "records": 14294,
+    "categories": [
+      "キツネ",
+      "ヘビ・リュウ",
+      "ユウレイ",
+      "カッパ",
+      "タヌキ",
+      "テング",
+      "オニ",
+      "ヤマノカミ",
+      "イヌガミ",
+      "ネコ",
+      "ヒノタマ"
+    ],
+    "chi_square": {
+      "chi_square": 3695.616465702294,
+      "degrees_of_freedom": 40,
+      "p_value": 0.0,
+      "cramers_v": 0.2542357161890244
+    }
+  },
+  "delta_cramers_v": 0.07601
+}

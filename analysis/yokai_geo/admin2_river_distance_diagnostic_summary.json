@@ -1,0 +1,190 @@
+{
+  "input_records": 33378,
+  "admin2_records_with_water_distance": 1231,
+  "permutations": 2000,
+  "seed": 20260615,
+  "null_model": "category labels shuffled within prefecture among admin2-refined records",
+  "results": [
+    {
+      "category": "カッパ",
+      "category_n": 48,
+      "metric": "median_dist_water_km",
+      "observed": 0.371,
+      "expected": 0.29608,
+      "z_score": -1.51605,
+      "empirical_p": 0.93103
+    },
+    {
+      "category": "カッパ",
+      "category_n": 48,
+      "metric": "mean_dist_water_km",
+      "observed": 0.35806,
+      "expected": 0.39116,
+      "z_score": 0.29086,
+      "empirical_p": 0.42029
+    },
+    {
+      "category": "カッパ",
+      "category_n": 48,
+      "metric": "share_within_2km",
+      "observed": 1.0,
+      "expected": 0.99064,
+      "z_score": 0.78294,
+      "empirical_p": 0.58971
+    },
+    {
+      "category": "カッパ",
+      "category_n": 48,
+      "metric": "share_within_0_5km",
+      "observed": 0.72917,
+      "expected": 0.73313,
+      "z_score": -0.0768,
+      "empirical_p": 0.61769
+    },
+    {
+      "category": "ヘビ・リュウ",
+      "category_n": 80,
+      "metric": "median_dist_water_km",
+      "observed": 0.2425,
+      "expected": 0.25871,
+      "z_score": 0.61486,
+      "empirical_p": 0.42979
+    },
+    {
+      "category": "ヘビ・リュウ",
+      "category_n": 80,
+      "metric": "mean_dist_water_km",
+      "observed": 0.32877,
+      "expected": 0.45407,
+      "z_score": 0.93304,
+      "empirical_p": 0.06297
+    },
+    {
+      "category": "ヘビ・リュウ",
+      "category_n": 80,
+      "metric": "share_within_2km",
+      "observed": 0.9875,
+      "expected": 0.97818,
+      "z_score": 0.70879,
+      "empirical_p": 0.42279
+    },
+    {
+      "category": "ヘビ・リュウ",
+      "category_n": 80,
+      "metric": "share_within_0_5km",
+      "observed": 0.8,
+      "expected": 0.74458,
+      "z_score": 1.3279,
+      "empirical_p": 0.12694
+    },
+    {
+      "category": "ユウレイ",
+      "category_n": 56,
+      "metric": "median_dist_water_km",
+      "observed": 0.3535,
+      "expected": 0.28494,
+      "z_score": -1.5348,
+      "empirical_p": 0.89755
+    },
+    {
+      "category": "ユウレイ",
+      "category_n": 56,
+      "metric": "mean_dist_water_km",
+      "observed": 0.52521,
+      "expected": 0.44137,
+      "z_score": -0.61463,
+      "empirical_p": 0.90655
+    },
+    {
+      "category": "ユウレイ",
+      "category_n": 56,
+      "metric": "share_within_2km",
+      "observed": 0.96429,
+      "expected": 0.98296,
+      "z_score": -1.23662,
+      "empirical_p": 0.95802
+    },
+    {
+      "category": "ユウレイ",
+      "category_n": 56,
+      "metric": "share_within_0_5km",
+      "observed": 0.71429,
+      "expected": 0.71702,
+      "z_score": -0.05114,
+      "empirical_p": 0.58421
+    },
+    {
+      "category": "キツネ",
+      "category_n": 108,
+      "metric": "median_dist_water_km",
+      "observed": 0.221,
+      "expected": 0.26835,
+      "z_score": 1.72892,
+      "empirical_p": 0.04198
+    },
+    {
+      "category": "キツネ",
+      "category_n": 108,
+      "metric": "mean_dist_water_km",
+      "observed": 0.36499,
+      "expected": 0.38483,
+      "z_score": 0.37647,
+      "empirical_p": 0.35682
+    },
+    {
+      "category": "キツネ",
+      "category_n": 108,
+      "metric": "share_within_2km",
+      "observed": 1.0,
+      "expected": 0.9987,
+      "z_score": 0.3906,
+      "empirical_p": 0.86407
+    },
+    {
+      "category": "キツネ",
+      "category_n": 108,
+      "metric": "share_within_0_5km",
+      "observed": 0.66667,
+      "expected": 0.69986,
+      "z_score": -0.88884,
+      "empirical_p": 0.84658
+    },
+    {
+      "category": "テング",
+      "category_n": 46,
+      "metric": "median_dist_water_km",
+      "observed": 0.216,
+      "expected": 0.27357,
+      "z_score": 1.15535,
+      "empirical_p": 0.07446
+    },
+    {
+      "category": "テング",
+      "category_n": 46,
+      "metric": "mean_dist_water_km",
+      "observed": 0.29587,
+      "expected": 0.35673,
+      "z_score": 1.44431,
+      "empirical_p": 0.06847
+    },
+    {
+      "category": "テング",
+      "category_n": 46,
+      "metric": "share_within_2km",
+      "observed": 1.0,
+      "expected": 0.99645,
+      "z_score": 0.42379,
+      "empirical_p": 0.84258
+    },
+    {
+      "category": "テング",
+      "category_n": 46,
+      "metric": "share_within_0_5km",
+      "observed": 0.80435,
+      "expected": 0.75845,
+      "z_score": 0.82039,
+      "empirical_p": 0.27986
+    }
+  ],
+  "interpretation": "This is a diagnostic on municipality representative points, not a test of exact narrative locations."
+}

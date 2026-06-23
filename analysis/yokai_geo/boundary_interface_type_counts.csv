@@ -1,0 +1,10 @@
+interface_type,records,share,top_categories
+mountain_route,1926,0.0577,Other=972; Kitsune=282; Snake/Dragon=135; Tanuki=111; Tengu=90
+mountain_boundary,1813,0.05432,Other=1010; Snake/Dragon=187; Kitsune=110; Tengu=108; Yama-no-kami=90
+domestic_threshold,1787,0.05354,Other=1115; Snake/Dragon=128; Yurei=121; Kitsune=117; Oni=77
+water_livelihood,1723,0.05162,Other=832; Kappa=326; Snake/Dragon=231; Kitsune=151; Oni=45
+mortuary_boundary,1679,0.0503,Other=1021; Yurei=344; Snake/Dragon=91; Kitsune=63; Neko=37
+water_danger_norm,1627,0.04874,Other=826; Snake/Dragon=325; Kappa=140; Kitsune=104; Yurei=49
+waterside_boundary,1441,0.04317,Other=770; Snake/Dragon=277; Kappa=133; Kitsune=61; Yurei=49
+water_crossing,1333,0.03994,Other=665; Snake/Dragon=173; Kitsune=144; Kappa=131; Tanuki=58
+coastal_landing,1067,0.03197,Other=655; Yurei=122; Snake/Dragon=82; Kitsune=63; Tanuki=36

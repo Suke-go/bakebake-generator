@@ -54,9 +54,13 @@ experiment/                  SIGGRAPH 2026 展示評価データ
   data/                      Supabase エクスポート CSV
   analysis/                  Python 分析パイプライン
 
-paper/                       SIGGRAPH Asia 2026 Art Paper
-  drafts/                    LaTeX 原稿
-  figures/                   図表・システム図
+paper/                       学術論文
+  ipm/                       IP&M 投稿原稿 (主圏論的文化分析)
+  cultural-analytics/        Cultural Analytics 投稿原稿 (構造バイアス分析)
+  foss4g-yokai-geo/          FOSS4G 向け妖怪地理パイプライン論文
+  isprs-yokai-geo/           ISPRS 向け地理的支持モデル論文
+  siggraph/                  SIGGRAPH Art Paper
+  drafts/                    旧ドラフト (shuken 等)
 
 public/                      静的アセット
   image/yokai/               妖怪画像素材

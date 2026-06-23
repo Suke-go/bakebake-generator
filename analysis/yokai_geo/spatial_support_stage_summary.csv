@@ -1,0 +1,10 @@
+stage,records,coverage,support_area_km2_n,support_area_km2_mean,support_area_km2_median,support_area_km2_q25,support_area_km2_q75,area_reduction_ratio_n,area_reduction_ratio_mean,area_reduction_ratio_median,area_reduction_ratio_q25,area_reduction_ratio_q75
+prefecture_metadata,33378,1.0,33378,7649.931,6784.485,4469.998,10625.652,33378,0.035,0.0,0.0,0.0
+local_admin2_gazetteer,1231,0.03688,1231,333.52,213.573,98.916,475.791,1231,0.945,0.964,0.925,0.983
+formal_toponym_mentions,9361,0.28045,0,,,,,9361,0.115,0.0,0.0,0.0
+terrain_terms,20242,0.60645,0,,,,,20242,0.046,0.0,0.0,0.0
+place_description_terms,25023,0.74969,0,,,,,25023,0.04,0.0,0.0,0.0
+human_condition_terms,16066,0.48134,0,,,,,16066,0.036,0.0,0.0,0.0
+strict_boundary_interface_terms,9047,0.27105,0,,,,,9047,0.061,0.0,0.0,0.0
+any_human_environment_interface,16102,0.48241,0,,,,,16102,0.05,0.0,0.0,0.0
+admin2_or_boundary_interface,9693,0.2904,0,,,,,9693,0.12,0.0,0.0,0.0
