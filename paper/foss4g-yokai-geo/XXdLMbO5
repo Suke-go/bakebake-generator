@@ -15,6 +15,7 @@
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{array}
+\usepackage{siunitx}
 \usepackage{natbib}
 \usepackage{xcolor}
 % NOTE: siunitx removed -- it was unused (no \num/\si/\SI in the body) and its
@@ -23,15 +24,6 @@
 \usepackage{titlesec}
 \usepackage[hidelinks]{hyperref}
 \usepackage{xurl}
-% --- F11: figure/table captions -- consecutively numbered (LaTeX auto),
-%     centred beneath the object, single line spacing when they wrap. ---
-\usepackage{caption}
-\captionsetup{font={stretch=1.0},labelsep=colon,justification=justified,singlelinecheck=true}
-\usepackage{makecell}          % stacked (multi-line) table headers so wide tables fit one column
-% --- allow the many full-width (two-column-spanning) floats to be placed,
-%     including at page bottom ---
-\usepackage{morefloats}
-\usepackage{dblfloatfix}
 
 % --- F16: A4, margins Top/Bottom 25 mm, Left/Right 20 mm, column spacing 6 mm.
 %     Text width = 210-40 = 170 mm; columns = (170-6)/2 = 82 mm each. ---
@@ -56,9 +48,9 @@
 % --- F10/F18: decimal-numbered headings. Major = centred bold; subsection =
 %     bold flush left; subsubsection = bold flush-left run-in. Blank line around. ---
 \titleformat{\section}{\normalfont\bfseries\filcenter}{\thesection.}{0.5em}{}
-\titlespacing*{\section}{0pt}{\baselineskip}{\baselineskip}
+\titlespacing*{\section}{0pt}{\baselineskip}{0.3\baselineskip}
 \titleformat{name=\section,numberless}{\normalfont\bfseries\filcenter}{}{0pt}{}
-\titlespacing*{name=\section,numberless}{0pt}{\baselineskip}{\baselineskip}
+\titlespacing*{name=\section,numberless}{0pt}{\baselineskip}{0.3\baselineskip}
 \titleformat{\subsection}{\normalfont\bfseries\raggedright}{\thesubsection}{0.5em}{}
 \titlespacing*{\subsection}{0pt}{\baselineskip}{0.3\baselineskip}
 \titleformat{\subsubsection}[runin]{\normalfont\bfseries}{\thesubsubsection}{0.5em}{}
@@ -70,19 +62,10 @@
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{0.5\baselineskip}
 
-% --- about one blank line between floats and the surrounding body text ---
-\setlength{\textfloatsep}{\baselineskip}
-\setlength{\floatsep}{\baselineskip}
-\setlength{\intextsep}{\baselineskip}
-
-% --- give the two-column-spanning floats (figure*/table*) room to be placed ---
-\setcounter{dbltopnumber}{4}
-\renewcommand{\dbltopfraction}{0.9}
-\renewcommand{\dblfloatpagefraction}{0.7}
-\renewcommand{\topfraction}{0.9}
-\renewcommand{\bottomfraction}{0.9}
-\renewcommand{\textfraction}{0.06}
-\renewcommand{\floatpagefraction}{0.7}
+% --- keep floats close to the text with a modest gap ---
+\setlength{\textfloatsep}{0.8\baselineskip}
+\setlength{\floatsep}{0.8\baselineskip}
+\setlength{\intextsep}{0.8\baselineskip}
 
 % --- reference list: no first-line / no hanging indent ---
 \setlength{\bibhang}{0pt}
@@ -110,7 +93,7 @@
 			%     anonymised). Replace the highlighted placeholders with the real
 			%     department, postal address and e-mail for each affiliation. ---
 			{\fontsize{9}{11}\selectfont
-				\textsuperscript{1} University of Tsukuba, 1-1-1 Tennodai, Tsukuba-shi, Ibaraki 305-8577, Japan -- shimizu@ai.iit.tsukuba.ac.jp \\
+				\textsuperscript{1} University of Tsukuba, 1-1-1  Tennodai, Tsukuba-shi, Ibaraki 1-1-1, Japan -- shimizu@ai.iit.tsukuba.ac.jp \\
 				\textsuperscript{2} Japan Women's University, 2-8-1 Mejirodai, Bunkyo-ku, Tokyo 112-8681, Japan}
 
 		\end{center}
@@ -126,13 +109,13 @@
 		{\noindent\textbf{Abstract} \par}
 		\vspace{0.4\baselineskip}
 		\noindent
-		Yokai folklore has long been discussed in relation to geography: water spirits are associated with rivers and irrigation networks, mountain beings with ridgelines and forests, and boundary phenomena with passes, roads, and transitional spaces. However, the large-scale Nichibun Kaii-Yokai Densho Database is mainly accessed through keyword search and tables, limiting investigation of terrain-based clustering, center–periphery diffusion, and spatial anomalies. We present an open-source geographic visualization system that converts 33,378 cleaned Nichibun records into terrain-aware GeoJSON and displays them in an interactive MapLibre GL map. The pipeline integrates prefecture metadata, GiNZA-based Japanese place-name extraction, rule-based terrain-term extraction, optional cached OpenStreetMap Nominatim refinement, GeoPandas enrichment with GADM and Natural Earth layers, and a Next.js API. Point, density, and terrain views support analysis across individual records, regional concentrations, and landscape context. In the reproducible baseline, all records receive prefecture-level coordinates; 9,361 records (28.1\%) contain place mentions, and 20,242 (60.6 \%) contain terrain terms. Text-aware enrichment assigns records to five terrain classes: coastal, plain, mountain, valley, and inland water. Category–terrain analysis reveals a significant but modest association ($\chi^2=2090.40$, $df=44$, $p<10^{-300}$, Cramer’s $V=0.125$), including strong residuals for yama-no-kami in mountain contexts and snake/dragon records near inland water. Because locations are currently represented by prefecture centroids, the results demonstrate pipeline reproducibility and metadata-level spatial structure rather than fine-grained ecological relationships. The system provides a FOSS4G foundation for higher-resolution geocoding and hypothesis-driven research on yokai geography.   
+		Yokai folklore has long been discussed in relation to geography: water spirits are associated with rivers and irrigation networks, mountain beings with ridgelines and forests, and boundary phenomena with passes, roads, and transitional spaces. However, the large-scale Nichibun Kaii-Yokai Densho Database is mainly accessed through keyword search and tables, limiting investigation of terrain-based clustering, center–periphery diffusion, and spatial anomalies.We present an open-source geographic visualization system that converts 33,378 cleaned Nichibun records into terrain-aware GeoJSON and displays them in an interactive MapLibre GL map. The pipeline integrates prefecture metadata, GiNZA-based Japanese place-name extraction, rule-based terrain-term extraction, optional cached OpenStreetMap Nominatim refinement, GeoPandas enrichment with GADM and Natural Earth layers, and a Next.js API. Point, density, and terrain views support analysis across individual records, regional concentrations, and landscape context. In the reproducible baseline, all records receive prefecture-level coordinates; 9,361 records (28.1\%) contain place mentions, and 20,242 (60.6 \%) contain terrain terms. Text-aware enrichment assigns records to five terrain classes: coastal, plain, mountain, valley, and inland water. Category–terrain analysis reveals a significant but modest association ($\chi^2=2090.40$, $df=44$, $p<10^{-300}$, Cramer’s $V=0.125$), including strong residuals for yama-no-kami in mountain contexts and snake/dragon records near inland water. Because locations are currently represented by prefecture centroids, the results demonstrate pipeline reproducibility and metadata-level spatial structure rather than fine-grained ecological relationships. The system provides a FOSS4G foundation for higher-resolution geocoding and hypothesis-driven research on yokai geography.   
 		\vspace{1.5em}
 	}]
 	
 	\section{Introduction}
 	
-	Japanese yokai traditions are widely acknowledged from the past. In classic folklore scholarship, supernatural beings, phenomena, and anomalies are not only narrative motifs but also geographical phenomena. Water-related beings such as kappa are expected to appear near rivers, ponds, and irrigation systems; mountain beings such as tengu or yama-no-kami are expected to appear in upland and forested settings; and boundary beings are often narrated at passes, roads, bridges, and village edges. Yanagita Kunio's work on yokai and his diffusion-oriented account of cultural distribution further suggest that cultural forms may radiate from centers and persist in older forms at the periphery \citep{yanagita1930kagyuko}.
+	Japanese yokai traditions are deeply spatial. In classic folklore scholarship, supernatural beings, phenomena, and anomalies are not only narrative motifs but also geographical phenomena. Water-related beings such as kappa are expected to appear near rivers, ponds, and irrigation systems; mountain beings such as tengu or yama-no-kami are expected to appear in upland and forested settings; and boundary beings are often narrated at passes, roads, bridges, and village edges. Yanagita Kunio's work on yokai and his diffusion-oriented account of cultural distribution further suggest that cultural forms may radiate from centers and persist in older forms at the periphery \citep{yanagita1930kagyuko}.
 	
 	Testing such ideas at archive scale requires seeing the geographic structure of the data without losing the uncertainty of historical and folkloric metadata. The Nichibun Kaii-Yokai Densho Database is a major digital collection of Japanese yokai and uncanny folklore records \citep{nichibun_yokai_database}. It contains tens of thousands of entries with names, regional metadata, source references, and short summaries. However, the archive is primarily designed for keyword lookup and table browsing. A researcher can find records by name or region, but cannot directly ask where water-related records concentrate relative to hydrological features, whether mountain-associated categories are inland, or whether category distributions show center-periphery structure.
 	
@@ -147,11 +130,9 @@
 	Table~\ref{tab:foss-stack} separates open-source software components from open data sources and public services. This distinction matters for reproducibility: Natural Earth is public domain, GADM is freely available for academic and non-commercial use, and public Nominatim and OpenStreetMap tile services have operational usage policies rather than being bulk-computation infrastructure \citep{naturalearth_terms,gadm_data,nominatim_policy}.
 	
 	% F11: table caption moved BELOW the table; wide table spans both columns.
-	\begin{table}[tbp]
+	\begin{table*}[tbp]
 		\centering
-		\caption{Software, data, and service dependencies used by the pipeline.}
-		\small\setlength{\tabcolsep}{4pt}%
-		\begin{tabular}{p{0.22\linewidth}p{0.24\linewidth}p{0.38\linewidth}}
+		\begin{tabular}{p{0.24\linewidth}p{0.25\linewidth}p{0.39\linewidth}}
 			\toprule
 			Component & Role & Reproducibility note \\
 			\midrule
@@ -164,13 +145,13 @@
 			OpenStreetMap raster tiles & Basemap & Public tile service; self-hosted tiles recommended for heavy demos. \\
 			\bottomrule
 		\end{tabular}
-		
+		\caption{Software, data, and service dependencies used by the pipeline.\FIXNOTE{F11: caption placed below table}}
 		\label{tab:foss-stack}
-	\end{table}
+	\end{table*}
 	
 	\section{Data}
 	
-	The input dataset is \path{data/nichibun/nichibun_cleaned.json}, containing 33,378 cleaned Nichibun records. Each record includes an identifier, yokai name, name reading, prefecture, region, major category, phenomenon description, summary, and embedding text field. The present experiment uses all 33,378 records.
+	The input dataset is \texttt{data/nichibun/nichibun\_cleaned.json}, containing 33,378 cleaned Nichibun records. Each record includes an identifier, yokai name, name reading, prefecture, region, major category, phenomenon description, summary, and embedding text field. The present experiment uses all 33,378 records.
 	
 	Category counts are highly imbalanced: Other has 19,084 records, followed by Kitsune (3,618), Snake/Dragon (2,335), Yurei (1,641), Kappa (1,412), Tanuki (1,268), Tengu (1,224), Oni (807), Yama-no-kami (722), Inugami (552), Neko (466), and Hitodama (249). This imbalance motivates reporting effect sizes and category-level uncertainty rather than interpreting statistical significance alone.
 	
@@ -178,21 +159,21 @@
 	
 	\subsection{Prefecture-Centroid Georeferencing}
 	
-	The first stage assigns a coordinate to every record using its structured \texttt{prefecture} field. The script \path{scripts/analysis/geocode_prefecture.py} defines all 47 Japanese prefectures in a built-in centroid dictionary and appends \texttt{\_lat}, \texttt{\_lng}, and \texttt{\_geo\_level = "prefecture"}. The output is \path{data/nichibun/nichibun_georef.json}. On the current cleaned dataset, all 33,378 records received coordinates.
+	The first stage assigns a coordinate to every record using its structured \texttt{prefecture} field. The script \texttt{scripts/analysis/geocode\_prefecture.py} defines all 47 Japanese prefectures in a built-in centroid dictionary and appends \texttt{\_lat}, \texttt{\_lng}, and \texttt{\_geo\_level = "prefecture"}. The output is \texttt{data/nichibun/nichibun\_georef.json}. On the current cleaned dataset, all 33,378 records received coordinates.
 	
 	\subsection{Place Mention and Terrain Term Extraction}
 	
-	The second stage, \path{scripts/analysis/extract_place_names.py}, reads the georeferenced JSON and applies GiNZA, an open-source Japanese NLP pipeline, to the \texttt{summary} field \citep{ginza}. It stores place entities as \texttt{\_place\_mentions} and rule-based topographic words as \texttt{\_terrain\_terms}. The rule-based terrain vocabulary includes terms for mountains, rivers, passes, coasts, marshes, forests, rice paddies, bridges, roads, caves, rocks, and waterfalls. The script uses \path{data/nichibun/ner_cache.json} so that long runs can be resumed without repeating completed records.
+	The second stage, \texttt{scripts/analysis/extract\_place\_names.py}, reads the georeferenced JSON and applies GiNZA, an open-source Japanese NLP pipeline, to the \texttt{summary} field \citep{ginza}. It stores place entities as \texttt{\_place\_mentions} and rule-based topographic words as \texttt{\_terrain\_terms}. The rule-based terrain vocabulary includes terms for mountains, rivers, passes, coasts, marshes, forests, rice paddies, bridges, roads, caves, rocks, and waterfalls. The script uses \texttt{data/nichibun/ner\_cache.json} so that long runs can be resumed without repeating completed records.
 	
 	\subsection{Optional Nominatim Refinement}
 	
-	The third stage, \path{scripts/analysis/geocode_nominatim.py}, refines extracted place mentions with OpenStreetMap Nominatim through geopy \citep{nominatim,geopy}. The implementation uses a dedicated user agent, rate-limits requests to one per second, caches results in \path{data/nichibun/nominatim_cache.json}, and constrains queries to Japan. A prefecture consistency check rejects results whose returned prefecture differs from the record's original prefecture. Successful records are upgraded to \texttt{\_geo\_level = "municipality"} and receive refined coordinates plus a \texttt{\_geocoded\_place} field.
+	The third stage, \texttt{scripts/analysis/geocode\_nominatim.py}, refines extracted place mentions with OpenStreetMap Nominatim through geopy \citep{nominatim,geopy}. The implementation uses a dedicated user agent, rate-limits requests to one per second, caches results in \texttt{data/nichibun/nominatim\_cache.json}, and constrains queries to Japan. A prefecture consistency check rejects results whose returned prefecture differs from the record's original prefecture. Successful records are upgraded to \texttt{\_geo\_level = "municipality"} and receive refined coordinates plus a \texttt{\_geocoded\_place} field.
 	
 	The current paper does not report municipality-level coverage or outcomes. Because public Nominatim use is rate-limited and full-archive refinement is a long-running process, the reported experiment is intentionally restricted to the completed prefecture-resolution run. This prevents partial geocoding from being mistaken for a validated sampling frame.
 	
 	\subsection{Terrain Enrichment}
 	
-	The terrain enrichment script, \path{scripts/analysis/terrain_enrich.py}, downloads and caches GADM v4.1 Japan level 2 administrative boundaries, Natural Earth river centerlines, Natural Earth lakes, and Natural Earth coastlines \citep{gadm,naturalearth}. It joins each point to a GADM level 2 administrative unit and computes nearest distances to combined river/lake features and coastline using a projected coordinate reference system. Each record receives \texttt{\_dist\_water\_km}, \texttt{\_dist\_coast\_km}, \texttt{\_admin2}, and \texttt{\_terrain\_class}.
+	The terrain enrichment script, \texttt{scripts/analysis/terrain\_enrich.py}, downloads and caches GADM v4.1 Japan level 2 administrative boundaries, Natural Earth river centerlines, Natural Earth lakes, and Natural Earth coastlines \citep{gadm,naturalearth}. It joins each point to a GADM level 2 administrative unit and computes nearest distances to combined river/lake features and coastline using a projected coordinate reference system. Each record receives \texttt{\_dist\_water\_km}, \texttt{\_dist\_coast\_km}, \texttt{\_admin2}, and \texttt{\_terrain\_class}.
 	
 	The terrain classifier is deliberately simple and auditable. Records within 10 km of coast are labeled \texttt{coastal}; inland records more than 50 km from coast and within 2 km of water are labeled \texttt{valley}; records with mountain-related terms are labeled \texttt{mountain}; lake, pond, or marsh terms near water are labeled \texttt{inland\_water}; and remaining records are labeled \texttt{plain}. In the present run, coast and water distances are still computed from prefecture-centroid coordinates, but the mountain and inland-water classes are supplied by extracted terrain terms. The result should therefore be read as text-aware metadata geography, not fine-grained event geography.
 	
@@ -200,7 +181,7 @@
 	
 	The Next.js API route \path{src/app/api/yokai-geo/route.ts} lazily loads \path{data/nichibun/nichibun_enriched.json} into memory and serves a GeoJSON FeatureCollection. It supports filtering by category, geocoding level, terrain class, limit, and whether summaries should be included.
 	
-	The map interface at \path{/map} uses MapLibre GL with OpenStreetMap tiles \citep{maplibre,osm}. It supports three tabs: Points, Density, and Terrain. Points shows individual records colored by major category with popup summaries. Density uses a MapLibre heatmap layer. Terrain colors records by coast and water proximity and terrain class. For performance, if a filtered point set exceeds 5,000 records and the zoom is below 7, the Points and Terrain views display a deterministic 10\% sample; the Density view keeps the full filtered set because heatmap aggregation is handled client-side by MapLibre.
+	The map interface at \texttt{/map} uses MapLibre GL with OpenStreetMap tiles \citep{maplibre,osm}. It supports three tabs: Points, Density, and Terrain. Points shows individual records colored by major category with popup summaries. Density uses a MapLibre heatmap layer. Terrain colors records by coast and water proximity and terrain class. For performance, if a filtered point set exceeds 5,000 records and the zoom is below 7, the Points and Terrain views display a deterministic 10\% sample; the Density view keeps the full filtered set because heatmap aggregation is handled client-side by MapLibre.
 	
 	\subsection{Analytical Views}
 	
@@ -212,7 +193,7 @@
 	
 	\subsection{Reproducible Setup}
 	
-	Experiments are implemented in \path{scripts/analysis/yokai_geo_experiments.py}. The script reads \path{data/nichibun/nichibun_enriched.json} and writes outputs to \path{analysis/yokai_geo/}: an experiment summary JSON file, category-terrain contingency tables, distance summaries, prefecture counts, and figures. The current run used prefecture centroids for all records. This resolution is sufficient to validate the data-processing and analysis pipeline and reveal coarse regional structure, but it cannot resolve local river, shrine, village, or pass-level relationships.
+	Experiments are implemented in \texttt{scripts/analysis/yokai\_geo\_experiments.py}. The script reads \texttt{data/nichibun/nichibun\_enriched.json} and writes outputs to \texttt{analysis/yokai\_geo/}: an experiment summary JSON file, category-terrain contingency tables, distance summaries, prefecture counts, and figures. The current run used prefecture centroids for all records. This resolution is sufficient to validate the data-processing and analysis pipeline and reveal coarse regional structure, but it cannot resolve local river, shrine, village, or pass-level relationships.
 	
 	\subsection{Terrain Distribution}
 	
@@ -227,9 +208,9 @@
 		\label{fig:centroid-bias}
 	\end{figure}
 	
+	% F11: table caption moved BELOW the table.
 	\begin{table}[tbp]
 		\centering
-		\caption{Terrain class counts in the reported prefecture-centroid experiment.}
 		\begin{tabular}{lrr}
 			\toprule
 			Terrain class & Records & Share \\
@@ -240,7 +221,8 @@
 			Valley & 861 & 2.58\% \\
 			Inland-water & 327 & 0.98\% \\
 			\bottomrule
-		\end{tabular}	
+		\end{tabular}
+		\caption{Terrain class counts in the reported prefecture-centroid experiment.\FIXNOTE{F11: caption placed below table}}
 		\label{tab:terrain-counts}
 	\end{table}
 	
@@ -277,13 +259,12 @@
 	
 	Median distance to coast varies by category (Table~\ref{tab:coast-distance} and Figure~\ref{fig:coast-distance}). In the current run, Kappa and Tanuki have median coast distances of 6.315 km, Tengu has 8.098 km, Yama-no-kami has 9.858 km, and Kitsune has 15.763 km. These values are useful for comparing the generated features, but they should not be interpreted as precise distances from narrative events to shorelines.
 	
-	\begin{table}[tbp]
+	% F11: table caption moved BELOW the table; spans both columns for the wide header.
+	\begin{table*}[tbp]
 		\centering
-		\caption{Selected category-level median distances in the reported run. Distances are based on prefecture centroids and Natural Earth hydrology.}
-		\small\setlength{\tabcolsep}{4pt}%
 		\begin{tabular}{lrrr}
 			\toprule
-			Category & Records & \makecell{Median\\coast (km)} & \makecell{Median major-\\water (km)} \\
+			Category & Records & Median coast km & Median major-water km \\
 			\midrule
 			Kappa & 1,412 & 6.315 & 219.000 \\
 			Tanuki & 1,268 & 6.315 & 90.116 \\
@@ -292,8 +273,9 @@
 			Kitsune & 3,618 & 15.763 & 71.040 \\
 			\bottomrule
 		\end{tabular}
+		\caption{Selected category-level median distances in the reported run. Distances are based on prefecture centroids and Natural Earth hydrology.\FIXNOTE{F11: caption placed below table}}
 		\label{tab:coast-distance}
-	\end{table}
+	\end{table*}
 	
 	\begin{figure}[tbp]
 		\centering
@@ -309,9 +291,8 @@
 	To check whether the implemented text-extraction stages can support the stronger terrain-aware workflow, we ran GiNZA extraction over all 33,378 records without calling any public geocoding API. This diagnostic is not a final accuracy evaluation, but it exposes extraction coverage and geocoding workload before a full local or cached Nominatim run. Across the full dataset, 9,361 records (28.1\%) received at least one place mention, while 20,242 records (60.6\%) received at least one terrain term. The extracted terrain terms were frequent enough to affect downstream classification: after re-running terrain enrichment with the extracted terrain fields, the full dataset contained 17,983 coastal, 10,151 plain, 4,056 mountain, 861 valley, and 327 inland-water records.
 	
 	% F11: table caption moved BELOW the table; wide table spans both columns.
-	\begin{table}[tbp]
+	\begin{table*}[tbp]
 		\centering
-		\caption{Full extraction diagnostics on 33,378 records. The run is local and API-free; it estimates coverage and workload rather than final extraction accuracy.}
 		\begin{tabular}{p{0.54\linewidth}p{0.34\linewidth}}
 			\toprule
 			Diagnostic & Value \\
@@ -323,8 +304,9 @@
 			Terrain classes after text-aware enrichment & coastal 17,983; plain 10,151; mountain 4,056; valley 861; inland-water 327 \\
 			\bottomrule
 		\end{tabular}
+		\caption{Full extraction diagnostics on 33,378 records. The run is local and API-free; it estimates coverage and workload rather than final extraction accuracy.\FIXNOTE{F11: caption placed below table}}
 		\label{tab:pilot-validation}
-	\end{table}
+	\end{table*}
 	
 	The most frequent terrain terms in the full run were mountain, river, water, village, road, paddy, sea, river/stream variants, pond, rock, island, pass/checkpoint, valley, field, stream, bridge, settlement, slope, boundary, and marsh terms. This supports the design decision to preserve terrain-context words separately from formal place mentions: many summaries carry environmental information even when they do not contain a geocodable municipality or landmark. The extraction also identified likely NER ambiguities: the most frequent place mentions include religious objects, beings, and common nouns alongside toponyms. For this reason, the validation script exports a 200-record manual review sample and codebook, allowing future work to report precision, recall, and error types before using the extracted locations for hypothesis testing.
 	
@@ -394,7 +376,7 @@
 		npm run dev
 	\end{verbatim}
 	
-	The interactive map is available at \path{http://localhost:3000/map} when the development server is running.
+	The interactive map is available at \texttt{http://localhost:3000/map} when the development server is running.
 	
 	% --- ISPRS FIX: references -----------------------------------------------------
 	% Formatting applied to satisfy the ISPRS instructions:
