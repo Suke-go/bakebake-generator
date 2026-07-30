@@ -1,0 +1,1201 @@
+drop_rate,replicate,major_category,category_label,feature,feature_label,effect_ratio,relative_to_full
+0.1,1,カッパ,Kappa,hydrology,Water setting,3.3962928659156186,1.0060989026275726
+0.1,1,ユウレイ,Yurei,death_ritual,Death ritual,4.653211932214012,1.0
+0.1,1,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3546761877704443,1.0127540722869992
+0.1,1,カッパ,Kappa,livelihood,Livelihood,1.4789654619616954,1.0058277514190772
+0.1,2,カッパ,Kappa,hydrology,Water setting,2.7766305787994128,0.8225335943103729
+0.1,2,ユウレイ,Yurei,death_ritual,Death ritual,4.746931956489765,1.0201409318210788
+0.1,2,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4284661455221268,1.0679193441663966
+0.1,2,カッパ,Kappa,livelihood,Livelihood,0.7899648734341377,0.5372462121545429
+0.1,3,カッパ,Kappa,hydrology,Water setting,3.6709357215172718,1.087457574139204
+0.1,3,ユウレイ,Yurei,death_ritual,Death ritual,4.768038596642579,1.0246768610803272
+0.1,3,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3172957185280656,0.9848084844107378
+0.1,3,カッパ,Kappa,livelihood,Livelihood,1.4737030533205373,1.0022488465786872
+0.1,4,カッパ,Kappa,hydrology,Water setting,3.821877346112594,1.1321716812146654
+0.1,4,ユウレイ,Yurei,death_ritual,Death ritual,4.7322618847020435,1.0169882553469725
+0.1,4,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3208972107355783,0.9875009550781904
+0.1,4,カッパ,Kappa,livelihood,Livelihood,1.5525004254915278,1.0558380518082358
+0.1,5,カッパ,Kappa,hydrology,Water setting,3.8286376228313013,1.1341743079776305
+0.1,5,ユウレイ,Yurei,death_ritual,Death ritual,4.768038596642579,1.0246768610803272
+0.1,5,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.5289658844060217,1.1430528120292658
+0.1,5,カッパ,Kappa,livelihood,Livelihood,1.4736961652140725,1.0022441620550688
+0.1,6,カッパ,Kappa,hydrology,Water setting,3.4433808556062213,1.0200479867098375
+0.1,6,ユウレイ,Yurei,death_ritual,Death ritual,4.8524465446881635,1.042816578177937
+0.1,6,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3913192390580527,1.040148367504976
+0.1,6,カッパ,Kappa,livelihood,Livelihood,1.48915798353239,1.012759570529406
+0.1,7,カッパ,Kappa,hydrology,Water setting,3.3757047712165367,1.0
+0.1,7,ユウレイ,Yurei,death_ritual,Death ritual,4.770584474510378,1.0252239837785595
+0.1,7,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3307795727693779,0.99488899547035
+0.1,7,カッパ,Kappa,livelihood,Livelihood,1.4904362235294186,1.0136288871531218
+0.1,8,カッパ,Kappa,hydrology,Water setting,3.5274693020850316,1.0449578802514183
+0.1,8,ユウレイ,Yurei,death_ritual,Death ritual,4.653211932214012,1.0
+0.1,8,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3968020870690767,1.0442473372078642
+0.1,8,カッパ,Kappa,livelihood,Livelihood,1.5390444732000526,1.046686810224416
+0.1,9,カッパ,Kappa,hydrology,Water setting,3.4433808556062213,1.0200479867098375
+0.1,9,ユウレイ,Yurei,death_ritual,Death ritual,4.8524465446881635,1.042816578177937
+0.1,9,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4865243075105343,1.1113235469670897
+0.1,9,カッパ,Kappa,livelihood,Livelihood,0.894373214008253,0.6082531485097473
+0.1,10,カッパ,Kappa,hydrology,Water setting,3.4304296080398515,1.0162113811876958
+0.1,10,ユウレイ,Yurei,death_ritual,Death ritual,4.653211932214012,1.0
+0.1,10,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.0957196930128372,0.8191585496237084
+0.1,10,カッパ,Kappa,livelihood,Livelihood,0.7899648734341377,0.5372462121545429
+0.1,11,カッパ,Kappa,hydrology,Water setting,3.3808728401193124,1.001530959978148
+0.1,11,ユウレイ,Yurei,death_ritual,Death ritual,4.7322618847020435,1.0169882553469725
+0.1,11,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.34841763747162,1.0080751886106136
+0.1,11,カッパ,Kappa,livelihood,Livelihood,1.5363027411840213,1.0448221891635425
+0.1,12,カッパ,Kappa,hydrology,Water setting,3.4979118756786116,1.0362019527015789
+0.1,12,ユウレイ,Yurei,death_ritual,Death ritual,4.770584474510378,1.0252239837785595
+0.1,12,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4204169527463648,1.0619017786139286
+0.1,12,カッパ,Kappa,livelihood,Livelihood,1.5633221437214655,1.063197780479162
+0.1,13,カッパ,Kappa,hydrology,Water setting,3.5383102168452942,1.048169332524348
+0.1,13,ユウレイ,Yurei,death_ritual,Death ritual,4.653211932214012,1.0
+0.1,13,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.6406733122155948,1.2265651328629599
+0.1,13,カッパ,Kappa,livelihood,Livelihood,1.495217605163789,1.016880650944547
+0.1,14,カッパ,Kappa,hydrology,Water setting,2.778845264986418,0.8231896606245509
+0.1,14,ユウレイ,Yurei,death_ritual,Death ritual,4.770584474510378,1.0252239837785595
+0.1,14,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.501711107005898,1.1226771775784383
+0.1,14,カッパ,Kappa,livelihood,Livelihood,1.546336946759204,1.0516463393486157
+0.1,15,カッパ,Kappa,hydrology,Water setting,3.6801255286477095,1.09017991147415
+0.1,15,ユウレイ,Yurei,death_ritual,Death ritual,4.768038596642579,1.0246768610803272
+0.1,15,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3188051263634193,0.9859369156519425
+0.1,15,カッパ,Kappa,livelihood,Livelihood,1.4916225560107474,1.0144356985106688
+0.1,16,カッパ,Kappa,hydrology,Water setting,3.5274693020850316,1.0449578802514183
+0.1,16,ユウレイ,Yurei,death_ritual,Death ritual,4.768038596642579,1.0246768610803272
+0.1,16,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.351611630401219,1.010463013373099
+0.1,16,カッパ,Kappa,livelihood,Livelihood,0.8752968308333716,0.5952795151913942
+0.1,17,カッパ,Kappa,hydrology,Water setting,3.530485429332959,1.0458513610065026
+0.1,17,ユウレイ,Yurei,death_ritual,Death ritual,4.653211932214012,1.0
+0.1,17,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.338011535922706,1.000295601270528
+0.1,17,カッパ,Kappa,livelihood,Livelihood,1.4938525027081666,1.0159522601411712
+0.1,18,カッパ,Kappa,hydrology,Water setting,3.5274693020850316,1.0449578802514183
+0.1,18,ユウレイ,Yurei,death_ritual,Death ritual,4.653211932214012,1.0
+0.1,18,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3324428063278235,0.9961324266125572
+0.1,18,カッパ,Kappa,livelihood,Livelihood,1.630424751637657,1.1088335082703813
+0.1,19,カッパ,Kappa,hydrology,Water setting,3.387671624625407,1.0035449940738028
+0.1,19,ユウレイ,Yurei,death_ritual,Death ritual,4.653211932214012,1.0
+0.1,19,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3907709206180516,1.0397384453862923
+0.1,19,カッパ,Kappa,livelihood,Livelihood,1.4703963575026535,1.0
+0.1,20,カッパ,Kappa,hydrology,Water setting,3.450524279613208,1.0221641148937641
+0.1,20,ユウレイ,Yurei,death_ritual,Death ritual,4.770584474510378,1.0252239837785595
+0.1,20,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.5233702618003768,1.1388695321930895
+0.1,20,カッパ,Kappa,livelihood,Livelihood,0.86470148974691,0.5880737430658043
+0.1,21,カッパ,Kappa,hydrology,Water setting,3.3757047712165367,1.0
+0.1,21,ユウレイ,Yurei,death_ritual,Death ritual,4.746931956489765,1.0201409318210788
+0.1,21,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3625622720717085,1.0186496981661612
+0.1,21,カッパ,Kappa,livelihood,Livelihood,1.4823277894669566,1.008114432481707
+0.1,22,カッパ,Kappa,hydrology,Water setting,3.736702002464217,1.1069398113027473
+0.1,22,ユウレイ,Yurei,death_ritual,Death ritual,5.12818445438854,1.1020741219385068
+0.1,22,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2509158654081463,0.935182996658086
+0.1,22,カッパ,Kappa,livelihood,Livelihood,0.9079006660712513,0.617453016282797
+0.1,23,カッパ,Kappa,hydrology,Water setting,3.4304296080398515,1.0162113811876958
+0.1,23,ユウレイ,Yurei,death_ritual,Death ritual,4.653211932214012,1.0
+0.1,23,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.339295179157173,1.0012552512037047
+0.1,23,カッパ,Kappa,livelihood,Livelihood,1.5505655138555634,1.054522140199715
+0.1,24,カッパ,Kappa,hydrology,Water setting,2.9778205401893745,0.8821329891109605
+0.1,24,ユウレイ,Yurei,death_ritual,Death ritual,4.770584474510378,1.0252239837785595
+0.1,24,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2521970833921696,0.9361408334773355
+0.1,24,カッパ,Kappa,livelihood,Livelihood,1.5197351024516808,1.0335547246817347
+0.1,25,カッパ,Kappa,hydrology,Water setting,2.776399560538501,0.8224651587460777
+0.1,25,ユウレイ,Yurei,death_ritual,Death ritual,4.836284621396655,1.039343294878799
+0.1,25,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3619862083723298,1.0182190337293686
+0.1,25,カッパ,Kappa,livelihood,Livelihood,1.490483024008916,1.0136607156320612
+0.1,26,カッパ,Kappa,hydrology,Water setting,3.3962928659156186,1.0060989026275726
+0.1,26,ユウレイ,Yurei,death_ritual,Death ritual,4.768038596642579,1.0246768610803272
+0.1,26,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4821884055540173,1.1080820325718843
+0.1,26,カッパ,Kappa,livelihood,Livelihood,0.86470148974691,0.5880737430658043
+0.1,27,カッパ,Kappa,hydrology,Water setting,3.4649036947705043,1.0264237928371391
+0.1,27,ユウレイ,Yurei,death_ritual,Death ritual,4.7322618847020435,1.0169882553469725
+0.1,27,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4262591790385828,1.0662694190301996
+0.1,27,カッパ,Kappa,livelihood,Livelihood,1.4737030533205373,1.0022488465786872
+0.1,28,カッパ,Kappa,hydrology,Water setting,3.434615905834543,1.0174515067550696
+0.1,28,ユウレイ,Yurei,death_ritual,Death ritual,4.773179482082888,1.0257816647117113
+0.1,28,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3371073398433655,0.9996196255135427
+0.1,28,カッパ,Kappa,livelihood,Livelihood,1.5363027411840213,1.0448221891635425
+0.1,29,カッパ,Kappa,hydrology,Water setting,3.9651902557724044,1.1746259002215496
+0.1,29,ユウレイ,Yurei,death_ritual,Death ritual,4.746931956489765,1.0201409318210788
+0.1,29,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4183174719521692,1.0603322096326437
+0.1,29,カッパ,Kappa,livelihood,Livelihood,1.4904362235294186,1.0136288871531218
+0.1,30,カッパ,Kappa,hydrology,Water setting,3.5274693020850316,1.0449578802514183
+0.1,30,ユウレイ,Yurei,death_ritual,Death ritual,2.7150730780375927,0.5834836490556647
+0.1,30,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3405322841199019,1.0021801091883367
+0.1,30,カッパ,Kappa,livelihood,Livelihood,1.4994134230784752,1.0197341794460812
+0.1,31,カッパ,Kappa,hydrology,Water setting,3.7583483420749184,1.1133522025151756
+0.1,31,ユウレイ,Yurei,death_ritual,Death ritual,4.653211932214012,1.0
+0.1,31,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.0413688166799535,0.7785259085280619
+0.1,31,カッパ,Kappa,livelihood,Livelihood,1.6356062451030315,1.11235738361116
+0.1,32,カッパ,Kappa,hydrology,Water setting,3.55068473769077,1.0518350917314296
+0.1,32,ユウレイ,Yurei,death_ritual,Death ritual,4.653211932214012,1.0
+0.1,32,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4268729625401055,1.0667282827396833
+0.1,32,カッパ,Kappa,livelihood,Livelihood,1.5197351024516808,1.0335547246817347
+0.1,33,カッパ,Kappa,hydrology,Water setting,3.6709357215172718,1.087457574139204
+0.1,33,ユウレイ,Yurei,death_ritual,Death ritual,2.7150730780375927,0.5834836490556647
+0.1,33,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.235656090117814,0.9237748094418452
+0.1,33,カッパ,Kappa,livelihood,Livelihood,1.6176612528927028,1.1001531965436628
+0.1,34,カッパ,Kappa,hydrology,Water setting,3.471299753498643,1.0283185256889795
+0.1,34,ユウレイ,Yurei,death_ritual,Death ritual,4.653211932214012,1.0
+0.1,34,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3482752305533148,1.0079687253925123
+0.1,34,カッパ,Kappa,livelihood,Livelihood,1.5013360448812874,1.0210417328775094
+0.1,35,カッパ,Kappa,hydrology,Water setting,3.4658517534719007,1.0267046404721218
+0.1,35,ユウレイ,Yurei,death_ritual,Death ritual,5.12818445438854,1.1020741219385068
+0.1,35,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.483638372623637,1.109166025977612
+0.1,35,カッパ,Kappa,livelihood,Livelihood,1.4995948413550566,1.019857559972465
+0.1,36,カッパ,Kappa,hydrology,Water setting,3.4275845309001567,1.0153685713650022
+0.1,36,ユウレイ,Yurei,death_ritual,Death ritual,4.653211932214012,1.0
+0.1,36,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3412681508001465,1.0027302421158997
+0.1,36,カッパ,Kappa,livelihood,Livelihood,1.709518177262069,1.1626240561188168
+0.1,37,カッパ,Kappa,hydrology,Water setting,3.4275845309001567,1.0153685713650022
+0.1,37,ユウレイ,Yurei,death_ritual,Death ritual,4.653211932214012,1.0
+0.1,37,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3282150270909874,0.9929717446152725
+0.1,37,カッパ,Kappa,livelihood,Livelihood,1.4770177359711358,1.0045031249123386
+0.1,38,カッパ,Kappa,hydrology,Water setting,3.4980855616991673,1.0362534044819705
+0.1,38,ユウレイ,Yurei,death_ritual,Death ritual,4.768038596642579,1.0246768610803272
+0.1,38,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3332498072601258,0.996735739410041
+0.1,38,カッパ,Kappa,livelihood,Livelihood,1.500203724652064,1.0202716546442185
+0.1,39,カッパ,Kappa,hydrology,Water setting,3.863446216686951,1.144485812156684
+0.1,39,ユウレイ,Yurei,death_ritual,Death ritual,2.7150730780375927,0.5834836490556647
+0.1,39,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2345421975984072,0.9229420649119692
+0.1,39,カッパ,Kappa,livelihood,Livelihood,1.5051781737381498,1.023654721434818
+0.1,40,カッパ,Kappa,hydrology,Water setting,3.384355730793457,1.0025627121336806
+0.1,40,ユウレイ,Yurei,death_ritual,Death ritual,4.768038596642579,1.0246768610803272
+0.1,40,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.331371700219988,0.9953316691456771
+0.1,40,カッパ,Kappa,livelihood,Livelihood,1.4736961652140725,1.0022441620550688
+0.1,41,カッパ,Kappa,hydrology,Water setting,3.4275845309001567,1.0153685713650022
+0.1,41,ユウレイ,Yurei,death_ritual,Death ritual,4.7322618847020435,1.0169882553469725
+0.1,41,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3253509710535811,0.9908305802238653
+0.1,41,カッパ,Kappa,livelihood,Livelihood,1.4703963575026535,1.0
+0.1,42,カッパ,Kappa,hydrology,Water setting,3.450524279613208,1.0221641148937641
+0.1,42,ユウレイ,Yurei,death_ritual,Death ritual,4.8524465446881635,1.042816578177937
+0.1,42,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.5644036075977992,1.1695460056050089
+0.1,42,カッパ,Kappa,livelihood,Livelihood,1.4916225560107474,1.0144356985106688
+0.1,43,カッパ,Kappa,hydrology,Water setting,3.4661560051006,1.0267947702818416
+0.1,43,ユウレイ,Yurei,death_ritual,Death ritual,4.7322618847020435,1.0169882553469725
+0.1,43,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2977216976351598,0.9701749730599939
+0.1,43,カッパ,Kappa,livelihood,Livelihood,1.6564668628214476,1.126544454744719
+0.1,44,カッパ,Kappa,hydrology,Water setting,2.8344873676075415,0.8396727675287934
+0.1,44,ユウレイ,Yurei,death_ritual,Death ritual,4.653211932214012,1.0
+0.1,44,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.354246597204297,1.012432910965047
+0.1,44,カッパ,Kappa,livelihood,Livelihood,1.490483024008916,1.0136607156320612
+0.1,45,カッパ,Kappa,hydrology,Water setting,3.678593904075628,1.0897261915324237
+0.1,45,ユウレイ,Yurei,death_ritual,Death ritual,4.836284621396655,1.039343294878799
+0.1,45,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2548694860820402,0.9381387180872447
+0.1,45,カッパ,Kappa,livelihood,Livelihood,1.6488228373164078,1.1213458391020479
+0.1,46,カッパ,Kappa,hydrology,Water setting,3.385251234243953,1.0028279910935387
+0.1,46,ユウレイ,Yurei,death_ritual,Death ritual,4.653211932214012,1.0
+0.1,46,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4763277898356815,1.1037006442457025
+0.1,46,カッパ,Kappa,livelihood,Livelihood,1.4673660264460744,0.9979391059824673
+0.1,47,カッパ,Kappa,hydrology,Water setting,3.8233974323166477,1.1326219830944433
+0.1,47,ユウレイ,Yurei,death_ritual,Death ritual,4.746931956489765,1.0201409318210788
+0.1,47,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.336400150274243,0.9990909315551832
+0.1,47,カッパ,Kappa,livelihood,Livelihood,1.4768981298425177,1.0044217821315247
+0.1,48,カッパ,Kappa,hydrology,Water setting,3.3757047712165367,1.0
+0.1,48,ユウレイ,Yurei,death_ritual,Death ritual,5.12818445438854,1.1020741219385068
+0.1,48,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3667661852722028,1.0217925379471933
+0.1,48,カッパ,Kappa,livelihood,Livelihood,1.6488228373164078,1.1213458391020479
+0.1,49,カッパ,Kappa,hydrology,Water setting,3.3808728401193124,1.001530959978148
+0.1,49,ユウレイ,Yurei,death_ritual,Death ritual,4.7322618847020435,1.0169882553469725
+0.1,49,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3388663751878305,1.000934677940452
+0.1,49,カッパ,Kappa,livelihood,Livelihood,1.4823277894669566,1.008114432481707
+0.1,50,カッパ,Kappa,hydrology,Water setting,3.7765424011444173,1.1187419093475484
+0.1,50,ユウレイ,Yurei,death_ritual,Death ritual,5.12818445438854,1.1020741219385068
+0.1,50,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2265189166519197,0.916943871007763
+0.1,50,カッパ,Kappa,livelihood,Livelihood,1.4789654619616954,1.0058277514190772
+0.1,51,カッパ,Kappa,hydrology,Water setting,3.86297516557143,1.1443462705950114
+0.1,51,ユウレイ,Yurei,death_ritual,Death ritual,4.653211932214012,1.0
+0.1,51,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.349286028226027,1.008724396355462
+0.1,51,カッパ,Kappa,livelihood,Livelihood,1.5656123639606865,1.0647553334665147
+0.1,52,カッパ,Kappa,hydrology,Water setting,3.4632461025436156,1.0259327569381995
+0.1,52,ユウレイ,Yurei,death_ritual,Death ritual,4.653211932214012,1.0
+0.1,52,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.317138155406231,0.9846906904355274
+0.1,52,カッパ,Kappa,livelihood,Livelihood,1.4789654619616954,1.0058277514190772
+0.1,53,カッパ,Kappa,hydrology,Water setting,3.487838984240231,1.0332180153844683
+0.1,53,ユウレイ,Yurei,death_ritual,Death ritual,5.12818445438854,1.1020741219385068
+0.1,53,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.167323591349746,0.8726895264630363
+0.1,53,カッパ,Kappa,livelihood,Livelihood,1.6723562945051513,1.1373506782521619
+0.1,54,カッパ,Kappa,hydrology,Water setting,3.4419561565145753,1.0196259417775337
+0.1,54,ユウレイ,Yurei,death_ritual,Death ritual,4.773179482082888,1.0257816647117113
+0.1,54,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3017450350255981,0.9731828146114552
+0.1,54,カッパ,Kappa,livelihood,Livelihood,0.8649641001923853,0.5882523414716936
+0.1,55,カッパ,Kappa,hydrology,Water setting,3.4462653380317168,1.0209024697351574
+0.1,55,ユウレイ,Yurei,death_ritual,Death ritual,4.653211932214012,1.0
+0.1,55,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3452850448268567,1.0057332666174164
+0.1,55,カッパ,Kappa,livelihood,Livelihood,0.9079006660712513,0.617453016282797
+0.1,56,カッパ,Kappa,hydrology,Water setting,3.604972962355976,1.0679171333625883
+0.1,56,ユウレイ,Yurei,death_ritual,Death ritual,4.653211932214012,1.0
+0.1,56,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.444573405417337,1.0799611097185815
+0.1,56,カッパ,Kappa,livelihood,Livelihood,1.6352875198071282,1.1121406221275798
+0.1,57,カッパ,Kappa,hydrology,Water setting,3.604972962355976,1.0679171333625883
+0.1,57,ユウレイ,Yurei,death_ritual,Death ritual,2.7150730780375927,0.5834836490556647
+0.1,57,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.0561621282463582,0.7895853680998319
+0.1,57,カッパ,Kappa,livelihood,Livelihood,1.4673660264460744,0.9979391059824673
+0.1,58,カッパ,Kappa,hydrology,Water setting,3.401524214997102,1.0076486083737888
+0.1,58,ユウレイ,Yurei,death_ritual,Death ritual,4.770584474510378,1.0252239837785595
+0.1,58,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4226141337527918,1.0635443881407654
+0.1,58,カッパ,Kappa,livelihood,Livelihood,1.4737030533205373,1.0022488465786872
+0.1,59,カッパ,Kappa,hydrology,Water setting,3.521945125391998,1.0433214288827632
+0.1,59,ユウレイ,Yurei,death_ritual,Death ritual,4.746931956489765,1.0201409318210788
+0.1,59,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3168594347533,0.9844823192551416
+0.1,59,カッパ,Kappa,livelihood,Livelihood,1.5692308866651914,1.067216249998334
+0.1,60,カッパ,Kappa,hydrology,Water setting,3.7583483420749184,1.1133522025151756
+0.1,60,ユウレイ,Yurei,death_ritual,Death ritual,4.653211932214012,1.0
+0.1,60,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2480017121168787,0.9330043796279475
+0.1,60,カッパ,Kappa,livelihood,Livelihood,1.4916225560107474,1.0144356985106688
+0.1,61,カッパ,Kappa,hydrology,Water setting,3.401524214997102,1.0076486083737888
+0.1,61,ユウレイ,Yurei,death_ritual,Death ritual,4.836284621396655,1.039343294878799
+0.1,61,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.1218527084996632,0.8386955563965086
+0.1,61,カッパ,Kappa,livelihood,Livelihood,0.8649641001923853,0.5882523414716936
+0.1,62,カッパ,Kappa,hydrology,Water setting,3.5383102168452942,1.048169332524348
+0.1,62,ユウレイ,Yurei,death_ritual,Death ritual,5.12818445438854,1.1020741219385068
+0.1,62,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.332068304130069,0.9958524492797596
+0.1,62,カッパ,Kappa,livelihood,Livelihood,1.4961710677880118,1.0175290901353526
+0.1,63,カッパ,Kappa,hydrology,Water setting,2.847617289633988,0.8435623025788963
+0.1,63,ユウレイ,Yurei,death_ritual,Death ritual,4.8524465446881635,1.042816578177937
+0.1,63,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.392130650674664,1.04075497772404
+0.1,63,カッパ,Kappa,livelihood,Livelihood,1.5525004254915278,1.0558380518082358
+0.1,64,カッパ,Kappa,hydrology,Water setting,3.3808728401193124,1.001530959978148
+0.1,64,ユウレイ,Yurei,death_ritual,Death ritual,4.768038596642579,1.0246768610803272
+0.1,64,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.486354361351944,1.1111964954504723
+0.1,64,カッパ,Kappa,livelihood,Livelihood,1.6176612528927028,1.1001531965436628
+0.1,65,カッパ,Kappa,hydrology,Water setting,3.6742353158293497,1.088435027600245
+0.1,65,ユウレイ,Yurei,death_ritual,Death ritual,4.770584474510378,1.0252239837785595
+0.1,65,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3409552427406806,1.002496312476967
+0.1,65,カッパ,Kappa,livelihood,Livelihood,1.5403024315419898,1.0475423335229597
+0.1,66,カッパ,Kappa,hydrology,Water setting,3.6709357215172718,1.087457574139204
+0.1,66,ユウレイ,Yurei,death_ritual,Death ritual,4.7322618847020435,1.0169882553469725
+0.1,66,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4310805629960952,1.0698738791078999
+0.1,66,カッパ,Kappa,livelihood,Livelihood,1.5656123639606865,1.0647553334665147
+0.1,67,カッパ,Kappa,hydrology,Water setting,3.4449055849681445,1.0204996640528696
+0.1,67,ユウレイ,Yurei,death_ritual,Death ritual,4.746931956489765,1.0201409318210788
+0.1,67,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3966030575669348,1.0440985430232324
+0.1,67,カッパ,Kappa,livelihood,Livelihood,1.4736961652140725,1.0022441620550688
+0.1,68,カッパ,Kappa,hydrology,Water setting,3.8286376228313013,1.1341743079776305
+0.1,68,ユウレイ,Yurei,death_ritual,Death ritual,4.773179482082888,1.0257816647117113
+0.1,68,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4967984975454867,1.1190045174390617
+0.1,68,カッパ,Kappa,livelihood,Livelihood,0.8649641001923853,0.5882523414716936
+0.1,69,カッパ,Kappa,hydrology,Water setting,3.4658517534719007,1.0267046404721218
+0.1,69,ユウレイ,Yurei,death_ritual,Death ritual,4.8524465446881635,1.042816578177937
+0.1,69,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.1632193247607192,0.869621182352973
+0.1,69,カッパ,Kappa,livelihood,Livelihood,1.6488228373164078,1.1213458391020479
+0.1,70,カッパ,Kappa,hydrology,Water setting,3.4433808556062213,1.0200479867098375
+0.1,70,ユウレイ,Yurei,death_ritual,Death ritual,4.653211932214012,1.0
+0.1,70,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4276507376516026,1.067309746353352
+0.1,70,カッパ,Kappa,livelihood,Livelihood,1.4904362235294186,1.0136288871531218
+0.1,71,カッパ,Kappa,hydrology,Water setting,3.5274693020850316,1.0449578802514183
+0.1,71,ユウレイ,Yurei,death_ritual,Death ritual,4.770584474510378,1.0252239837785595
+0.1,71,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.413597965041126,1.0568039126960804
+0.1,71,カッパ,Kappa,livelihood,Livelihood,1.6564668628214476,1.126544454744719
+0.1,72,カッパ,Kappa,hydrology,Water setting,3.821877346112594,1.1321716812146654
+0.1,72,ユウレイ,Yurei,death_ritual,Death ritual,4.746931956489765,1.0201409318210788
+0.1,72,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.374100582664556,1.027275723444904
+0.1,72,カッパ,Kappa,livelihood,Livelihood,0.7899648734341377,0.5372462121545429
+0.1,73,カッパ,Kappa,hydrology,Water setting,3.9897606608904104,1.1819045003312243
+0.1,73,ユウレイ,Yurei,death_ritual,Death ritual,4.768038596642579,1.0246768610803272
+0.1,73,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4180644969633214,1.0601430858756489
+0.1,73,カッパ,Kappa,livelihood,Livelihood,1.4973781396581713,1.0183500061176323
+0.1,74,カッパ,Kappa,hydrology,Water setting,3.5375050982580736,1.047930828673512
+0.1,74,ユウレイ,Yurei,death_ritual,Death ritual,4.653211932214012,1.0
+0.1,74,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2818187982844484,0.9582859871724437
+0.1,74,カッパ,Kappa,livelihood,Livelihood,1.4995948413550566,1.019857559972465
+0.1,75,カッパ,Kappa,hydrology,Water setting,3.5404399532005835,1.0488002337730142
+0.1,75,ユウレイ,Yurei,death_ritual,Death ritual,5.12818445438854,1.1020741219385068
+0.1,75,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.0986540603641264,0.8213522786575782
+0.1,75,カッパ,Kappa,livelihood,Livelihood,1.6723562945051513,1.1373506782521619
+0.1,76,カッパ,Kappa,hydrology,Water setting,3.4951401218892126,1.0353808637802273
+0.1,76,ユウレイ,Yurei,death_ritual,Death ritual,4.653211932214012,1.0
+0.1,76,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4654329600587375,1.0955556843482135
+0.1,76,カッパ,Kappa,livelihood,Livelihood,1.48915798353239,1.012759570529406
+0.1,77,カッパ,Kappa,hydrology,Water setting,3.4487829564867654,1.0216482750189948
+0.1,77,ユウレイ,Yurei,death_ritual,Death ritual,4.653211932214012,1.0
+0.1,77,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.357218436532001,1.0146546539974306
+0.1,77,カッパ,Kappa,livelihood,Livelihood,1.4861654936890634,1.0107244118947576
+0.1,78,カッパ,Kappa,hydrology,Water setting,3.4474799818330073,1.021262289056932
+0.1,78,ユウレイ,Yurei,death_ritual,Death ritual,5.12818445438854,1.1020741219385068
+0.1,78,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.418223228794627,1.0602617535764676
+0.1,78,カッパ,Kappa,livelihood,Livelihood,1.5525004254915278,1.0558380518082358
+0.1,79,カッパ,Kappa,hydrology,Water setting,3.4658517534719007,1.0267046404721218
+0.1,79,ユウレイ,Yurei,death_ritual,Death ritual,2.7150730780375927,0.5834836490556647
+0.1,79,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3333532378996305,0.9968130640152147
+0.1,79,カッパ,Kappa,livelihood,Livelihood,1.6488228373164078,1.1213458391020479
+0.1,80,カッパ,Kappa,hydrology,Water setting,3.4730764961104503,1.0288448580350298
+0.1,80,ユウレイ,Yurei,death_ritual,Death ritual,4.7322618847020435,1.0169882553469725
+0.1,80,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.390922200442285,1.0398515419767766
+0.1,80,カッパ,Kappa,livelihood,Livelihood,0.8674490653857284,0.5899423383087121
+0.1,81,カッパ,Kappa,hydrology,Water setting,3.382478055348454,1.002006480006685
+0.1,81,ユウレイ,Yurei,death_ritual,Death ritual,4.653211932214012,1.0
+0.1,81,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.0961507985704735,0.8194808435512339
+0.1,81,カッパ,Kappa,livelihood,Livelihood,1.4861654936890634,1.0107244118947576
+0.1,82,カッパ,Kappa,hydrology,Water setting,3.833077365406299,1.1354895126166304
+0.1,82,ユウレイ,Yurei,death_ritual,Death ritual,4.8524465446881635,1.042816578177937
+0.1,82,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4841848403509703,1.1095745645060267
+0.1,82,カッパ,Kappa,livelihood,Livelihood,1.4904362235294186,1.0136288871531218
+0.1,83,カッパ,Kappa,hydrology,Water setting,3.4632461025436156,1.0259327569381995
+0.1,83,ユウレイ,Yurei,death_ritual,Death ritual,4.768038596642579,1.0246768610803272
+0.1,83,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.0703790828001396,0.8002139439542273
+0.1,83,カッパ,Kappa,livelihood,Livelihood,1.4916225560107474,1.0144356985106688
+0.1,84,カッパ,Kappa,hydrology,Water setting,3.471892427758246,1.0284940962141798
+0.1,84,ユウレイ,Yurei,death_ritual,Death ritual,4.836284621396655,1.039343294878799
+0.1,84,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4486115820694412,1.082980045081846
+0.1,84,カッパ,Kappa,livelihood,Livelihood,1.5399589105442097,1.0473087087618351
+0.1,85,カッパ,Kappa,hydrology,Water setting,3.973853351296378,1.1771922074406644
+0.1,85,ユウレイ,Yurei,death_ritual,Death ritual,4.836284621396655,1.039343294878799
+0.1,85,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.469083468306246,1.0982847993403846
+0.1,85,カッパ,Kappa,livelihood,Livelihood,1.6723562945051513,1.1373506782521619
+0.1,86,カッパ,Kappa,hydrology,Water setting,3.8316057808641326,1.1350535785993212
+0.1,86,ユウレイ,Yurei,death_ritual,Death ritual,5.12818445438854,1.1020741219385068
+0.1,86,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.576849840559503,1.1788507924097018
+0.1,86,カッパ,Kappa,livelihood,Livelihood,1.4789654619616954,1.0058277514190772
+0.1,87,カッパ,Kappa,hydrology,Water setting,3.3784643395749456,1.000817479177071
+0.1,87,ユウレイ,Yurei,death_ritual,Death ritual,4.746931956489765,1.0201409318210788
+0.1,87,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3461284987064082,1.006363831588598
+0.1,87,カッパ,Kappa,livelihood,Livelihood,1.4737030533205373,1.0022488465786872
+0.1,88,カッパ,Kappa,hydrology,Water setting,3.8316057808641326,1.1350535785993212
+0.1,88,ユウレイ,Yurei,death_ritual,Death ritual,4.653211932214012,1.0
+0.1,88,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3171618010329547,0.9847083678738499
+0.1,88,カッパ,Kappa,livelihood,Livelihood,1.559226762215103,1.0604125576475996
+0.1,89,カッパ,Kappa,hydrology,Water setting,3.6089103689664785,1.069083528790315
+0.1,89,ユウレイ,Yurei,death_ritual,Death ritual,2.7150730780375927,0.5834836490556647
+0.1,89,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3297322582396462,0.9941060245548453
+0.1,89,カッパ,Kappa,livelihood,Livelihood,1.4961710677880118,1.0175290901353526
+0.1,90,カッパ,Kappa,hydrology,Water setting,3.678593904075628,1.0897261915324237
+0.1,90,ユウレイ,Yurei,death_ritual,Death ritual,4.768038596642579,1.0246768610803272
+0.1,90,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3509210513397139,1.009946737407603
+0.1,90,カッパ,Kappa,livelihood,Livelihood,1.4703963575026535,1.0
+0.1,91,カッパ,Kappa,hydrology,Water setting,3.863446216686951,1.144485812156684
+0.1,91,ユウレイ,Yurei,death_ritual,Death ritual,4.653211932214012,1.0
+0.1,91,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2423005141937578,0.9287421718282682
+0.1,91,カッパ,Kappa,livelihood,Livelihood,1.500203724652064,1.0202716546442185
+0.1,92,カッパ,Kappa,hydrology,Water setting,3.6742353158293497,1.088435027600245
+0.1,92,ユウレイ,Yurei,death_ritual,Death ritual,4.653211932214012,1.0
+0.1,92,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2371159860883005,0.9248662256803332
+0.1,92,カッパ,Kappa,livelihood,Livelihood,1.4789654619616954,1.0058277514190772
+0.1,93,カッパ,Kappa,hydrology,Water setting,3.450524279613208,1.0221641148937641
+0.1,93,ユウレイ,Yurei,death_ritual,Death ritual,4.768038596642579,1.0246768610803272
+0.1,93,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.427871672082815,1.0674749166331126
+0.1,93,カッパ,Kappa,livelihood,Livelihood,1.630424751637657,1.1088335082703813
+0.1,94,カッパ,Kappa,hydrology,Water setting,3.5274693020850316,1.0449578802514183
+0.1,94,ユウレイ,Yurei,death_ritual,Death ritual,5.12818445438854,1.1020741219385068
+0.1,94,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3415276651024437,1.0029242546547195
+0.1,94,カッパ,Kappa,livelihood,Livelihood,1.4973781396581713,1.0183500061176323
+0.1,95,カッパ,Kappa,hydrology,Water setting,3.4419561565145753,1.0196259417775337
+0.1,95,ユウレイ,Yurei,death_ritual,Death ritual,4.653211932214012,1.0
+0.1,95,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4764718811319084,1.1038083667024434
+0.1,95,カッパ,Kappa,livelihood,Livelihood,1.4861654936890634,1.0107244118947576
+0.1,96,カッパ,Kappa,hydrology,Water setting,3.4748115674566264,1.029358845917196
+0.1,96,ユウレイ,Yurei,death_ritual,Death ritual,4.653211932214012,1.0
+0.1,96,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4256359292071183,1.0658034783053487
+0.1,96,カッパ,Kappa,livelihood,Livelihood,1.5136619715028539,1.0294244567319817
+0.1,97,カッパ,Kappa,hydrology,Water setting,3.7583483420749184,1.1133522025151756
+0.1,97,ユウレイ,Yurei,death_ritual,Death ritual,4.653211932214012,1.0
+0.1,97,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4927859746398504,1.1160047607817043
+0.1,97,カッパ,Kappa,livelihood,Livelihood,1.4826985077855146,1.0083665538343385
+0.1,98,カッパ,Kappa,hydrology,Water setting,3.5331180347883224,1.0466312293995594
+0.1,98,ユウレイ,Yurei,death_ritual,Death ritual,4.768038596642579,1.0246768610803272
+0.1,98,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3565770034307165,1.0141751194848363
+0.1,98,カッパ,Kappa,livelihood,Livelihood,1.5481215043712946,1.0528599968791073
+0.1,99,カッパ,Kappa,hydrology,Water setting,3.604972962355976,1.0679171333625883
+0.1,99,ユウレイ,Yurei,death_ritual,Death ritual,4.773179482082888,1.0257816647117113
+0.1,99,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.426669502174602,1.0665761760476393
+0.1,99,カッパ,Kappa,livelihood,Livelihood,1.630424751637657,1.1088335082703813
+0.1,100,カッパ,Kappa,hydrology,Water setting,3.4433808556062213,1.0200479867098375
+0.1,100,ユウレイ,Yurei,death_ritual,Death ritual,4.770584474510378,1.0252239837785595
+0.1,100,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3529378846095717,1.011454519212297
+0.1,100,カッパ,Kappa,livelihood,Livelihood,1.4916225560107474,1.0144356985106688
+0.2,1,カッパ,Kappa,hydrology,Water setting,3.967542437767177,1.1753226975288344
+0.2,1,ユウレイ,Yurei,death_ritual,Death ritual,2.7438460247565706,0.5896671083818528
+0.2,1,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3365872002238972,0.9992307698426969
+0.2,1,カッパ,Kappa,livelihood,Livelihood,1.5136619715028539,1.0294244567319817
+0.2,2,カッパ,Kappa,hydrology,Water setting,3.6306218662070107,1.0755152219364867
+0.2,2,ユウレイ,Yurei,death_ritual,Death ritual,5.132660302841287,1.1030360055831696
+0.2,2,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4685798095472586,1.0979082647383798
+0.2,2,カッパ,Kappa,livelihood,Livelihood,1.8657262434659263,1.2688594023959008
+0.2,3,カッパ,Kappa,hydrology,Water setting,2.9715064219940843,0.8802625298666781
+0.2,3,ユウレイ,Yurei,death_ritual,Death ritual,5.472716169449826,1.1761158204642295
+0.2,3,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.301374376378618,0.9729057107119798
+0.2,3,カッパ,Kappa,livelihood,Livelihood,1.677037516466569,1.1405343245782236
+0.2,4,カッパ,Kappa,hydrology,Water setting,3.780133689218391,1.1198057725457153
+0.2,4,ユウレイ,Yurei,death_ritual,Death ritual,2.3518334858239576,0.505421528201263
+0.2,4,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3550741414915,1.013051581946665
+0.2,4,カッパ,Kappa,livelihood,Livelihood,1.677808177803775,1.141058442672827
+0.2,5,カッパ,Kappa,hydrology,Water setting,3.7904637420181073,1.1228658899137378
+0.2,5,ユウレイ,Yurei,death_ritual,Death ritual,2.4469575366387377,0.525864192795205
+0.2,5,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.363560949830381,1.0193963082978876
+0.2,5,カッパ,Kappa,livelihood,Livelihood,0.9079006660712513,0.617453016282797
+0.2,6,カッパ,Kappa,hydrology,Water setting,3.4730764961104503,1.0288448580350298
+0.2,6,ユウレイ,Yurei,death_ritual,Death ritual,4.998606414569206,1.0742271118072315
+0.2,6,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.534138374945422,1.1469197589092173
+0.2,6,カッパ,Kappa,livelihood,Livelihood,1.5265720204203863,1.0382044355803102
+0.2,7,カッパ,Kappa,hydrology,Water setting,3.4661560051006,1.0267947702818416
+0.2,7,ユウレイ,Yurei,death_ritual,Death ritual,4.770584474510378,1.0252239837785595
+0.2,7,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3351685050922626,0.9981701552952001
+0.2,7,カッパ,Kappa,livelihood,Livelihood,0.7864460651509187,0.534853110277444
+0.2,8,カッパ,Kappa,hydrology,Water setting,3.5404399532005835,1.0488002337730142
+0.2,8,ユウレイ,Yurei,death_ritual,Death ritual,4.990172227109346,1.0724145600509982
+0.2,8,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.51478831214587,1.1324536783239312
+0.2,8,カッパ,Kappa,livelihood,Livelihood,1.6771150710946097,1.1405870686071684
+0.2,9,カッパ,Kappa,hydrology,Water setting,2.9715064219940843,0.8802625298666781
+0.2,9,ユウレイ,Yurei,death_ritual,Death ritual,4.836284621396655,1.039343294878799
+0.2,9,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.0649136824304661,0.796128018084241
+0.2,9,カッパ,Kappa,livelihood,Livelihood,1.5203697981813102,1.0339863740981599
+0.2,10,カッパ,Kappa,hydrology,Water setting,3.4639663272066525,1.0261461122852602
+0.2,10,ユウレイ,Yurei,death_ritual,Death ritual,5.511850114145283,1.1845259133775856
+0.2,10,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.323377846215592,0.9893554747832856
+0.2,10,カッパ,Kappa,livelihood,Livelihood,1.5500600821041723,1.0541784017588436
+0.2,11,カッパ,Kappa,hydrology,Water setting,3.6011578322927837,1.0667869604589262
+0.2,11,ユウレイ,Yurei,death_ritual,Death ritual,4.871569193761941,1.0469261371991783
+0.2,11,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.338236791905326,1.0004640023362326
+0.2,11,カッパ,Kappa,livelihood,Livelihood,1.640500016546313,1.115685582445652
+0.2,12,カッパ,Kappa,hydrology,Water setting,3.468695822666001,1.0275471517066204
+0.2,12,ユウレイ,Yurei,death_ritual,Death ritual,2.937379027680041,0.6312583803339529
+0.2,12,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3906511304402103,1.0396488904125474
+0.2,12,カッパ,Kappa,livelihood,Livelihood,0.8006695811816117,0.544526363314367
+0.2,13,カッパ,Kappa,hydrology,Water setting,3.4524237976297014,1.0227268175426125
+0.2,13,ユウレイ,Yurei,death_ritual,Death ritual,4.770584474510378,1.0252239837785595
+0.2,13,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3504101291561743,1.0095647726792991
+0.2,13,カッパ,Kappa,livelihood,Livelihood,0.7899648734341377,0.5372462121545429
+0.2,14,カッパ,Kappa,hydrology,Water setting,3.8331259083055804,1.1355038926950352
+0.2,14,ユウレイ,Yurei,death_ritual,Death ritual,5.119334456301025,1.100172210266217
+0.2,14,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4706962960784082,1.099490547185442
+0.2,14,カッパ,Kappa,livelihood,Livelihood,1.4789654619616954,1.0058277514190772
+0.2,15,カッパ,Kappa,hydrology,Water setting,2.7793075158757685,0.8233265952561846
+0.2,15,ユウレイ,Yurei,death_ritual,Death ritual,4.946784096980291,1.0630902200550743
+0.2,15,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4282705025782771,1.0677730817681301
+0.2,15,カッパ,Kappa,livelihood,Livelihood,1.4768981298425177,1.0044217821315247
+0.2,16,カッパ,Kappa,hydrology,Water setting,3.4304296080398515,1.0162113811876958
+0.2,16,ユウレイ,Yurei,death_ritual,Death ritual,2.1398128151133324,0.45985715808461
+0.2,16,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2584784327199063,0.9408367616766732
+0.2,16,カッパ,Kappa,livelihood,Livelihood,1.4994134230784752,1.0197341794460812
+0.2,17,カッパ,Kappa,hydrology,Water setting,3.973060275167126,1.1769572709805762
+0.2,17,ユウレイ,Yurei,death_ritual,Death ritual,4.891030983409666,1.0511085793340385
+0.2,17,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.429291650306528,1.0685364904184989
+0.2,17,カッパ,Kappa,livelihood,Livelihood,1.8073039712407224,1.2291270731316817
+0.2,18,カッパ,Kappa,hydrology,Water setting,3.6956966254975154,1.0947926065719487
+0.2,18,ユウレイ,Yurei,death_ritual,Death ritual,5.002776930877443,1.0751233779496276
+0.2,18,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.229563718780783,0.9192201609308844
+0.2,18,カッパ,Kappa,livelihood,Livelihood,1.5653831155561186,1.0645994242088523
+0.2,19,カッパ,Kappa,hydrology,Water setting,3.934450219206979,1.1655196428179
+0.2,19,ユウレイ,Yurei,death_ritual,Death ritual,5.384620726598418,1.1571836411148373
+0.2,19,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3757336288846782,1.0284965865741094
+0.2,19,カッパ,Kappa,livelihood,Livelihood,1.5400370016979046,1.047361817675834
+0.2,20,カッパ,Kappa,hydrology,Water setting,3.934450219206979,1.1655196428179
+0.2,20,ユウレイ,Yurei,death_ritual,Death ritual,4.966813010458,1.0673945401181792
+0.2,20,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3590893026750661,1.0160533109770082
+0.2,20,カッパ,Kappa,livelihood,Livelihood,0.910987169100498,0.6195521122262124
+0.2,21,カッパ,Kappa,hydrology,Water setting,3.6129981722805398,1.0702944769007414
+0.2,21,ユウレイ,Yurei,death_ritual,Death ritual,5.132660302841287,1.1030360055831696
+0.2,21,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.433261804555583,1.0715045723259218
+0.2,21,カッパ,Kappa,livelihood,Livelihood,1.509044891826983,1.0262844328518135
+0.2,22,カッパ,Kappa,hydrology,Water setting,3.4687607398492113,1.0275663824117947
+0.2,22,ユウレイ,Yurei,death_ritual,Death ritual,4.980724330240718,1.0703841567497387
+0.2,22,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.072200195925601,0.801575405645631
+0.2,22,カッパ,Kappa,livelihood,Livelihood,1.5630220323222006,1.062993678097016
+0.2,23,カッパ,Kappa,hydrology,Water setting,3.384355730793457,1.0025627121336806
+0.2,23,ユウレイ,Yurei,death_ritual,Death ritual,4.946784096980291,1.0630902200550743
+0.2,23,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3546792476924892,1.0127563598805511
+0.2,23,カッパ,Kappa,livelihood,Livelihood,1.5565463198602236,1.0585896189949007
+0.2,24,カッパ,Kappa,hydrology,Water setting,2.919303066601664,0.8647980983092918
+0.2,24,ユウレイ,Yurei,death_ritual,Death ritual,4.768038596642579,1.0246768610803272
+0.2,24,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4779476194558188,1.1049116266627663
+0.2,24,カッパ,Kappa,livelihood,Livelihood,1.4961710677880118,1.0175290901353526
+0.2,25,カッパ,Kappa,hydrology,Water setting,4.307329763695834,1.2759794044855286
+0.2,25,ユウレイ,Yurei,death_ritual,Death ritual,5.56413733318563,1.1957627149249994
+0.2,25,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.610644829601015,1.2041158801728635
+0.2,25,カッパ,Kappa,livelihood,Livelihood,1.5633786438456683,1.0632362055772073
+0.2,26,カッパ,Kappa,hydrology,Water setting,3.950117986550787,1.1701609750449957
+0.2,26,ユウレイ,Yurei,death_ritual,Death ritual,5.113191989368014,1.0988521614434916
+0.2,26,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3594509304567743,1.0163236634139106
+0.2,26,カッパ,Kappa,livelihood,Livelihood,1.5399589105442097,1.0473087087618351
+0.2,27,カッパ,Kappa,hydrology,Water setting,3.568666442200267,1.0571618918304253
+0.2,27,ユウレイ,Yurei,death_ritual,Death ritual,4.891030983409666,1.0511085793340385
+0.2,27,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.1002818443450042,0.8225692077438943
+0.2,27,カッパ,Kappa,livelihood,Livelihood,1.5543774736082037,1.0571146110890706
+0.2,28,カッパ,Kappa,hydrology,Water setting,3.477630279176748,1.0301938453946846
+0.2,28,ユウレイ,Yurei,death_ritual,Death ritual,4.841378161677983,1.0404379237836348
+0.2,28,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.40322000000813,1.04904536017696
+0.2,28,カッパ,Kappa,livelihood,Livelihood,1.5698510532849144,1.0676380183307692
+0.2,29,カッパ,Kappa,hydrology,Water setting,2.8518521326729163,0.8448168089193314
+0.2,29,ユウレイ,Yurei,death_ritual,Death ritual,2.7150730780375927,0.5834836490556647
+0.2,29,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3993891383933588,1.0461814132531473
+0.2,29,カッパ,Kappa,livelihood,Livelihood,1.5174908148001887,1.0320284099299057
+0.2,30,カッパ,Kappa,hydrology,Water setting,3.4748115674566264,1.029358845917196
+0.2,30,ユウレイ,Yurei,death_ritual,Death ritual,4.9527224603809366,1.0643664059428335
+0.2,30,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4294012389747253,1.0686184187575332
+0.2,30,カッパ,Kappa,livelihood,Livelihood,1.7160765275039618,1.1670843162442104
+0.2,31,カッパ,Kappa,hydrology,Water setting,3.839589447765321,1.1374186156633626
+0.2,31,ユウレイ,Yurei,death_ritual,Death ritual,4.746931956489765,1.0201409318210788
+0.2,31,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4367915967104623,1.074143440131714
+0.2,31,カッパ,Kappa,livelihood,Livelihood,1.4789654619616954,1.0058277514190772
+0.2,32,カッパ,Kappa,hydrology,Water setting,3.450524279613208,1.0221641148937641
+0.2,32,ユウレイ,Yurei,death_ritual,Death ritual,5.41715966304278,1.1641764316686256
+0.2,32,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4992744494390655,1.1208555357013195
+0.2,32,カッパ,Kappa,livelihood,Livelihood,1.6356062451030315,1.11235738361116
+0.2,33,カッパ,Kappa,hydrology,Water setting,3.544014527458127,1.0498591457631927
+0.2,33,ユウレイ,Yurei,death_ritual,Death ritual,4.949030379231756,1.0635729580614637
+0.2,33,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4899173844157236,1.1138602066384824
+0.2,33,カッパ,Kappa,livelihood,Livelihood,1.5051781737381498,1.023654721434818
+0.2,34,カッパ,Kappa,hydrology,Water setting,3.6110442307839334,1.0697156521429405
+0.2,34,ユウレイ,Yurei,death_ritual,Death ritual,2.9525648517335963,0.6345218947138642
+0.2,34,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3147649572391786,0.9829164907192233
+0.2,34,カッパ,Kappa,livelihood,Livelihood,1.5013360448812874,1.0210417328775094
+0.2,35,カッパ,Kappa,hydrology,Water setting,3.4433808556062213,1.0200479867098375
+0.2,35,ユウレイ,Yurei,death_ritual,Death ritual,4.746931956489765,1.0201409318210788
+0.2,35,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.357213801416905,1.0146511887917
+0.2,35,カッパ,Kappa,livelihood,Livelihood,0.8649641001923853,0.5882523414716936
+0.2,36,カッパ,Kappa,hydrology,Water setting,2.792874929617883,0.8273457304180621
+0.2,36,ユウレイ,Yurei,death_ritual,Death ritual,5.326660528106118,1.1447276861021194
+0.2,36,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.1077209055373132,0.8281306397558518
+0.2,36,カッパ,Kappa,livelihood,Livelihood,1.5428568652865338,1.049279575139147
+0.2,37,カッパ,Kappa,hydrology,Water setting,3.490031969718003,1.0338676532012796
+0.2,37,ユウレイ,Yurei,death_ritual,Death ritual,4.866431464190006,1.0458220117806978
+0.2,37,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.325311926938145,0.9908013908963613
+0.2,37,カッパ,Kappa,livelihood,Livelihood,1.4804413609648048,1.0068314937063718
+0.2,38,カッパ,Kappa,hydrology,Water setting,3.6129981722805398,1.0702944769007414
+0.2,38,ユウレイ,Yurei,death_ritual,Death ritual,2.7438460247565706,0.5896671083818528
+0.2,38,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3392335123042025,1.0012091491484425
+0.2,38,カッパ,Kappa,livelihood,Livelihood,1.490483024008916,1.0136607156320612
+0.2,39,カッパ,Kappa,hydrology,Water setting,3.545074013031548,1.050173001874798
+0.2,39,ユウレイ,Yurei,death_ritual,Death ritual,2.7279880785351076,0.58625915137227
+0.2,39,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4800030230727201,1.1064482436063596
+0.2,39,カッパ,Kappa,livelihood,Livelihood,0.7899648734341377,0.5372462121545429
+0.2,40,カッパ,Kappa,hydrology,Water setting,3.5706634200878113,1.0577534654492358
+0.2,40,ユウレイ,Yurei,death_ritual,Death ritual,4.987286179383065,1.0717943330404252
+0.2,40,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.485259517089845,1.1103779913718068
+0.2,40,カッパ,Kappa,livelihood,Livelihood,1.5400370016979046,1.047361817675834
+0.2,41,カッパ,Kappa,hydrology,Water setting,3.500955135903793,1.0371034711788847
+0.2,41,ユウレイ,Yurei,death_ritual,Death ritual,2.755778867174638,0.5922315397019603
+0.2,41,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.1135346027500255,0.8324769518711539
+0.2,41,カッパ,Kappa,livelihood,Livelihood,1.5980357054605474,1.086806082799796
+0.2,42,カッパ,Kappa,hydrology,Water setting,4.162906793960428,1.2331963474578966
+0.2,42,ユウレイ,Yurei,death_ritual,Death ritual,2.288369570372412,0.4917827951334249
+0.2,42,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4134093198829725,1.056662881832866
+0.2,42,カッパ,Kappa,livelihood,Livelihood,1.490483024008916,1.0136607156320612
+0.2,43,カッパ,Kappa,hydrology,Water setting,1.7918953732039005,0.5308211157808499
+0.2,43,ユウレイ,Yurei,death_ritual,Death ritual,4.9782641371351914,1.0698554481627744
+0.2,43,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.053472346751179,0.7875744911187519
+0.2,43,カッパ,Kappa,livelihood,Livelihood,1.4770177359711358,1.0045031249123386
+0.2,44,カッパ,Kappa,hydrology,Water setting,3.9398851946841758,1.1671296697146651
+0.2,44,ユウレイ,Yurei,death_ritual,Death ritual,2.3067468383424807,0.4957321677899428
+0.2,44,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4857104896567017,1.1107151378483575
+0.2,44,カッパ,Kappa,livelihood,Livelihood,1.5197351024516808,1.0335547246817347
+0.2,45,カッパ,Kappa,hydrology,Water setting,4.067404546350287,1.2049052929721917
+0.2,45,ユウレイ,Yurei,death_ritual,Death ritual,5.565400289599947,1.1960341309775488
+0.2,45,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4197685326036529,1.0614170205986828
+0.2,45,カッパ,Kappa,livelihood,Livelihood,1.5032799080044448,1.0223637322916395
+0.2,46,カッパ,Kappa,hydrology,Water setting,3.470373591964682,1.0280441647490484
+0.2,46,ユウレイ,Yurei,death_ritual,Death ritual,4.879612490246428,1.048654684405207
+0.2,46,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.1284385489562014,0.8436191217488818
+0.2,46,カッパ,Kappa,livelihood,Livelihood,1.6302679330744312,1.1087268577319562
+0.2,47,カッパ,Kappa,hydrology,Water setting,3.487838984240231,1.0332180153844683
+0.2,47,ユウレイ,Yurei,death_ritual,Death ritual,5.132866213906744,1.1030802569666132
+0.2,47,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.512251896830927,1.1305574576902406
+0.2,47,カッパ,Kappa,livelihood,Livelihood,1.4952251108106207,1.0168857554504125
+0.2,48,カッパ,Kappa,hydrology,Water setting,2.7878530743092695,0.8258580839415596
+0.2,48,ユウレイ,Yurei,death_ritual,Death ritual,2.6398370177341355,0.5673150194296207
+0.2,48,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.6528037584174542,1.2356338379162397
+0.2,48,カッパ,Kappa,livelihood,Livelihood,1.4737030533205373,1.0022488465786872
+0.2,49,カッパ,Kappa,hydrology,Water setting,3.4748115674566264,1.029358845917196
+0.2,49,ユウレイ,Yurei,death_ritual,Death ritual,4.884564565580726,1.0497189117403118
+0.2,49,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2569287446435888,0.939678216982204
+0.2,49,カッパ,Kappa,livelihood,Livelihood,1.6356062451030315,1.11235738361116
+0.2,50,カッパ,Kappa,hydrology,Water setting,4.162906793960428,1.2331963474578966
+0.2,50,ユウレイ,Yurei,death_ritual,Death ritual,4.989548064156691,1.0722804241118347
+0.2,50,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2807995974485575,0.9575240340161506
+0.2,50,カッパ,Kappa,livelihood,Livelihood,1.5771286822317505,1.072587451801345
+0.2,51,カッパ,Kappa,hydrology,Water setting,3.482161444359736,1.0315361325584271
+0.2,51,ユウレイ,Yurei,death_ritual,Death ritual,4.968134030207247,1.0676784342903105
+0.2,51,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.355988491677473,1.0137351488999342
+0.2,51,カッパ,Kappa,livelihood,Livelihood,1.6302679330744312,1.1087268577319562
+0.2,52,カッパ,Kappa,hydrology,Water setting,3.973853351296378,1.1771922074406644
+0.2,52,ユウレイ,Yurei,death_ritual,Death ritual,4.8844610455157085,1.0496966647275976
+0.2,52,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3438873405208802,1.0046883447825827
+0.2,52,カッパ,Kappa,livelihood,Livelihood,1.5702205292313145,1.0678892947600904
+0.2,53,カッパ,Kappa,hydrology,Water setting,3.9699814904879993,1.1760452289366814
+0.2,53,ユウレイ,Yurei,death_ritual,Death ritual,5.00420429226626,1.0754301255058556
+0.2,53,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.0395598104655854,0.7771734979468964
+0.2,53,カッパ,Kappa,livelihood,Livelihood,1.6798551223750888,1.1424505466187251
+0.2,54,カッパ,Kappa,hydrology,Water setting,3.8331259083055804,1.1355038926950352
+0.2,54,ユウレイ,Yurei,death_ritual,Death ritual,4.836284621396655,1.039343294878799
+0.2,54,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.7774950910947174,1.3288529083389864
+0.2,54,カッパ,Kappa,livelihood,Livelihood,1.4736961652140725,1.0022441620550688
+0.2,55,カッパ,Kappa,hydrology,Water setting,3.6169243449581256,1.071457544450683
+0.2,55,ユウレイ,Yurei,death_ritual,Death ritual,4.897164065196517,1.0524266112389236
+0.2,55,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.1803087466913162,0.8823972109046581
+0.2,55,カッパ,Kappa,livelihood,Livelihood,1.5428568652865338,1.049279575139147
+0.2,56,カッパ,Kappa,hydrology,Water setting,2.8424502544798833,0.8420316488327031
+0.2,56,ユウレイ,Yurei,death_ritual,Death ritual,4.8524465446881635,1.042816578177937
+0.2,56,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4963603007558544,1.1186769221161577
+0.2,56,カッパ,Kappa,livelihood,Livelihood,1.4916225560107474,1.0144356985106688
+0.2,57,カッパ,Kappa,hydrology,Water setting,3.678593904075628,1.0897261915324237
+0.2,57,ユウレイ,Yurei,death_ritual,Death ritual,4.8524465446881635,1.042816578177937
+0.2,57,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.1075297640561168,0.8279877426449317
+0.2,57,カッパ,Kappa,livelihood,Livelihood,1.6356062451030315,1.11235738361116
+0.2,58,カッパ,Kappa,hydrology,Water setting,3.736702002464217,1.1069398113027473
+0.2,58,ユウレイ,Yurei,death_ritual,Death ritual,2.7766229706837793,0.5967110484397502
+0.2,58,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3912199543916246,1.0400741424236255
+0.2,58,カッパ,Kappa,livelihood,Livelihood,1.499587709085897,1.0198527093965484
+0.2,59,カッパ,Kappa,hydrology,Water setting,3.3784643395749456,1.000817479177071
+0.2,59,ユウレイ,Yurei,death_ritual,Death ritual,2.1398128151133324,0.45985715808461
+0.2,59,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4987227457244456,1.120443082755943
+0.2,59,カッパ,Kappa,livelihood,Livelihood,1.5390444732000526,1.046686810224416
+0.2,60,カッパ,Kappa,hydrology,Water setting,3.3757047712165367,1.0
+0.2,60,ユウレイ,Yurei,death_ritual,Death ritual,4.975305696915636,1.0692196636202578
+0.2,60,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.521900263936577,1.137770563792924
+0.2,60,カッパ,Kappa,livelihood,Livelihood,1.5229701758448138,1.0357548616561132
+0.2,61,カッパ,Kappa,hydrology,Water setting,3.7904637420181073,1.1228658899137378
+0.2,61,ユウレイ,Yurei,death_ritual,Death ritual,2.288369570372412,0.4917827951334249
+0.2,61,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.167555508858881,0.8728629076768876
+0.2,61,カッパ,Kappa,livelihood,Livelihood,1.5505655138555634,1.054522140199715
+0.2,62,カッパ,Kappa,hydrology,Water setting,2.81874358197897,0.8350089160679626
+0.2,62,ユウレイ,Yurei,death_ritual,Death ritual,2.9525648517335963,0.6345218947138642
+0.2,62,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3781467908525287,1.0303006631734413
+0.2,62,カッパ,Kappa,livelihood,Livelihood,1.5206692802915374,1.0341900485079194
+0.2,63,カッパ,Kappa,hydrology,Water setting,3.8301950626631673,1.134635675288287
+0.2,63,ユウレイ,Yurei,death_ritual,Death ritual,2.7150730780375927,0.5834836490556647
+0.2,63,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.327816987963149,0.9926741711056123
+0.2,63,カッパ,Kappa,livelihood,Livelihood,1.647029544444784,1.1201262408199428
+0.2,64,カッパ,Kappa,hydrology,Water setting,3.5383102168452942,1.048169332524348
+0.2,64,ユウレイ,Yurei,death_ritual,Death ritual,2.353568424112252,0.5057943756695426
+0.2,64,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.242954139991866,0.9292308215843958
+0.2,64,カッパ,Kappa,livelihood,Livelihood,1.7945723967543465,1.2204684727336235
+0.2,65,カッパ,Kappa,hydrology,Water setting,3.5662473957869714,1.056445286979811
+0.2,65,ユウレイ,Yurei,death_ritual,Death ritual,4.773179482082888,1.0257816647117113
+0.2,65,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2820910694484202,0.9584895367236708
+0.2,65,カッパ,Kappa,livelihood,Livelihood,0.8682156384102354,0.5904636759879002
+0.2,66,カッパ,Kappa,hydrology,Water setting,3.5706634200878113,1.0577534654492358
+0.2,66,ユウレイ,Yurei,death_ritual,Death ritual,2.3067468383424807,0.4957321677899428
+0.2,66,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.474008971442631,1.101967098774352
+0.2,66,カッパ,Kappa,livelihood,Livelihood,1.5197351024516808,1.0335547246817347
+0.2,67,カッパ,Kappa,hydrology,Water setting,3.7618229898203595,1.1143815128313705
+0.2,67,ユウレイ,Yurei,death_ritual,Death ritual,4.836284621396655,1.039343294878799
+0.2,67,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2752251406352653,0.9533565776974997
+0.2,67,カッパ,Kappa,livelihood,Livelihood,1.5057572271346544,1.0240485291272474
+0.2,68,カッパ,Kappa,hydrology,Water setting,3.5369253047191545,1.0477590738613427
+0.2,68,ユウレイ,Yurei,death_ritual,Death ritual,5.326660528106118,1.1447276861021194
+0.2,68,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.5253476347237716,1.1403478134965308
+0.2,68,カッパ,Kappa,livelihood,Livelihood,0.8846570702466212,0.6016453085813801
+0.2,69,カッパ,Kappa,hydrology,Water setting,3.535327585499468,1.0472857744089412
+0.2,69,ユウレイ,Yurei,death_ritual,Death ritual,5.117786199992836,1.0998394817486377
+0.2,69,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4450541724861476,1.0803205305241992
+0.2,69,カッパ,Kappa,livelihood,Livelihood,1.5229701758448138,1.0357548616561132
+0.2,70,カッパ,Kappa,hydrology,Water setting,2.784132487558627,0.8247559180227959
+0.2,70,ユウレイ,Yurei,death_ritual,Death ritual,2.7772928943028785,0.5968550185895861
+0.2,70,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4323202376758002,1.070800658209442
+0.2,70,カッパ,Kappa,livelihood,Livelihood,1.5466082274262696,1.051830834274546
+0.2,71,カッパ,Kappa,hydrology,Water setting,3.5954798823830036,1.0651049561680905
+0.2,71,ユウレイ,Yurei,death_ritual,Death ritual,5.326660528106118,1.1447276861021194
+0.2,71,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4162409739389858,1.0587798225471303
+0.2,71,カッパ,Kappa,livelihood,Livelihood,1.546336946759204,1.0516463393486157
+0.2,72,カッパ,Kappa,hydrology,Water setting,3.535075408182542,1.047211070803615
+0.2,72,ユウレイ,Yurei,death_ritual,Death ritual,4.850519049381756,1.0424023491820336
+0.2,72,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4362035659791779,1.0737038291581733
+0.2,72,カッパ,Kappa,livelihood,Livelihood,1.5633221437214655,1.063197780479162
+0.2,73,カッパ,Kappa,hydrology,Water setting,3.9525457471622993,1.1708801613412065
+0.2,73,ユウレイ,Yurei,death_ritual,Death ritual,2.755778867174638,0.5922315397019603
+0.2,73,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.107216832459517,0.8277537954096701
+0.2,73,カッパ,Kappa,livelihood,Livelihood,0.831868976862341,0.5657447208827432
+0.2,74,カッパ,Kappa,hydrology,Water setting,2.799342737974188,0.8292617179805569
+0.2,74,ユウレイ,Yurei,death_ritual,Death ritual,4.987286179383065,1.0717943330404252
+0.2,74,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.6234098974694595,1.2136590275194366
+0.2,74,カッパ,Kappa,livelihood,Livelihood,0.86470148974691,0.5880737430658043
+0.2,75,カッパ,Kappa,hydrology,Water setting,3.4487829564867654,1.0216482750189948
+0.2,75,ユウレイ,Yurei,death_ritual,Death ritual,2.3067468383424807,0.4957321677899428
+0.2,75,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.40703012476838,1.0518938042565857
+0.2,75,カッパ,Kappa,livelihood,Livelihood,1.4984982206834587,1.0191117606061906
+0.2,76,カッパ,Kappa,hydrology,Water setting,3.5443239431778006,1.049950805354491
+0.2,76,ユウレイ,Yurei,death_ritual,Death ritual,4.876251825282225,1.0479324596251711
+0.2,76,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.349652438758755,1.0089983243705103
+0.2,76,カッパ,Kappa,livelihood,Livelihood,0.726227593091142,0.4938992057383626
+0.2,77,カッパ,Kappa,hydrology,Water setting,3.527164820989233,1.044867682465642
+0.2,77,ユウレイ,Yurei,death_ritual,Death ritual,5.002776930877443,1.0751233779496276
+0.2,77,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2849741985223406,0.9606449600911898
+0.2,77,カッパ,Kappa,livelihood,Livelihood,1.5265720204203863,1.0382044355803102
+0.2,78,カッパ,Kappa,hydrology,Water setting,2.892610669437721,0.8568908910820664
+0.2,78,ユウレイ,Yurei,death_ritual,Death ritual,5.008612575124017,1.0763774889446964
+0.2,78,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.1028092680141706,0.824458706235453
+0.2,78,カッパ,Kappa,livelihood,Livelihood,0.7776660880395078,0.5288819467427879
+0.2,79,カッパ,Kappa,hydrology,Water setting,3.4474799818330073,1.021262289056932
+0.2,79,ユウレイ,Yurei,death_ritual,Death ritual,4.8696817443259315,1.0465205142738732
+0.2,79,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.0945499950159188,0.8182840849948773
+0.2,79,カッパ,Kappa,livelihood,Livelihood,1.7654210772535057,1.2006429887053904
+0.2,80,カッパ,Kappa,hydrology,Water setting,3.490031969718003,1.0338676532012796
+0.2,80,ユウレイ,Yurei,death_ritual,Death ritual,2.796740445853663,0.6010344008816648
+0.2,80,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3962939420230338,1.0438674486637691
+0.2,80,カッパ,Kappa,livelihood,Livelihood,1.6488228373164078,1.1213458391020479
+0.2,81,カッパ,Kappa,hydrology,Water setting,3.5706634200878113,1.0577534654492358
+0.2,81,ユウレイ,Yurei,death_ritual,Death ritual,5.384620726598418,1.1571836411148373
+0.2,81,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3568581489862164,1.0143853035190789
+0.2,81,カッパ,Kappa,livelihood,Livelihood,1.7446002280796946,1.1864829637110592
+0.2,82,カッパ,Kappa,hydrology,Water setting,3.9449308451745573,1.1686243651434254
+0.2,82,ユウレイ,Yurei,death_ritual,Death ritual,5.113191989368014,1.0988521614434916
+0.2,82,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2670602985146369,0.9472525528523771
+0.2,82,カッパ,Kappa,livelihood,Livelihood,1.4673660264460744,0.9979391059824673
+0.2,83,カッパ,Kappa,hydrology,Water setting,3.4973936218684005,1.0360484280762532
+0.2,83,ユウレイ,Yurei,death_ritual,Death ritual,2.2865492714617646,0.4913916032132707
+0.2,83,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.60175764814309,1.1974718354233354
+0.2,83,カッパ,Kappa,livelihood,Livelihood,0.8752968308333716,0.5952795151913942
+0.2,84,カッパ,Kappa,hydrology,Water setting,3.7904637420181073,1.1228658899137378
+0.2,84,ユウレイ,Yurei,death_ritual,Death ritual,4.768038596642579,1.0246768610803272
+0.2,84,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2691898944170317,0.9488446358475212
+0.2,84,カッパ,Kappa,livelihood,Livelihood,1.7626001872159707,1.1987245331657386
+0.2,85,カッパ,Kappa,hydrology,Water setting,3.4980855616991673,1.0362534044819705
+0.2,85,ユウレイ,Yurei,death_ritual,Death ritual,4.836284621396655,1.039343294878799
+0.2,85,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4406478572434966,1.0770263752522151
+0.2,85,カッパ,Kappa,livelihood,Livelihood,1.5013360448812874,1.0210417328775094
+0.2,86,カッパ,Kappa,hydrology,Water setting,2.7067288236782288,0.801826287286011
+0.2,86,ユウレイ,Yurei,death_ritual,Death ritual,4.966813010458,1.0673945401181792
+0.2,86,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4075049928797003,1.0522488150096208
+0.2,86,カッパ,Kappa,livelihood,Livelihood,1.49781187502587,1.0186449846555519
+0.2,87,カッパ,Kappa,hydrology,Water setting,3.505791395745149,1.0385361378867655
+0.2,87,ユウレイ,Yurei,death_ritual,Death ritual,4.868824091604449,1.0463362001411889
+0.2,87,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.0639356109510967,0.7953968131788463
+0.2,87,カッパ,Kappa,livelihood,Livelihood,1.4961710677880118,1.0175290901353526
+0.2,88,カッパ,Kappa,hydrology,Water setting,3.564367341750442,1.0558883502320955
+0.2,88,ユウレイ,Yurei,death_ritual,Death ritual,5.119334456301025,1.100172210266217
+0.2,88,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2372337648535816,0.9249542769247886
+0.2,88,カッパ,Kappa,livelihood,Livelihood,1.640500016546313,1.115685582445652
+0.2,89,カッパ,Kappa,hydrology,Water setting,3.449533636268279,1.0218706522209098
+0.2,89,ユウレイ,Yurei,death_ritual,Death ritual,4.871569193761941,1.0469261371991783
+0.2,89,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4906842269075107,1.1144334970405514
+0.2,89,カッパ,Kappa,livelihood,Livelihood,1.5855023211719403,1.0782822693228
+0.2,90,カッパ,Kappa,hydrology,Water setting,3.943152152441108,1.1680974551041898
+0.2,90,ユウレイ,Yurei,death_ritual,Death ritual,4.866431464190006,1.0458220117806978
+0.2,90,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.0344773728033771,0.7733738744752402
+0.2,90,カッパ,Kappa,livelihood,Livelihood,1.7440253527736478,1.1860919974908877
+0.2,91,カッパ,Kappa,hydrology,Water setting,3.678593904075628,1.0897261915324237
+0.2,91,ユウレイ,Yurei,death_ritual,Death ritual,5.277457127990914,1.1341536136480859
+0.2,91,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2813863479737193,0.9579626879093383
+0.2,91,カッパ,Kappa,livelihood,Livelihood,1.4707441597509658,1.000236536391387
+0.2,92,カッパ,Kappa,hydrology,Water setting,3.4749715480308327,1.0294062376724142
+0.2,92,ユウレイ,Yurei,death_ritual,Death ritual,2.755778867174638,0.5922315397019603
+0.2,92,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.1023263108291907,0.8240976481019713
+0.2,92,カッパ,Kappa,livelihood,Livelihood,1.4989043169449088,1.019387942099281
+0.2,93,カッパ,Kappa,hydrology,Water setting,3.9027844293999654,1.1561391454245804
+0.2,93,ユウレイ,Yurei,death_ritual,Death ritual,2.759095517576312,0.5929443055183445
+0.2,93,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,0.9679603030319682,0.7236458037408868
+0.2,93,カッパ,Kappa,livelihood,Livelihood,1.490483024008916,1.0136607156320612
+0.2,94,カッパ,Kappa,hydrology,Water setting,3.4433808556062213,1.0200479867098375
+0.2,94,ユウレイ,Yurei,death_ritual,Death ritual,5.326660528106118,1.1447276861021194
+0.2,94,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4887057509599526,1.1129543911177484
+0.2,94,カッパ,Kappa,livelihood,Livelihood,1.5057572271346544,1.0240485291272474
+0.2,95,カッパ,Kappa,hydrology,Water setting,3.5375050982580736,1.047930828673512
+0.2,95,ユウレイ,Yurei,death_ritual,Death ritual,4.89770386549747,1.0525426171954149
+0.2,95,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.452146538531895,1.0856227737169448
+0.2,95,カッパ,Kappa,livelihood,Livelihood,1.4904362235294186,1.0136288871531218
+0.2,96,カッパ,Kappa,hydrology,Water setting,3.9398851946841758,1.1671296697146651
+0.2,96,ユウレイ,Yurei,death_ritual,Death ritual,5.12818445438854,1.1020741219385068
+0.2,96,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3242786786963938,0.990028935918586
+0.2,96,カッパ,Kappa,livelihood,Livelihood,1.4826985077855146,1.0083665538343385
+0.2,97,カッパ,Kappa,hydrology,Water setting,3.4559537968505563,1.0237725248719245
+0.2,97,ユウレイ,Yurei,death_ritual,Death ritual,5.277457127990914,1.1341536136480859
+0.2,97,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3592094731961741,1.0161431502948612
+0.2,97,カッパ,Kappa,livelihood,Livelihood,1.5234749015311866,1.0360981199101191
+0.2,98,カッパ,Kappa,hydrology,Water setting,3.4512030854013154,1.022365200543758
+0.2,98,ユウレイ,Yurei,death_ritual,Death ritual,5.002776930877443,1.0751233779496276
+0.2,98,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.451824434283687,1.0853819690198383
+0.2,98,カッパ,Kappa,livelihood,Livelihood,1.5815364539980348,1.0755851277298751
+0.2,99,カッパ,Kappa,hydrology,Water setting,3.530485429332959,1.0458513610065026
+0.2,99,ユウレイ,Yurei,death_ritual,Death ritual,2.819601263559931,0.6059473122296315
+0.2,99,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2667138196579757,0.9469935257312002
+0.2,99,カッパ,Kappa,livelihood,Livelihood,1.500203724652064,1.0202716546442185
+0.2,100,カッパ,Kappa,hydrology,Water setting,3.9925770177189808,1.1827388022087417
+0.2,100,ユウレイ,Yurei,death_ritual,Death ritual,5.246394626608979,1.1274781168440633
+0.2,100,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.0929340114734938,0.817075977900271
+0.2,100,カッパ,Kappa,livelihood,Livelihood,0.916960421368608,0.6236144538102566
+0.3,1,カッパ,Kappa,hydrology,Water setting,3.7852846912362903,1.1213316767248427
+0.3,1,ユウレイ,Yurei,death_ritual,Death ritual,2.2934135620060827,0.49286677577027305
+0.3,1,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.372353476502509,1.0259695892585172
+0.3,1,カッパ,Kappa,livelihood,Livelihood,0.9059182457012906,0.61610479451943
+0.3,2,カッパ,Kappa,hydrology,Water setting,1.300876484310228,0.385364412019188
+0.3,2,ユウレイ,Yurei,death_ritual,Death ritual,5.1538974771357715,1.107599987323924
+0.3,2,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.21317577358016,0.9069685554267951
+0.3,2,カッパ,Kappa,livelihood,Livelihood,1.5024755275285222,1.0218166821906118
+0.3,3,カッパ,Kappa,hydrology,Water setting,4.817167258256071,1.427010827288685
+0.3,3,ユウレイ,Yurei,death_ritual,Death ritual,5.1187084674793555,1.1000376819380884
+0.3,3,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2012835066187153,0.8980779128491401
+0.3,3,カッパ,Kappa,livelihood,Livelihood,1.5052251901757103,1.0236866967844036
+0.3,4,カッパ,Kappa,hydrology,Water setting,3.5324774412904407,1.0464414635458201
+0.3,4,ユウレイ,Yurei,death_ritual,Death ritual,5.459664209768709,1.1733108848904255
+0.3,4,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.1292230605892366,0.8442056215768743
+0.3,4,カッパ,Kappa,livelihood,Livelihood,0.9233905893718768,0.6279875386390233
+0.3,5,カッパ,Kappa,hydrology,Water setting,3.9629586985186696,1.1739648361164292
+0.3,5,ユウレイ,Yurei,death_ritual,Death ritual,4.9527224603809366,1.0643664059428335
+0.3,5,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2853900410609935,0.9609558434065184
+0.3,5,カッパ,Kappa,livelihood,Livelihood,1.5806211163923944,1.0749626169347621
+0.3,6,カッパ,Kappa,hydrology,Water setting,3.551690832349361,1.0521331316154767
+0.3,6,ユウレイ,Yurei,death_ritual,Death ritual,5.4602051906951,1.1734271445696043
+0.3,6,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4924459759564577,1.115750578229234
+0.3,6,カッパ,Kappa,livelihood,Livelihood,1.7152444532293702,1.1665184319026545
+0.3,7,カッパ,Kappa,hydrology,Water setting,3.576236539878419,1.0594044154488116
+0.3,7,ユウレイ,Yurei,death_ritual,Death ritual,5.1396624705634775,1.1045408086792234
+0.3,7,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3253919866661381,0.9908612434399309
+0.3,7,カッパ,Kappa,livelihood,Livelihood,1.4926571890878533,1.0151393408121658
+0.3,8,カッパ,Kappa,hydrology,Water setting,3.4613724488235933,1.0253777161846365
+0.3,8,ユウレイ,Yurei,death_ritual,Death ritual,5.404269309319601,1.1614062260749498
+0.3,8,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.282375583956571,0.958702239382325
+0.3,8,カッパ,Kappa,livelihood,Livelihood,1.7965340202703592,1.221802550790879
+0.3,9,カッパ,Kappa,hydrology,Water setting,4.166000228622359,1.2341127293311895
+0.3,9,ユウレイ,Yurei,death_ritual,Death ritual,4.9782641371351914,1.0698554481627744
+0.3,9,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.323949381303559,0.9897827536363567
+0.3,9,カッパ,Kappa,livelihood,Livelihood,1.602431651412325,1.0897957161250877
+0.3,10,カッパ,Kappa,hydrology,Water setting,3.616673434063142,1.0713832160031473
+0.3,10,ユウレイ,Yurei,death_ritual,Death ritual,2.6810942530790003,0.5761814187997509
+0.3,10,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.5486401751941827,1.1577612850170889
+0.3,10,カッパ,Kappa,livelihood,Livelihood,0.8982803379538795,0.610910339494811
+0.3,11,カッパ,Kappa,hydrology,Water setting,3.9584576644715885,1.172631474832747
+0.3,11,ユウレイ,Yurei,death_ritual,Death ritual,5.41715966304278,1.1641764316686256
+0.3,11,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.349086909823182,1.0085755357087856
+0.3,11,カッパ,Kappa,livelihood,Livelihood,1.8044273178061745,1.2271706935338476
+0.3,12,カッパ,Kappa,hydrology,Water setting,3.8888265891206553,1.152004352477542
+0.3,12,ユウレイ,Yurei,death_ritual,Death ritual,4.9782641371351914,1.0698554481627744
+0.3,12,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.1337963980283972,0.8476246424154079
+0.3,12,カッパ,Kappa,livelihood,Livelihood,1.7336798428840128,1.1790561327481281
+0.3,13,カッパ,Kappa,hydrology,Water setting,2.8539933513203026,0.8454511116183244
+0.3,13,ユウレイ,Yurei,death_ritual,Death ritual,2.4469575366387377,0.525864192795205
+0.3,13,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.243463494111325,0.9296116140301295
+0.3,13,カッパ,Kappa,livelihood,Livelihood,0.81057693669092,0.5512642441984947
+0.3,14,カッパ,Kappa,hydrology,Water setting,4.021733844856338,1.1913760584599302
+0.3,14,ユウレイ,Yurei,death_ritual,Death ritual,5.2444963316214075,1.1270701631520275
+0.3,14,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2218170795690302,0.913428784010653
+0.3,14,カッパ,Kappa,livelihood,Livelihood,1.7270892802953648,1.1745739653685507
+0.3,15,カッパ,Kappa,hydrology,Water setting,3.7960742948751247,1.1245279288766403
+0.3,15,ユウレイ,Yurei,death_ritual,Death ritual,4.990172227109346,1.0724145600509982
+0.3,15,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.163634876218546,0.8699318480566728
+0.3,15,カッパ,Kappa,livelihood,Livelihood,1.4840090671305666,1.0092578504825958
+0.3,16,カッパ,Kappa,hydrology,Water setting,2.891317449421063,0.8565077947794261
+0.3,16,ユウレイ,Yurei,death_ritual,Death ritual,4.9782641371351914,1.0698554481627744
+0.3,16,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.7961602546754072,1.342806959201398
+0.3,16,カッパ,Kappa,livelihood,Livelihood,0.8391337569481594,0.570685415987672
+0.3,17,カッパ,Kappa,hydrology,Water setting,3.6909868540475403,1.0933974100813864
+0.3,17,ユウレイ,Yurei,death_ritual,Death ritual,5.122008396843199,1.1007468543144847
+0.3,17,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3816354429489162,1.0329087747275565
+0.3,17,カッパ,Kappa,livelihood,Livelihood,1.6035417156135303,1.0905506582844187
+0.3,18,カッパ,Kappa,hydrology,Water setting,1.8928702101148231,0.5607333396731464
+0.3,18,ユウレイ,Yurei,death_ritual,Death ritual,3.0261337047609453,0.6503322326264864
+0.3,18,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3107823983055467,0.9799391350865115
+0.3,18,カッパ,Kappa,livelihood,Livelihood,0.8732596712940944,0.5938940659355643
+0.3,19,カッパ,Kappa,hydrology,Water setting,4.385518545530123,1.2991416141968095
+0.3,19,ユウレイ,Yurei,death_ritual,Death ritual,3.0261337047609453,0.6503322326264864
+0.3,19,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4010607798352137,1.0474311301175359
+0.3,19,カッパ,Kappa,livelihood,Livelihood,1.6092405832143055,1.0944263939469134
+0.3,20,カッパ,Kappa,hydrology,Water setting,4.281970981454448,1.2684672599231215
+0.3,20,ユウレイ,Yurei,death_ritual,Death ritual,2.819601263559931,0.6059473122296315
+0.3,20,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2969321448388944,0.9695847044652389
+0.3,20,カッパ,Kappa,livelihood,Livelihood,0.7970236414203349,0.5420468007510666
+0.3,21,カッパ,Kappa,hydrology,Water setting,4.146674843002468,1.2283878846158958
+0.3,21,ユウレイ,Yurei,death_ritual,Death ritual,5.122467310941635,1.1008454773957286
+0.3,21,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.477791029964524,1.1047945605724212
+0.3,21,カッパ,Kappa,livelihood,Livelihood,1.654419527613038,1.125152085130932
+0.3,22,カッパ,Kappa,hydrology,Water setting,4.170985616649724,1.2355895729431885
+0.3,22,ユウレイ,Yurei,death_ritual,Death ritual,3.0131082144318846,0.6475329854572599
+0.3,22,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3092946904078968,0.9788269266891689
+0.3,22,カッパ,Kappa,livelihood,Livelihood,1.777890127961624,1.209123049638958
+0.3,23,カッパ,Kappa,hydrology,Water setting,3.8491209421899484,1.140242172541292
+0.3,23,ユウレイ,Yurei,death_ritual,Death ritual,5.295685251832359,1.1380709344378939
+0.3,23,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.5996333957570243,1.1958837472337187
+0.3,23,カッパ,Kappa,livelihood,Livelihood,1.5211246017886735,1.0344997075293207
+0.3,24,カッパ,Kappa,hydrology,Water setting,2.969690880133853,0.8797247038471423
+0.3,24,ユウレイ,Yurei,death_ritual,Death ritual,4.883597024697302,1.049510982057005
+0.3,24,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.391783776843461,1.0404956553204339
+0.3,24,カッパ,Kappa,livelihood,Livelihood,1.536923260841675,1.045244197593098
+0.3,25,カッパ,Kappa,hydrology,Water setting,4.326663463643303,1.2817067121909658
+0.3,25,ユウレイ,Yurei,death_ritual,Death ritual,4.871569193761941,1.0469261371991783
+0.3,25,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4337139684010731,1.0718426094007556
+0.3,25,カッパ,Kappa,livelihood,Livelihood,0.8755223536018917,0.5954328906859467
+0.3,26,カッパ,Kappa,hydrology,Water setting,1.7687794694683374,0.5239733890682936
+0.3,26,ユウレイ,Yurei,death_ritual,Death ritual,5.277457127990914,1.1341536136480859
+0.3,26,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2057140821834471,0.9013902051048579
+0.3,26,カッパ,Kappa,livelihood,Livelihood,1.8255372416752327,1.241527314972241
+0.3,27,カッパ,Kappa,hydrology,Water setting,3.7403688210196284,1.108026049230506
+0.3,27,ユウレイ,Yurei,death_ritual,Death ritual,4.949030379231756,1.0635729580614637
+0.3,27,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.5779718090663284,1.1796895745367688
+0.3,27,カッパ,Kappa,livelihood,Livelihood,1.7654210772535057,1.2006429887053904
+0.3,28,カッパ,Kappa,hydrology,Water setting,3.7302008875626225,1.1050139571945838
+0.3,28,ユウレイ,Yurei,death_ritual,Death ritual,2.8060090917599934,0.6030262821974854
+0.3,28,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.458498718661472,1.0903716549272344
+0.3,28,カッパ,Kappa,livelihood,Livelihood,1.7504594280257717,1.1904677395955892
+0.3,29,カッパ,Kappa,hydrology,Water setting,4.272833062397612,1.2657602936224095
+0.3,29,ユウレイ,Yurei,death_ritual,Death ritual,3.0176298218878617,0.6485047029551616
+0.3,29,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3823775590208656,1.0334635796918434
+0.3,29,カッパ,Kappa,livelihood,Livelihood,1.5771286822317505,1.072587451801345
+0.3,30,カッパ,Kappa,hydrology,Water setting,3.9991626523094737,1.1846896939593017
+0.3,30,ユウレイ,Yurei,death_ritual,Death ritual,2.7766229706837793,0.5967110484397502
+0.3,30,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3887888032647944,1.03825661715355
+0.3,30,カッパ,Kappa,livelihood,Livelihood,1.5798229855954637,1.0744198171700197
+0.3,31,カッパ,Kappa,hydrology,Water setting,4.87992651520979,1.4456022803946689
+0.3,31,ユウレイ,Yurei,death_ritual,Death ritual,5.117786199992836,1.0998394817486377
+0.3,31,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3566406350644038,1.0142226904074854
+0.3,31,カッパ,Kappa,livelihood,Livelihood,0.8451575042027211,0.5747820986432196
+0.3,32,カッパ,Kappa,hydrology,Water setting,3.8623053023602236,1.1441478340442448
+0.3,32,ユウレイ,Yurei,death_ritual,Death ritual,5.113191989368014,1.0988521614434916
+0.3,32,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.455867356625246,1.0884044522540737
+0.3,32,カッパ,Kappa,livelihood,Livelihood,1.7573240457907957,1.1951362888136265
+0.3,33,カッパ,Kappa,hydrology,Water setting,1.824688128964741,0.5405354592982252
+0.3,33,ユウレイ,Yurei,death_ritual,Death ritual,5.097013479168324,1.0953753135295408
+0.3,33,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.6246905201164223,1.2146164192655107
+0.3,33,カッパ,Kappa,livelihood,Livelihood,0.8981722149186421,0.6108368062364581
+0.3,34,カッパ,Kappa,hydrology,Water setting,4.241439778692282,1.256460521920509
+0.3,34,ユウレイ,Yurei,death_ritual,Death ritual,4.9782641371351914,1.0698554481627744
+0.3,34,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3207658222755665,0.9874027292444968
+0.3,34,カッパ,Kappa,livelihood,Livelihood,1.619669515948288,1.1015189936264278
+0.3,35,カッパ,Kappa,hydrology,Water setting,2.9577606312711637,0.8761905533004434
+0.3,35,ユウレイ,Yurei,death_ritual,Death ritual,2.2737159210439972,0.4886336479331936
+0.3,35,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2540946152623957,0.9375594257182079
+0.3,35,カッパ,Kappa,livelihood,Livelihood,1.8583233152876841,1.263824754329433
+0.3,36,カッパ,Kappa,hydrology,Water setting,4.480381913790115,1.3272434106183624
+0.3,36,ユウレイ,Yurei,death_ritual,Death ritual,5.440889359284207,1.1692760696363589
+0.3,36,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2163324281450192,0.9093284660786728
+0.3,36,カッパ,Kappa,livelihood,Livelihood,1.758869055456648,1.196187032484181
+0.3,37,カッパ,Kappa,hydrology,Water setting,4.616309094242953,1.367509722296991
+0.3,37,ユウレイ,Yurei,death_ritual,Death ritual,2.7772928943028785,0.5968550185895861
+0.3,37,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2078578526420234,0.9029928849788911
+0.3,37,カッパ,Kappa,livelihood,Livelihood,1.5171293913850052,1.0317826099363603
+0.3,38,カッパ,Kappa,hydrology,Water setting,4.607910311254015,1.3650217135526979
+0.3,38,ユウレイ,Yurei,death_ritual,Death ritual,2.5309734373306747,0.5439196568307667
+0.3,38,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3800789550716204,1.0317451465111405
+0.3,38,カッパ,Kappa,livelihood,Livelihood,1.7713319890986723,1.2046629332700014
+0.3,39,カッパ,Kappa,hydrology,Water setting,3.6442289554313545,1.0795461103424773
+0.3,39,ユウレイ,Yurei,death_ritual,Death ritual,5.1366569716554755,1.1038949109742007
+0.3,39,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4854645573248637,1.110531279172148
+0.3,39,カッパ,Kappa,livelihood,Livelihood,1.690995441375556,1.1500269520849273
+0.3,40,カッパ,Kappa,hydrology,Water setting,3.0598272530135366,0.90642620145684
+0.3,40,ユウレイ,Yurei,death_ritual,Death ritual,5.296673711461247,1.1382833596708917
+0.3,40,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3782863707324502,1.0304050129014988
+0.3,40,カッパ,Kappa,livelihood,Livelihood,0.8628077558218213,0.586785835954619
+0.3,41,カッパ,Kappa,hydrology,Water setting,3.7508174712212816,1.1111212992330375
+0.3,41,ユウレイ,Yurei,death_ritual,Death ritual,4.898602195944398,1.0527356731877089
+0.3,41,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3439603920448218,1.0047429580023517
+0.3,41,カッパ,Kappa,livelihood,Livelihood,1.5032799080044448,1.0223637322916395
+0.3,42,カッパ,Kappa,hydrology,Water setting,3.7633834672243713,1.114843779975499
+0.3,42,ユウレイ,Yurei,death_ritual,Death ritual,5.4602051906951,1.1734271445696043
+0.3,42,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.492693545648123,1.1159356609934195
+0.3,42,カッパ,Kappa,livelihood,Livelihood,0.9179089057990696,0.6242595073875604
+0.3,43,カッパ,Kappa,hydrology,Water setting,4.502757420695479,1.3338718062932902
+0.3,43,ユウレイ,Yurei,death_ritual,Death ritual,5.594808041446893,1.202354013302993
+0.3,43,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3642219104838873,1.0198904415819177
+0.3,43,カッパ,Kappa,livelihood,Livelihood,1.6541381320613053,1.124960711185875
+0.3,44,カッパ,Kappa,hydrology,Water setting,3.4733320572162785,1.0289205640351538
+0.3,44,ユウレイ,Yurei,death_ritual,Death ritual,5.077929236092195,1.0912740081615198
+0.3,44,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.5873195049960331,1.1866778992779676
+0.3,44,カッパ,Kappa,livelihood,Livelihood,0.75634770810417,0.5143835566817943
+0.3,45,カッパ,Kappa,hydrology,Water setting,3.477286851348933,1.030092110245704
+0.3,45,ユウレイ,Yurei,death_ritual,Death ritual,5.284606510695292,1.1356900540270172
+0.3,45,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4390094290235802,1.0758014885472962
+0.3,45,カッパ,Kappa,livelihood,Livelihood,0.8173657549383577,0.5558812430184374
+0.3,46,カッパ,Kappa,hydrology,Water setting,1.8159679187406588,0.5379522327381195
+0.3,46,ユウレイ,Yurei,death_ritual,Death ritual,5.097013479168324,1.0953753135295408
+0.3,46,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.0985076181717008,0.8212427986740424
+0.3,46,カッパ,Kappa,livelihood,Livelihood,0.868243269343479,0.5904824674743606
+0.3,47,カッパ,Kappa,hydrology,Water setting,3.6278514966392503,1.0746945430692523
+0.3,47,ユウレイ,Yurei,death_ritual,Death ritual,5.6281510322487005,1.2095195994158834
+0.3,47,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2026128240758776,0.8990717087689746
+0.3,47,カッパ,Kappa,livelihood,Livelihood,1.5439776857772392,1.0500418325298067
+0.3,48,カッパ,Kappa,hydrology,Water setting,3.8874343130490243,1.1515919123602951
+0.3,48,ユウレイ,Yurei,death_ritual,Death ritual,4.89770386549747,1.0525426171954149
+0.3,48,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,0.9753095054489669,0.7291400574548512
+0.3,48,カッパ,Kappa,livelihood,Livelihood,1.505015155702293,1.0235438547048883
+0.3,49,カッパ,Kappa,hydrology,Water setting,3.7583483420749184,1.1133522025151756
+0.3,49,ユウレイ,Yurei,death_ritual,Death ritual,5.811561261208328,1.2489354333885174
+0.3,49,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3646786490036322,1.0202318986769916
+0.3,49,カッパ,Kappa,livelihood,Livelihood,1.5438783105942895,1.0499742485872579
+0.3,50,カッパ,Kappa,hydrology,Water setting,2.9387626217801106,0.8705626886681324
+0.3,50,ユウレイ,Yurei,death_ritual,Death ritual,5.132866213906744,1.1030802569666132
+0.3,50,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.194324251882088,0.8928751834897338
+0.3,50,カッパ,Kappa,livelihood,Livelihood,0.7996513905402357,0.5438339033282001
+0.3,51,カッパ,Kappa,hydrology,Water setting,3.3451645679654627,0.9909529401055804
+0.3,51,ユウレイ,Yurei,death_ritual,Death ritual,5.403162424904853,1.1611683507254336
+0.3,51,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4989728661617068,1.1206300724540608
+0.3,51,カッパ,Kappa,livelihood,Livelihood,1.702590954894503,1.1579129302157771
+0.3,52,カッパ,Kappa,hydrology,Water setting,3.8721108909081288,1.1470525870402752
+0.3,52,ユウレイ,Yurei,death_ritual,Death ritual,5.623684775860284,1.2085597771568763
+0.3,52,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4781268427158731,1.1050456137277989
+0.3,52,カッパ,Kappa,livelihood,Livelihood,1.511973762140115,1.0282763245605948
+0.3,53,カッパ,Kappa,hydrology,Water setting,3.5745190637532547,1.058895639877023
+0.3,53,ユウレイ,Yurei,death_ritual,Death ritual,4.897164065196517,1.0524266112389236
+0.3,53,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.5504958587960243,1.1591485915495334
+0.3,53,カッパ,Kappa,livelihood,Livelihood,1.873536747105577,1.2741712379426893
+0.3,54,カッパ,Kappa,hydrology,Water setting,4.0090115924367,1.1876072891859948
+0.3,54,ユウレイ,Yurei,death_ritual,Death ritual,5.742589573120847,1.234113050679062
+0.3,54,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3390698221450283,1.001086774608465
+0.3,54,カッパ,Kappa,livelihood,Livelihood,0.9180904844585221,0.6243829969885282
+0.3,55,カッパ,Kappa,hydrology,Water setting,3.5330869751973695,1.0466220284791419
+0.3,55,ユウレイ,Yurei,death_ritual,Death ritual,2.741608283899438,0.5891862059665467
+0.3,55,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.5112049334917192,1.1297747493242931
+0.3,55,カッパ,Kappa,livelihood,Livelihood,0.8872566458808253,0.6034132506882411
+0.3,56,カッパ,Kappa,hydrology,Water setting,3.9699814904879993,1.1760452289366814
+0.3,56,ユウレイ,Yurei,death_ritual,Death ritual,2.773184742637849,0.5959721549408044
+0.3,56,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4272946108152211,1.0670435064156816
+0.3,56,カッパ,Kappa,livelihood,Livelihood,1.6709716866953008,1.1364090220770866
+0.3,57,カッパ,Kappa,hydrology,Water setting,3.748957646662732,1.1105703551533277
+0.3,57,ユウレイ,Yurei,death_ritual,Death ritual,2.688375692005363,0.5777462387633451
+0.3,57,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3570068305325516,1.0144964576405464
+0.3,57,カッパ,Kappa,livelihood,Livelihood,1.6271055316112757,1.1065761441185693
+0.3,58,カッパ,Kappa,hydrology,Water setting,2.869745432978116,0.8501174206487011
+0.3,58,ユウレイ,Yurei,death_ritual,Death ritual,5.620200822161419,1.2078110569718474
+0.3,58,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3402700782227988,1.001984084416907
+0.3,58,カッパ,Kappa,livelihood,Livelihood,1.9231260566297066,1.3078963687695588
+0.3,59,カッパ,Kappa,hydrology,Water setting,4.136685105740008,1.2254285804292149
+0.3,59,ユウレイ,Yurei,death_ritual,Death ritual,5.381636591049513,1.1565423345093404
+0.3,59,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2032285927042141,0.8995320565565598
+0.3,59,カッパ,Kappa,livelihood,Livelihood,1.5301183243907974,1.0406162369645533
+0.3,60,カッパ,Kappa,hydrology,Water setting,3.8252710218506034,1.133177004833883
+0.3,60,ユウレイ,Yurei,death_ritual,Death ritual,2.811509808264267,0.6042084154388692
+0.3,60,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2647698060712314,0.9455401838223881
+0.3,60,カッパ,Kappa,livelihood,Livelihood,0.6831810499305352,0.4646237366167457
+0.3,61,カッパ,Kappa,hydrology,Water setting,3.803585854242185,1.1267531114314384
+0.3,61,ユウレイ,Yurei,death_ritual,Death ritual,5.158920989594318,1.1086795668770857
+0.3,61,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.2488960726479514,0.9336730023424483
+0.3,61,カッパ,Kappa,livelihood,Livelihood,1.8796788049918038,1.2783483823261659
+0.3,62,カッパ,Kappa,hydrology,Water setting,1.8539380207844156,0.5492002845131191
+0.3,62,ユウレイ,Yurei,death_ritual,Death ritual,4.968799538983426,1.0678214556669152
+0.3,62,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.5637479021694323,1.1690558011201333
+0.3,62,カッパ,Kappa,livelihood,Livelihood,1.6020259781182324,1.0895198222873328
+0.3,63,カッパ,Kappa,hydrology,Water setting,3.0790893904566987,0.9121323098841538
+0.3,63,ユウレイ,Yurei,death_ritual,Death ritual,5.018900158972446,1.0785883454451726
+0.3,63,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3311943441221996,0.9951990779686107
+0.3,63,カッパ,Kappa,livelihood,Livelihood,0.8427288648238886,0.5731304083581884
+0.3,64,カッパ,Kappa,hydrology,Water setting,3.7116609585715565,1.0995217917809643
+0.3,64,ユウレイ,Yurei,death_ritual,Death ritual,5.742589573120847,1.234113050679062
+0.3,64,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.241618604355604,0.9282323769623383
+0.3,64,カッパ,Kappa,livelihood,Livelihood,1.8161561898042486,1.2351473672641842
+0.3,65,カッパ,Kappa,hydrology,Water setting,4.669693153782325,1.3833239190817805
+0.3,65,ユウレイ,Yurei,death_ritual,Death ritual,3.0131082144318846,0.6475329854572599
+0.3,65,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.5172965296210021,1.1343288182909976
+0.3,65,カッパ,Kappa,livelihood,Livelihood,1.7887920828593056,1.2165373463638205
+0.3,66,カッパ,Kappa,hydrology,Water setting,3.2637983212186867,0.9668494558671015
+0.3,66,ユウレイ,Yurei,death_ritual,Death ritual,5.088844761575506,1.0936198126600734
+0.3,66,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.57953709072261,1.1808597769703737
+0.3,66,カッパ,Kappa,livelihood,Livelihood,1.6009252142430859,1.0887712051749943
+0.3,67,カッパ,Kappa,hydrology,Water setting,3.7965966842987293,1.1246826786130684
+0.3,67,ユウレイ,Yurei,death_ritual,Death ritual,4.854829852516856,1.043328763709869
+0.3,67,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.163435193924435,0.8697825658456542
+0.3,67,カッパ,Kappa,livelihood,Livelihood,1.5054240166758786,1.0238219164475602
+0.3,68,カッパ,Kappa,hydrology,Water setting,2.885393460625782,0.8547529052980376
+0.3,68,ユウレイ,Yurei,death_ritual,Death ritual,4.746931956489765,1.0201409318210788
+0.3,68,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.5653022238639258,1.1702178099012377
+0.3,68,カッパ,Kappa,livelihood,Livelihood,0.8057110916117226,0.5479550377696503
+0.3,69,カッパ,Kappa,hydrology,Water setting,3.619605574495955,1.0722518169714
+0.3,69,ユウレイ,Yurei,death_ritual,Death ritual,5.391010437394869,1.1585568239591895
+0.3,69,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.5724023384068238,1.1755258458598963
+0.3,69,カッパ,Kappa,livelihood,Livelihood,1.5545732375486356,1.0572477479398477
+0.3,70,カッパ,Kappa,hydrology,Water setting,3.547859326543452,1.0509981076529018
+0.3,70,ユウレイ,Yurei,death_ritual,Death ritual,5.565400289599947,1.1960341309775488
+0.3,70,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4144298027900586,1.057425793463838
+0.3,70,カッパ,Kappa,livelihood,Livelihood,1.5610645276105641,1.061662401192222
+0.3,71,カッパ,Kappa,hydrology,Water setting,2.944283004163165,0.8721980160315098
+0.3,71,ユウレイ,Yurei,death_ritual,Death ritual,2.755778867174638,0.5922315397019603
+0.3,71,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4222903950466574,1.06330236152514
+0.3,71,カッパ,Kappa,livelihood,Livelihood,1.716548098334358,1.167405026254127
+0.3,72,カッパ,Kappa,hydrology,Water setting,4.518937078844284,1.3386647782044487
+0.3,72,ユウレイ,Yurei,death_ritual,Death ritual,5.000138338460446,1.074556330401518
+0.3,72,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3947464845355109,1.0427105715544438
+0.3,72,カッパ,Kappa,livelihood,Livelihood,1.6072745949342075,1.0930893474627688
+0.3,73,カッパ,Kappa,hydrology,Water setting,3.5765430572882977,1.0594952164609415
+0.3,73,ユウレイ,Yurei,death_ritual,Death ritual,4.768038596642579,1.0246768610803272
+0.3,73,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.328443153345517,0.9931422914923463
+0.3,73,カッパ,Kappa,livelihood,Livelihood,0.9194468143312411,0.6253054216570867
+0.3,74,カッパ,Kappa,hydrology,Water setting,2.9605634143767734,0.8770208341737911
+0.3,74,ユウレイ,Yurei,death_ritual,Death ritual,4.746931956489765,1.0201409318210788
+0.3,74,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.45366636163784,1.0867589914002533
+0.3,74,カッパ,Kappa,livelihood,Livelihood,1.7382995424939574,1.1821979384159487
+0.3,75,カッパ,Kappa,hydrology,Water setting,3.6975480149832998,1.0953410518926325
+0.3,75,ユウレイ,Yurei,death_ritual,Death ritual,5.42492409263582,1.1658450488960697
+0.3,75,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.0909393201391835,0.8155847493764249
+0.3,75,カッパ,Kappa,livelihood,Livelihood,1.5894062123857955,1.0809372617633999
+0.3,76,カッパ,Kappa,hydrology,Water setting,2.7197231619485023,0.8056756577585332
+0.3,76,ユウレイ,Yurei,death_ritual,Death ritual,4.9782641371351914,1.0698554481627744
+0.3,76,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.5832973264331651,1.1836709240644192
+0.3,76,カッパ,Kappa,livelihood,Livelihood,0.9618044853893298,0.6541123966213267
+0.3,77,カッパ,Kappa,hydrology,Water setting,4.086599165080244,1.21059140003156
+0.3,77,ユウレイ,Yurei,death_ritual,Death ritual,2.819601263559931,0.6059473122296315
+0.3,77,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3678770622091747,1.0226230280317496
+0.3,77,カッパ,Kappa,livelihood,Livelihood,0.6931332366577713,0.4713921067072015
+0.3,78,カッパ,Kappa,hydrology,Water setting,3.0723593039203996,0.910138626492856
+0.3,78,ユウレイ,Yurei,death_ritual,Death ritual,5.008612575124017,1.0763774889446964
+0.3,78,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.5078870506286683,1.1272943046163542
+0.3,78,カッパ,Kappa,livelihood,Livelihood,1.7232414771898812,1.1719571178186705
+0.3,79,カッパ,Kappa,hydrology,Water setting,2.800883169046876,0.829718046711026
+0.3,79,ユウレイ,Yurei,death_ritual,Death ritual,5.283442538586183,1.1354399102282677
+0.3,79,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3183155794958563,0.9855709310807398
+0.3,79,カッパ,Kappa,livelihood,Livelihood,1.6641162531807385,1.1317467189643358
+0.3,80,カッパ,Kappa,hydrology,Water setting,2.9604627700551114,0.8769910198598971
+0.3,80,ユウレイ,Yurei,death_ritual,Death ritual,5.117000445071834,1.0996706188357832
+0.3,80,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4254473178351272,1.0656624727006234
+0.3,80,カッパ,Kappa,livelihood,Livelihood,1.8241710638401876,1.2405981928154333
+0.3,81,カッパ,Kappa,hydrology,Water setting,2.8125754217409917,0.8331816945968873
+0.3,81,ユウレイ,Yurei,death_ritual,Death ritual,4.982735069313865,1.0708162752739836
+0.3,81,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.1399281379183441,0.8522087228028906
+0.3,81,カッパ,Kappa,livelihood,Livelihood,1.8449717538613875,1.2547445077971489
+0.3,82,カッパ,Kappa,hydrology,Water setting,2.8854651256935315,0.8547741349589845
+0.3,82,ユウレイ,Yurei,death_ritual,Death ritual,2.339897598259338,0.5028564424629608
+0.3,82,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4521255933859092,1.0856071151543427
+0.3,82,カッパ,Kappa,livelihood,Livelihood,0.9339246858403314,0.6351516589897741
+0.3,83,カッパ,Kappa,hydrology,Water setting,3.643807354897109,1.0794212177458733
+0.3,83,ユウレイ,Yurei,death_ritual,Death ritual,5.511850114145283,1.1845259133775856
+0.3,83,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.1147397996848487,0.8333779554575969
+0.3,83,カッパ,Kappa,livelihood,Livelihood,1.7394223170995193,1.182961524778111
+0.3,84,カッパ,Kappa,hydrology,Water setting,3.7292958194051677,1.1047458448391516
+0.3,84,ユウレイ,Yurei,death_ritual,Death ritual,4.768038596642579,1.0246768610803272
+0.3,84,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3958798232321026,1.0435578540198887
+0.3,84,カッパ,Kappa,livelihood,Livelihood,1.5576122779646733,1.0593145650946447
+0.3,85,カッパ,Kappa,hydrology,Water setting,4.615025093392975,1.3671293570289953
+0.3,85,ユウレイ,Yurei,death_ritual,Death ritual,5.818131204932546,1.250347349247912
+0.3,85,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3174272075455529,0.9849067854210629
+0.3,85,カッパ,Kappa,livelihood,Livelihood,0.8682713410507527,0.5905015587262741
+0.3,86,カッパ,Kappa,hydrology,Water setting,3.7389887747379285,1.1076172319981856
+0.3,86,ユウレイ,Yurei,death_ritual,Death ritual,2.8878504909736606,0.6206144342967015
+0.3,86,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.4570463856438076,1.0892858927419722
+0.3,86,カッパ,Kappa,livelihood,Livelihood,1.686992316376598,1.1473044718648615
+0.3,87,カッパ,Kappa,hydrology,Water setting,3.8196072223739166,1.1314991923886182
+0.3,87,ユウレイ,Yurei,death_ritual,Death ritual,3.0364331956190895,0.6525456480066975
+0.3,87,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.595473347831588,1.1927737010725554
+0.3,87,カッパ,Kappa,livelihood,Livelihood,0.726227593091142,0.4938992057383626
+0.3,88,カッパ,Kappa,hydrology,Water setting,3.504689968591387,1.0382098572347507
+0.3,88,ユウレイ,Yurei,death_ritual,Death ritual,2.2360591213690215,0.48054100134336625
+0.3,88,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.5207893903180283,1.1369400761892163
+0.3,88,カッパ,Kappa,livelihood,Livelihood,1.6678873436667971,1.1343113951258461
+0.3,89,カッパ,Kappa,hydrology,Water setting,4.160502169278658,1.2324840148207914
+0.3,89,ユウレイ,Yurei,death_ritual,Death ritual,5.108394801504348,1.0978212202498496
+0.3,89,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.6969172573142322,1.2686130295886562
+0.3,89,カッパ,Kappa,livelihood,Livelihood,1.584717450087636,1.0777484873392555
+0.3,90,カッパ,Kappa,hydrology,Water setting,3.1328944558286045,0.9280712230944212
+0.3,90,ユウレイ,Yurei,death_ritual,Death ritual,3.122247779891038,0.6709876587128631
+0.3,90,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,0.9641644104985726,0.7208079996546666
+0.3,90,カッパ,Kappa,livelihood,Livelihood,1.6187037184816206,1.1008621656482167
+0.3,91,カッパ,Kappa,hydrology,Water setting,4.30159118495757,1.274279439847864
+0.3,91,ユウレイ,Yurei,death_ritual,Death ritual,5.771422993712499,1.2403095061622174
+0.3,91,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.1675673023333248,0.8728717244623138
+0.3,91,カッパ,Kappa,livelihood,Livelihood,1.8185119963962846,1.2367495247913132
+0.3,92,カッパ,Kappa,hydrology,Water setting,3.9455519605592326,1.168808360909279
+0.3,92,ユウレイ,Yurei,death_ritual,Death ritual,5.414299086195906,1.1635616784855458
+0.3,92,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.6679584595144246,1.2469634718086822
+0.3,92,カッパ,Kappa,livelihood,Livelihood,1.5234749015311866,1.0360981199101191
+0.3,93,カッパ,Kappa,hydrology,Water setting,3.1072583049422717,0.9204769123878324
+0.3,93,ユウレイ,Yurei,death_ritual,Death ritual,4.876251825282225,1.0479324596251711
+0.3,93,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3252072181579857,0.9907231107549755
+0.3,93,カッパ,Kappa,livelihood,Livelihood,0.8950540768565632,0.6087161956635546
+0.3,94,カッパ,Kappa,hydrology,Water setting,3.910451903662491,1.1584105153405468
+0.3,94,ユウレイ,Yurei,death_ritual,Death ritual,2.466206416428088,0.5300008794687887
+0.3,94,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.1327295361259906,0.8468270579107239
+0.3,94,カッパ,Kappa,livelihood,Livelihood,1.6991204010195533,1.1555526456181981
+0.3,95,カッパ,Kappa,hydrology,Water setting,3.0288882534188177,0.8972610043523642
+0.3,95,ユウレイ,Yurei,death_ritual,Death ritual,5.8879479492378906,1.265351339034409
+0.3,95,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.520655237319936,1.1368397835906203
+0.3,95,カッパ,Kappa,livelihood,Livelihood,0.8691113254683557,0.5910728226669911
+0.3,96,カッパ,Kappa,hydrology,Water setting,4.133096322547177,1.224365459263101
+0.3,96,ユウレイ,Yurei,death_ritual,Death ritual,4.871569193761941,1.0469261371991783
+0.3,96,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3292697950593777,0.9937602877113635
+0.3,96,カッパ,Kappa,livelihood,Livelihood,1.590736476368518,1.0818419593137814
+0.3,97,カッパ,Kappa,hydrology,Water setting,3.1123419069796925,0.9219828503717363
+0.3,97,ユウレイ,Yurei,death_ritual,Death ritual,5.277457127990914,1.1341536136480859
+0.3,97,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.0455931421424476,0.7816840084883541
+0.3,97,カッパ,Kappa,livelihood,Livelihood,1.684549390853175,1.1456430657338152
+0.3,98,カッパ,Kappa,hydrology,Water setting,4.002757197304259,1.1857545219695693
+0.3,98,ユウレイ,Yurei,death_ritual,Death ritual,5.750046256929991,1.2357155317002941
+0.3,98,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3102240004993362,0.9795216776473825
+0.3,98,カッパ,Kappa,livelihood,Livelihood,1.6021299553207013,1.089590536011519
+0.3,99,カッパ,Kappa,hydrology,Water setting,5.461434350576759,1.6178649262057851
+0.3,99,ユウレイ,Yurei,death_ritual,Death ritual,4.866431464190006,1.0458220117806978
+0.3,99,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.1501956731590752,0.8598847181597699
+0.3,99,カッパ,Kappa,livelihood,Livelihood,0.7838272645627375,0.5330720934959355
+0.3,100,カッパ,Kappa,hydrology,Water setting,1.8475892167634145,0.5473195501328098
+0.3,100,ユウレイ,Yurei,death_ritual,Death ritual,4.999000000524053,1.074311695522863
+0.3,100,ヘビ・リュウ,Snake/Dragon,strict_boundary_interface,Strict interface,1.3425194511264296,1.003665712534984
+0.3,100,カッパ,Kappa,livelihood,Livelihood,1.6162020725027129,1.0991608243968303

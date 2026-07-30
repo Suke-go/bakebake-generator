@@ -1,0 +1,141 @@
+{
+  "run_timestamp_utc": "2026-07-30T14:05:53.797187+00:00",
+  "git_commit": "76bb6b851bfbbd01f1c387123f9e2a1958bbd611",
+  "git_tracked_worktree_dirty": true,
+  "command": "C:\\Users\\kosuk\\AppData\\Local\\Programs\\Python\\Python310\\python.exe C:\\Users\\kosuk\\yokai\\scripts\\analysis\\isprs_canonical_pipeline_v2.py",
+  "input_files": {
+    "enriched_records": {
+      "path": "C:\\Users\\kosuk\\yokai\\data\\nichibun\\nichibun_enriched.json",
+      "sha256": "463c9a7ab86ee2c9e0b6d4422f7081a260b0a890333e9e2dea226ae98972915f"
+    },
+    "raw_archive_scrape": {
+      "path": "C:\\Users\\kosuk\\yokai\\data\\nichibun\\nichibun_yokai_full.json",
+      "sha256": "4eb3bc70582c315cdacee8b3107d21a9418690b1ee1fa1f7123fec97e84af7f1"
+    },
+    "cleaning_report": {
+      "path": "C:\\Users\\kosuk\\yokai\\data\\nichibun\\nichibun_cleaned_report.json",
+      "sha256": "9a308a593b995b67f8b6fa57746100f722895c3acf1f2f5a2d3b68992182ac78"
+    },
+    "gadm_admin2": {
+      "path": "C:\\Users\\kosuk\\yokai\\data\\geo\\gadm41_JPN_2.json",
+      "sha256": "f24cbdfe30fcc8c8cefde22d191c60414e36d41978678506feed01004f62fce6"
+    },
+    "mlit_w05_rivers": {
+      "path": "C:\\Users\\kosuk\\yokai\\data\\geo\\mlit_w05_rivers.geojson",
+      "sha256": "4854fd3e4425fe5879cf359328eebc4d282aa0cd281969f21de21e1281045155"
+    },
+    "natural_earth_lakes": {
+      "path": "C:\\Users\\kosuk\\yokai\\data\\geo\\ne_lakes.geojson",
+      "sha256": "a1d898b310db8410ad3e2d0b1242f060d25369187d04864fff4b37cf84fff950"
+    },
+    "natural_earth_coastline": {
+      "path": "C:\\Users\\kosuk\\yokai\\data\\geo\\ne_coastline.geojson",
+      "sha256": "0e345a61730881e4d95d5ef3df966c3a77897a26b63fd1cb29d156932486fa5a"
+    },
+    "canonical_pipeline": {
+      "path": "C:\\Users\\kosuk\\yokai\\scripts\\analysis\\isprs_canonical_pipeline_v2.py",
+      "sha256": "5cc2c33ee81c2ef6b186326e64561f53cc14ee8b10588a943879ba4ddff36ecb"
+    },
+    "archive_language_module": {
+      "path": "C:\\Users\\kosuk\\yokai\\scripts\\analysis\\isprs_archive_language_v2.py",
+      "sha256": "af91e5106f3496c5ec602dad6715546d661758dd0bd25f5ac801507ed88465cd"
+    },
+    "polygon_metrics_module": {
+      "path": "C:\\Users\\kosuk\\yokai\\scripts\\analysis\\isprs_support_polygon_metrics.py",
+      "sha256": "0d530ca48686f73a926674c8240fe910559c6bc9f74256c3a604488946412a41"
+    }
+  },
+  "configuration": {
+    "seed": 20260730,
+    "permutations": 10000,
+    "robustness_replicates": 100,
+    "polygon_sample_points_per_support": 128,
+    "distance_crs": "EPSG:3095",
+    "coast_thresholds_km": [
+      5.0,
+      10.0,
+      20.0
+    ],
+    "river_thresholds_km": [
+      1.0,
+      2.0,
+      5.0
+    ],
+    "water_thresholds_km": [
+      0.25,
+      0.5,
+      1.0
+    ],
+    "exclusive_terrain_class_in_primary_analysis": false,
+    "manual_gold_evaluation": false
+  },
+  "dictionary_version": "isprs-evidence-channels-1.1.0",
+  "dictionary_sha256": "8f1fd16b8e3a516ab50268c58992bddb7d775b45440af999da5b06266e3d88f9",
+  "random_seeds": {
+    "base": 20260730,
+    "permutation_cells": "base + category_index*1000 + feature_index",
+    "kappa_distance": 20960730,
+    "dictionary_robustness": 21160730,
+    "polygon_sampling": 20260730
+  },
+  "python_version": "3.10.6 (tags/v3.10.6:9c7b4bd, Aug  1 2022, 21:53:49) [MSC v.1932 64 bit (AMD64)]",
+  "node_version": "TODO-AUTHOR: interface build not executed in this run",
+  "package_versions": {
+    "ginza": "5.2.0",
+    "ja-ginza": "5.2.0",
+    "spacy": "3.8.11",
+    "geopandas": "1.1.3",
+    "shapely": "2.1.2",
+    "pyproj": "3.7.1",
+    "pandas": "2.3.3",
+    "numpy": "1.26.4",
+    "matplotlib": "3.10.0",
+    "requests": "2.32.5",
+    "scipy": "1.13.0"
+  },
+  "environment": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 186 Stepping 2, GenuineIntel",
+    "logical_cpu_count": 20,
+    "hardware_memory": "TODO-AUTHOR"
+  },
+  "execution_seconds": 714.541,
+  "expected_outputs": [
+    "results.json",
+    "dictionary_manifest.json",
+    "archive_language_associations.csv",
+    "focal_associations.csv",
+    "qualitative_examples.csv",
+    "dictionary_deletion_replicates.csv",
+    "dictionary_rank_correlation_replicates.csv",
+    "support_polygon_metrics.csv",
+    "support_refinement_comparison.csv",
+    "threshold_sensitivity.csv",
+    "evidence_channel_records.csv",
+    "number_source_map.csv",
+    "fig1_crown_jewel.pdf",
+    "fig2_evidence_coverage.pdf",
+    "fig3_resolution_sensitivity.pdf",
+    "fig4_archive_language_effects.pdf"
+  ],
+  "output_sha256": {
+    "results.json": "5b3a1c19686cb2dffdade6bc5fe7aece34c5ea934e4953502741af3c04c24576",
+    "dictionary_manifest.json": "1830e9e29bca09ab12ceb048078c5dcc5467c902f99faed3da80c46e2890a449",
+    "archive_language_associations.csv": "09d82784d5086106eee9a7a85900dea73430adbbf7a45ec6a255837f436b3e76",
+    "focal_associations.csv": "40887184e1e37bed18b92c4ddb072306461560872c17d7b00080e0c70d94c6ae",
+    "qualitative_examples.csv": "d12c10867ec1899274021e41915475d7674f6e130b3b98e2a828e51fa4ca8097",
+    "dictionary_deletion_replicates.csv": "28a2ade22eb15304cbdffe53071dd802d5d20030a327ec2ea6ee331599620a34",
+    "dictionary_rank_correlation_replicates.csv": "521dd095c7a6982928c5b3b64b27a6a2d36b76355cc99177bdb8fd2ef76b90e6",
+    "support_polygon_metrics.csv": "461335ca4b126d13dcc7c1cf9dcc0211fbaad2830810a6ae7ff93268bb1e1a13",
+    "support_refinement_comparison.csv": "a4654a2b54f227338746f0a4e2ebc87e6b4c18e078d0883377424dc902b4d251",
+    "threshold_sensitivity.csv": "b2a6a3d49e0a9432b8c6477ab1b9e0e0a9f3357685e8471b8c088868cf15f929",
+    "evidence_channel_records.csv": "ad0703705b396c82b67054668f90b81a36e5c0a47381718817e481bfe4675938",
+    "number_source_map.csv": "d762ba0dbecfc396fcd10bcd18cd51c761503c8290be28659bd7d1ad189f4257",
+    "fig1_crown_jewel.pdf": "84f8bd005161b9eaf9b2b307fb7ee00218bae47ccbb472dfd0b891de8b56343b",
+    "fig2_evidence_coverage.pdf": "4b202320cdad62927c07f1dea3898b66a519669cae52e1abd24e75a6d17b40f2",
+    "fig3_resolution_sensitivity.pdf": "15b1de03a14cf0b983226552bddde07a1657c4c2acba75d284b7a0ad367b4a04",
+    "fig4_archive_language_effects.pdf": "ca9a209b4ab426956711beb80e71bd72cf8d924d3809adf722aab7475cffbb40"
+  },
+  "code_license": "TODO-AUTHOR",
+  "derived_data_license": "TODO-AUTHOR"
+}
