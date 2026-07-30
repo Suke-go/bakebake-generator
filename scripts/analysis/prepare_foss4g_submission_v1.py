@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """Adapt the canonical revised manuscript to the latest FOSS4G package."""
 
 from __future__ import annotations
@@ -49,8 +49,7 @@ def main() -> None:
 \usepackage{natbib}
 \usepackage{xcolor}
 \usepackage{titlesec}
-\usepackage[hidelinks]{hyperref}
-\usepackage{xurl}
+\usepackage{url}
 \usepackage{caption}
 \usepackage{morefloats}
 \usepackage{dblfloatfix}
@@ -58,8 +57,9 @@ def main() -> None:
 
 \geometry{a4paper,top=25mm,bottom=25mm,left=20mm,right=20mm,columnsep=6mm}
 \graphicspath{{figures/}}
-\hypersetup{colorlinks=false,pdfborder={0 0 0}}
-\captionsetup{font={stretch=1.0},labelsep=colon,justification=justified,singlelinecheck=true}
+\urlstyle{same}
+\newcommand{\doi}[1]{doi.org/#1}
+\captionsetup{font={stretch=1.0},labelsep=colon,justification=centering,singlelinecheck=true}
 
 \titleformat{\section}{\normalfont\bfseries\filcenter}{\thesection.}{0.5em}{}
 \titlespacing*{\section}{0pt}{\baselineskip}{\baselineskip}
@@ -72,7 +72,7 @@ def main() -> None:
 
 \linespread{1.0}
 \setlength{\parindent}{0pt}
-\setlength{\parskip}{0.5\baselineskip}
+\setlength{\parskip}{0.35\baselineskip}
 \setlength{\textfloatsep}{\baselineskip}
 \setlength{\floatsep}{\baselineskip}
 \setlength{\intextsep}{\baselineskip}
@@ -101,8 +101,9 @@ From Point Anchors to Geospatial Support: A Resolution-Aware Representation of T
 Kosuke Shimizu\textsuperscript{1}, Hiroki Ichikura\textsuperscript{1}, Riri Ikebe\textsuperscript{2}, Mirai Hoshikawa\textsuperscript{1}\par}
 \vspace{0.4em}
 {\fontsize{9}{11}\selectfont
-\textsuperscript{1} University of Tsukuba, 1-1-1 Tennodai, Tsukuba-shi, Ibaraki 305-8577, Japan -- shimizu@ai.iit.tsukuba.ac.jp\\
-\textsuperscript{2} Japan Women's University, 2-8-1 Mejirodai, Bunkyo-ku, Tokyo 112-8681, Japan}
+\textsuperscript{1} University of Tsukuba, 1-1-1 Tennodai, Tsukuba-shi, Ibaraki 305-8577, Japan\\
+\textsuperscript{2} Japan Women's University, 2-8-1 Mejirodai, Bunkyo-ku, Tokyo 112-8681, Japan\\
+Corresponding author: Kosuke Shimizu (shimizu@ai.iit.tsukuba.ac.jp)}
 \end{center}
 \vspace{1.2em}
 
@@ -116,8 +117,7 @@ Kosuke Shimizu\textsuperscript{1}, Hiroki Ichikura\textsuperscript{1}, Riri Ikeb
     ending = r"""
 
 \begingroup
-\small
-\raggedright
+\fontsize{8}{9}\selectfont
 \bibliographystyle{plainnat}
 \bibliography{refs_revised}
 \endgroup
@@ -139,14 +139,9 @@ Kosuke Shimizu\textsuperscript{1}, Hiroki Ichikura\textsuperscript{1}, Riri Ikeb
         "REVISION_SUMMARY.md",
         "SECTION_OUTLINE.md",
         "CHANGELOG_REVISED.md",
-        "TODO_AUTHOR.md",
         "CLAIMS_SCOPE.md",
     ):
         shutil.copy2(ISPRS / name, FOSS4G / name)
-    shutil.copy2(
-        ISPRS / "requirements-isprs-lock.txt",
-        FOSS4G / "requirements-paper-lock.txt",
-    )
 
     figures = FOSS4G / "figures"
     figures.mkdir(exist_ok=True)

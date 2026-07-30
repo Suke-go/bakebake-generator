@@ -4,14 +4,15 @@
 \usepackage{setspace}
 \usepackage{graphicx}
 \usepackage{geometry}
-\usepackage{epstopdf}
 \usepackage[labelsep=period]{caption}
 \usepackage[british]{babel}
 \usepackage[hang]{footmisc}
 \usepackage{booktabs}
+\usepackage{amsmath}
 \usepackage{array}
-\usepackage{siunitx}
 \usepackage{url}
+\urlstyle{same}
+\newcommand{\doi}[1]{doi.org/#1}
 \def\footnotemargin{1em}
 
 \geometry{a4paper, top=25mm, left=20mm, right=20mm, bottom=25mm, headsep=10mm, footskip=12mm}
@@ -19,14 +20,10 @@
 \captionsetup{justification=centering,font=normal}
 \captionsetup[figure]{font=small}
 \captionsetup[table]{font=small}
-\sisetup{
-  round-mode=places,
-  round-precision=3,
-  detect-weight=true,
-  detect-family=true
-}
 
-\title{From Coordinates to Geospatial Support: Uncertainty-Aware GIS for Vague Folklore Place Descriptions in a Japanese Yokai Archive}
+\input{generated_numbers}
+
+\title{From Point Anchors to Geospatial Support: A Resolution-Aware Representation of Toponymic and Non-Toponymic Place Evidence in a Japanese Yokai Archive}
 \author{
 Kosuke Shimizu\textsuperscript{1},
 Hiroki Ichikura\textsuperscript{1},
@@ -34,282 +31,253 @@ Riri Ikebe\textsuperscript{2},
 Mirai Hoshikawa\textsuperscript{1}
 }
 \address{
-\textsuperscript{1 }University of Tsukuba, Japan\\
-\textsuperscript{2 }Japan Women's University, Japan
+\textsuperscript{1} University of Tsukuba, 1-1-1 Tennodai, Tsukuba-shi, Ibaraki 305-8577, Japan\\
+\textsuperscript{2} Japan Women's University, 2-8-1 Mejirodai, Bunkyo-ku, Tokyo 112-8681, Japan\\
+Corresponding author: Kosuke Shimizu (shimizu@ai.iit.tsukuba.ac.jp)
 }
 \date{}
 
 \begin{document}
 
 \abstract{
-The Kaii-Yokai Densho Database, maintained by the International Research Center for Japanese Studies (Nichibunken), records Japanese yokai folklore with a prefecture field and a short summary. The summary may contain formal place names, and it may also describe settings such as rivers, roads, houses, graves, and boundaries when no mappable toponym is given. A Folklore Geospatial Support Model is defined for this archive, representing each record by the evidence that supports spatial interpretation. The workflow transforms 33,378 records into resolution-aware geospatial features. All records receive prefecture-polygon support; 9,361 records (28.1\%) contain formal place mentions; 25,023 (75.0\%) contain place-description terms; and a conservative local GADM admin2 gazetteer upgrades 1,231 records (3.7\%). The admin2 subset reduces support area by a median 96.4\%. It also shows that coarser coordinates alter interpretation: 528 refined records (42.9\%) change coordinate-only terrain class relative to the prefecture-centroid baseline. Formal toponym extraction and place-description extraction are evaluated separately. A prefecture-stratified permutation model finds strong associations between category labels and rule-based place-function vocabulary within the archive, including Kappa (water spirits) with water-setting vocabulary, Yurei (ghosts) with death-ritual vocabulary, and Snake/Dragon (serpentine beings) with boundary-interface evidence. The result is a GIS representation for vague folklore places that keeps uncertainty, geospatial support, and human-environment boundary evidence available for inspection.
+Folklore archives often identify a broad administrative region while their summaries mix named places with non-toponymic descriptions of rivers, roads, dwellings, ritual sites, and boundaries. Treating an administrative representative point as an event location can therefore make the mapped evidence appear more precise than the source permits. We present a resolution-aware representation for \ArchiveRecords{} records from the Database of Folktales of Mysterious Phenomena and Yokai. It separates administrative support areas, candidate toponyms, non-toponymic place descriptions, geographic proximity, human-condition terms, derived interfaces, display anchors, and provenance. Rule-based coverage is \CandidateToponymPercent\% for candidate toponyms and \PlaceDescriptionPercent\% for place descriptions; these values are not extraction accuracy because no human gold labels are available. Rule-constrained local matching assigns municipality support to \MunicipalityAnchorRecords{} records across \MunicipalitySupportUnits{} units. Relative to prefecture support, municipality polygons reduce support area by a median \MedianAreaReduction\% and change sampled median coastline distance by \MedianCoastSensitivity{} km. Prefecture-stratified language associations recover expected Kappa--water and Yurei--death constructions, but these are construct checks rather than new folkloristic findings. A separate Kappa distance diagnostic does not support closer physical proximity to mapped major water. The contribution is an evidence-preserving, failure-aware baseline that distinguishes display anchors from the support areas warranted by the archive.
 }
 
-\keywords{Folklore geography, Geospatial support, Vague place descriptions, Digital humanities, Geographic uncertainty}
+\keywords{Folklore geography, Geospatial support, Spatial humanities, Historical geocoding, Geographic resolution}
 
 \maketitle
 \sloppy
 
 \section{Introduction}
 
-Folklore scholarship has long connected yokai narratives to water, mountains, cultivation, shorelines, and settlement boundaries \cite{foster2015book}. Yanagita Kunio's account of cultural distribution also provides a precedent for treating regional variation as geographically meaningful \cite{yanagita1930kagyuko}.
+Japanese yokai traditions have long been widely acknowledged through local narratives, collected sources, and changing cultural classifications \cite{foster2024}. Digital archives make these materials searchable at scale, but a map adds claims that a catalogue does not: a point can suggest an event location, and a derived environmental label can suggest physical conditions. For short historical summaries, neither implication is safe unless the evidence supporting the geometry is retained.
 
-The Kaii-Yokai Densho Database is maintained by the International Research Center for Japanese Studies (Nichibunken), a Japanese national research institute for Japanese studies. It contains Japanese yokai and uncanny folklore records with names, regional metadata, source references, and short summaries \cite{nichibun_yokai_database}. These fields support lookup by name or region. Spatial analysis needs another layer: the prefecture field, detected place names, place-description terms, polygon context, and confidence reason must remain distinguishable.
+The Database of Folktales of Mysterious Phenomena and Yokai, maintained by the International Research Center for Japanese Studies, provides bibliographic and regional metadata with short Japanese summaries \cite{nichibun2025}. A record may identify only a prefecture, mention one or more candidate toponyms, or describe a riverbank, route, dwelling, grave, shrine, livelihood, or boundary without naming a resolvable place. These signals differ in kind and resolution.
 
-The Folklore Geospatial Support Model groups those inputs into evidence channels. A record can therefore carry a coordinate for display, a prefecture or municipality polygon as support area, and separate text-derived evidence about terrain, movement, dwelling, death ritual, or boundary settings.
+Historical geocoding compounds this problem because present administrative boundaries do not necessarily represent the places named in older sources. A representative point can be useful as a display anchor, but it is not evidence that the narrated event occurred there. We therefore treat resolution, support area, matching method, ambiguity, and provenance as explicit fields rather than as a calibrated probability.
 
-Three questions guide the analysis. First, can vague folklore records be represented as multi-layer geospatial support? Second, how much does prefecture-centroid representation deform environmental interpretation when a subset can be refined to municipality support? Third, within prefectural strata, which yokai categories show above-background co-occurrence with rule-based place-function vocabulary such as water settings, routes, thresholds, livelihood, death-ritual, and taboo terms?
+This work represents vague folklore locations through separate evidence channels for administrative support areas, candidate toponyms, non-toponymic place descriptions, geographic context, human-condition terms, interface evidence, and support provenance. It shows how geographic summaries change when administrative support is refined, without treating representative coordinates as exact event locations. Three questions guide the study:
 
-\section{Related Work and Motivation}
+\textbf{RQ1 (Representation):} What evidence channels can be derived from vague folklore records while preserving the geographic support warranted by each record?
 
-The problem belongs to geoparsing and spatial humanities, with an additional constraint from short folklore summaries. The record may contain a formal place name, a broad prefecture tag, or only a description of a setting.
+\textbf{RQ2 (Resolution sensitivity):} For records with uniquely matched municipality support, how do support area and coordinate-derived geographic features change relative to the prefecture-level baseline?
 
-Most geoparsing work begins with toponyms: systems identify place names, link them to gazetteers, and disambiguate candidate locations. HeidelPlace, for example, is framed around gazetteers, toponym recognition, and toponym resolution modules \cite{richter2017heidelplace}. Yokai summaries also contain non-toponymic place descriptions such as a bridge, pass, well, riverbank, village edge, grave, shrine, or house threshold. Work on vague places shows that uncertain place extent can be modelled \cite{jones2008vagueplaces}, while research on everyday place descriptions argues that place references and spatial relations should be represented together when gazetteers lack the relevant expressions \cite{chen2017everyday}. Historical geocoding similarly emphasizes that indirect spatial evidence carries textual, temporal, positional, and source uncertainty \cite{cura2018historical}.
+\textbf{RQ3 (Archive-language association):} Which category--place-function associations remain after controlling for prefectural composition?
 
-Japanese administrative, river, lake, coastline, and elevation datasets provide the GIS context used for staged refinement \cite{gadm,naturalearth,mlit_ksj,mlit_admin,mlit_river,mlit_lake,mlit_elevation}. Location Reference Information and GeoNLP define a later path for local place evidence \cite{mlit_isj,geonlp}. These resources turn the prefecture-centroid baseline into a sequence of increasingly specific support areas.
+The contributions are (i) an evidence-channel representation that separates textual and geographic support; (ii) an application to \ArchiveRecords{} archive records; (iii) a rule-constrained municipality-support subset; (iv) polygon-based resolution-sensitivity diagnostics; and (v) prefecture-stratified archive-language association analyses with corrected inference and robustness checks.
+
+\section{Related Work}
+
+\subsection{Folklore, Spatial Humanities, and Archive Bias}
+
+Yokai categories are historically produced and transmitted rather than fixed biological taxa \cite{foster2024}. Spatial humanities likewise combines distant views with source criticism and close reading, while warning that mapped corpora inherit the coverage and classification decisions of their archives \cite{gregory2014}. Accordingly, record density in the present database is not interpreted as population prevalence or as a complete geography of Japanese folklore.
+
+\subsection{Toponyms and Non-Toponymic Spatial Language}
+
+Geoparsers generally detect toponyms and link them to gazetteer entries, as exemplified by HeidelPlace \cite{richter2017}. Japanese document-level work has developed richly annotated geographic-entity resources \cite{higashiyama2024}. However, locations can also be expressed through relations and common-noun descriptions that are not reducible to a named point \cite{stock2022}. Our representation retains both candidate toponyms and non-toponymic place descriptions; neither channel is treated as a validated extractor in the absence of a corpus-specific gold standard.
+
+\subsection{Historical Geocoding and Region-Based Support}
+
+Historical geocoding must accommodate temporal, textual, positional, and source uncertainty \cite{cura2018}. Gazetteer-linked annotation systems also preserve editorial intervention and source links \cite{simon2017}. The present study takes a more limited step: current administrative polygons provide support areas for records, and interior representative points provide display anchors. A matched current municipality is therefore a resolution refinement, not historical ground truth.
+
+\subsection{Visualizing Evidential Limits}
+
+Geospatial uncertainty research distinguishes sources of uncertainty and their visual encodings \cite{maceachren2005}. Digital-humanities visualizations can appear more objective than the underlying evidence and often omit uncertainty introduced during datafication \cite{panagiotidou2023}. Because the present pipeline has no calibrated probability, we describe it as ``resolution-aware'' and expose support basis, geometry, and ambiguity directly.
 
 \section{Data}
 
-The input is a cleaned JSON export of the Kaii-Yokai Densho Database containing 33,378 records. The fields used here are the yokai or phenomenon name, major category, prefecture, source metadata, and short Japanese summary. The prefecture field gives every record an initial geographic anchor, while the summary supplies the text from which place mentions and terrain cues are extracted.
+The analysis uses a local export of \RawArchiveRecords{} database rows. Cleaning retains \ArchiveRecords{} and excludes \ExcludedArchiveRecords{}: 141 summaries shorter than 10 characters and 1,786 records whose region is outside the Japanese prefecture set. A record is one database row, not a unique narrative event. Repeated narratives were not deduplicated because a defensible source-level equivalence rule is not available; their dependence is a limitation. Empty evidence channels are retained as missing rather than converted to negative evidence.
 
-The category distribution is highly imbalanced. The residual Other class contains 19,084 records, while the largest named categories are Kitsune (fox figures; 3,618), Snake/Dragon (serpentine beings; 2,335), Yurei (ghosts; 1,641), Kappa (water spirits; 1,412), Tanuki (shapeshifting figures; 1,268), and Tengu (mountain beings; 1,224). This imbalance makes effect sizes and category-level diagnostics necessary, since statistical significance alone would mainly reflect sample size.
+Prefecture names are normalised to the 47 contemporary Japanese prefectures. Category labels are analysed as supplied in the local export; the residual Other label is not assigned a new substantive interpretation. The public database page reports 35,307 items as of April 2025 and notes that historical records can contain discriminatory language \cite{nichibun2025}; that count is not substituted for the local export count.
 
-\section{System Pipeline}
+The source database's redistribution terms were not located in the supplied materials. This article therefore reports aggregate results without redistributing raw summaries. Current GADM boundaries are applied to potentially historical records only as contemporary support proxies. The analysis neither reconstructs historical boundaries nor dates individual geometries.
 
-\subsection{Prefecture-Centroid Georeferencing}
+\section{Representation and Methods}
 
-The first stage assigns a coordinate to every record using its structured \texttt{prefecture} field. The georeferencing module defines all 47 Japanese prefectures in a built-in centroid dictionary and appends latitude, longitude, and a geocoding-resolution field to each record. On the current cleaned dataset, all 33,378 records received prefecture-level coordinates.
-
-This conservative baseline guarantees full coverage and defines the centroid as a metadata anchor for later, higher-resolution geocoding.
-
-\subsection{Place Mention and Terrain Term Extraction}
-
-The second stage applies GiNZA to the \texttt{summary} field \cite{ginza}. It stores formal place entities as \texttt{\_place\_mentions}. It also stores rule-based terrain words as \texttt{\_terrain\_terms}, grouped around mountain, water, coast, cultivation, route, and boundary vocabulary. The extraction script uses a JSON cache so that long runs can be resumed without repeating completed records.
-
-The separation between formal place mentions and terrain terms is important for folklore text. Many summaries describe an environmental setting even when no municipality or landmark appears, so non-geocodable terrain words remain relevant to folklore-geographic questions about described settings.
-
-\subsection{Folklore Geospatial Support Model}
-
-The central representation is a geospatial-support object attached to every record. It stores the prefecture or municipality polygon that supports a record, detected formal place names, place-description terms, terrain evidence, human-condition terms, source metadata, resolution level, and confidence reason. Toponym support stores detected place names and whether they resolve to a unique local municipality candidate. Terrain support stores coordinate-only and text-aware labels separately.
-
-Place-description support records functional spatial vocabulary in seven groups: water setting, mobility, boundary, livelihood, dwelling, death-ritual, and taboo/time/weather. A separate human-condition channel records actors and actions. The model derives strict boundary-interface types when environmental terms co-occur with human-use terms: water crossing, waterside boundary, water danger norm, mountain route, mountain boundary, coastal landing, domestic threshold, mortuary boundary, and water livelihood. A broader human-environment interface flag is retained as a looser diagnostic. These fields separate natural-feature vocabulary from record-level combinations of environmental and human-use vocabulary.
-
-\begin{center}
+\begin{figure*}[t]
 \centering
-\captionof{table}{Fields in the Folklore Geospatial Support Model.}
-\label{tab:support-model}
-\footnotesize
-\setlength{\tabcolsep}{3pt}
-\begin{tabular}{p{0.27\linewidth}p{0.56\linewidth}}
+\includegraphics[width=\textwidth]{fig1_crown_jewel.pdf}
+\caption{Crown-jewel view of one record. Original metadata and summary evidence are transformed into separate candidate-toponym, place-description, human-condition, interface, and provenance channels. The map distinguishes the prefecture support polygon, the rule-matched municipality support polygon, and the interior display anchor. The anchor is not asserted to be the narrated event location; the support basis and remaining ambiguity travel with the record.}
+\label{fig:crown}
+\end{figure*}
+
+Figure~\ref{fig:crown} shows the distinction on which the representation is based. The Folklore Geospatial Support Model is a representation schema, not a predictive model. For record \(i\), it is
+\begin{equation}
+S_i=(A_i,T_i,P_i,G_i,H_i,I_i,B_i).
+\label{eq:support}
+\end{equation}
+where \(A_i\) is administrative support, \(T_i\) candidate-toponym evidence, \(P_i\) non-toponymic place-description evidence, \(G_i\) coordinate-derived geographic context, \(H_i\) human-condition evidence, \(I_i\) derived interface evidence, and \(B_i\) the support basis and provenance. An anchor \(a_i\) is stored for display but is not part of the evidential support claim. Table~\ref{tab:model} specifies the source, rule, output resolution, ambiguity, provenance, and missing-data handling of each channel.
+
+\begin{table*}[t]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{p{0.11\textwidth}p{0.15\textwidth}p{0.21\textwidth}p{0.16\textwidth}p{0.21\textwidth}}
 \toprule
-Support channel & Evidence stored \\
+Channel & Source & Rule and output & Resolution & Ambiguity, provenance, and missing data \\
 \midrule
-Administrative & Prefecture or admin2 polygon, support area, resolution level. \\
-Toponym & Detected formal place names, resolved candidate, matching method. \\
-Place-description & Water setting, mobility, boundary, livelihood, dwelling, death, taboo terms. \\
-Terrain & Coordinate-only and text-aware terrain labels, source GIS layers. \\
-Human condition & Actors and actions mentioned in the summary. \\
-Interface & Derived boundary/contact types such as water crossing or domestic threshold. \\
-Confidence & Reason for support: exact match, unresolved toponym, text cue, metadata only. \\
+\(A_i\) administrative support & Prefecture field; GADM 4.1 & Prefecture polygon; unique municipality polygon when matched & Prefecture or current municipality-like unit & Current-boundary source and matching method retained; prefecture fallback on no unique match \\
+\(T_i\) candidate toponym & Japanese summary & Named-entity candidates; optional exact municipality candidate & Mention and candidate unit & All candidates retained; no calibrated confidence; empty if none detected \\
+\(P_i\) place description & Summary and fixed lexical rules & Multi-label hydrology, mobility, boundary, livelihood, dwelling, death-ritual, taboo/time/weather terms & Textual, not geographic & Matched surface forms retained; empty means no rule match \\
+\(G_i\) geographic context & Support polygon, coastline, rivers, lakes & Continuous distances, densities, shares, and threshold proportions & Entire support polygon & Data source and scale identified; finite polygon sampling remains approximate \\
+\(H_i\) human condition & Summary and dictionaries & Actor, action, or taboo/time/weather terms & Textual, not geographic & Matched terms retained; no inference about actual participants \\
+\(I_i\) interface & Other evidence channels & Deterministic conjunctions such as hydrology with mobility & Record-level semantic metadata & Derivation path retained; not a physical site observation \\
+\(B_i\) support basis & Administrative and textual evidence & Source, matching basis, resolution, and candidate count & Record & Missing values remain explicit; calibrated confidence is not reported \\
 \bottomrule
 \end{tabular}
-\end{center}
+\caption{Evidence-channel schema. Missing channels remain empty and do not erase evidence in other channels. ``Rule constrained'' describes matching restrictions, not measured precision.}
+\label{tab:model}
+\end{table*}
 
-\subsection{Local Admin2 Gazetteer Refinement}
+\subsection{Textual Evidence}
 
-The pipeline attempts a local municipality-level refinement against GADM level 2 names. The implementation filters GADM records to municipality-like units, including cities, towns, villages, special wards, and related local administrative types. It then searches each summary for official Japanese municipality names within the record's prefecture and separately matches extracted place mentions against the same prefecture-bounded gazetteer. A record is upgraded only when exactly one municipality candidate is found; ambiguous records remain at prefecture resolution.
+A Japanese dependency-based named-entity recogniser identifies candidate place entities in each summary \cite{matsuda2020}. Fixed lexical rules independently identify place-function and human-condition surface forms. Place functions are hydrology, mobility, boundary, livelihood, dwelling, death ritual, and taboo/time/weather; textual landscape mentions separately record water, mountain, coast, boundary, and agrarian cues. These are multi-label textual features, not observed terrain.
 
-This refinement upgraded 1,231 records, or 3.7\% of the archive, to local GADM admin2 representative points. Of these, 329 were matched directly from summary text and 902 from extracted place mentions. The remaining 32,147 records keep their prefecture-centroid coordinates. The reported experiment is therefore a mixed-resolution representation that records whether each point is prefecture-level or municipality-level through \texttt{\_geo\_level}.
+Human-condition evidence is the union of actor, action, and taboo/time/weather terms. The broad human--environment interface is explicitly
+\begin{equation}
+\begin{aligned}
+E_i &= \mathrm{hydrology}\lor\mathrm{livelihood}\lor\mathrm{water}\\
+    &\quad\lor\mathrm{mountain}\lor\mathrm{coast},\\
+H_i &= \mathrm{actor}\lor\mathrm{action}\\
+    &\quad\lor\mathrm{taboo/time/weather},\\
+\mathrm{broad\ interface}_i &= E_i\land H_i .
+\end{aligned}
+\label{eq:interface}
+\end{equation}
+This definition makes every broad-interface record a subset of the human-condition records. Strict interfaces are named conjunctions: water crossing, waterside boundary, water-danger norm, mountain route, mountain boundary, coastal landing, domestic threshold, mortuary boundary, and water livelihood.
 
-\subsection{Terrain and Polygon GIS Enrichment}
+No human gold labels are available by design for this revision. We therefore report rule-based coverage, never precision, recall, \(F_1\), or validated extraction. Candidate toponym extraction, place-description extraction, human-condition extraction, interface derivation, and municipality matching are represented separately so that a future annotation study can evaluate them without changing the schema.
 
-The enrichment module downloads and caches GADM v4.1 Japan level 2 administrative boundaries, Natural Earth coastline and lake layers, and National Land Numerical Information River Data (W05), a Japanese river centre-line dataset \cite{gadm,naturalearth,mlit_river}. The W05 loader resolves prefecture-specific source files, extracts the \texttt{Stream.shp} layers, converts JGD2000 geometries to EPSG:4326, and merges 286,436 river features into a local cache. It then joins each point to a GADM level 2 unit and computes nearest distances to W05 rivers, Natural Earth lakes, and coastlines in a projected coordinate reference system.
+\subsection{Rule-Constrained Municipality Support}
 
-Because most reported points in this experiment remain prefecture centroids, the module also computes GIS features at the matching prefecture-polygon support. GADM level 2 polygons are dissolved to prefectures, and each prefecture receives area, coastline length per 1,000 km\textsuperscript{2}, W05 river length per 1,000 km\textsuperscript{2}, and lake-area share. These polygon metrics are coarse. They describe prefecture-level geographic context for records still at prefecture level, while the subset of locally refined records carries municipality-level coordinates.
+GADM 4.1 level-2 units are filtered to municipality-like types Shi, Machi, Mura, SpecialWard, Capital, and Son \cite{gadm41}. The Japanese name field is \texttt{NL\_NAME\_2}; \texttt{NAME\_2} supplies English context. Names and summaries are whitespace-normalised. A direct summary match uses an official-name substring with a left-boundary constraint inside the record's prefecture. If that stage does not assign a unit, an exact candidate-toponym match is attempted. A record is refined only when the deduplicated candidate set contains one unit; multiple or same-named candidates remain at prefecture support. Direct summary matching has precedence, making the 329 direct matches and 902 entity-based matches mutually exclusive.
 
-For the locally refined subset, the same polygon-context calculation is repeated at GADM admin2 support. The implementation first identifies the admin2 units actually used by municipality-level records, then clips W05 rivers, Natural Earth coastline, and Natural Earth lakes to those target polygons. This targeted calculation adds admin2 area, river density, coastline density, and lake-area share to the 1,231 refined records.
+This procedure assigns municipality support to \MunicipalityAnchorRecords{} records across \MunicipalitySupportUnits{} unique units. Accepted record types are 929 Shi, 231 Machi, 53 Mura, and 18 SpecialWard; no accepted records use the other allowed types. Historical names are not resolved. GADM polygons are projected to EPSG:3095, and Shapely's interior representative point is transformed to WGS84 for display. The full polygon remains the evidential support.
 
-The classifier writes two terrain representations. The coordinate-only representation uses only the point location and GIS layers: records within 10 km of the Natural Earth coastline are labelled coastal; inland records more than 50 km from the coast and within 2 km of W05 rivers are labelled valley; records within 0.5 km of water are labelled inland-water; and the remaining records are labelled plain. The valley label is a river-proximal inland proxy, since elevation and slope are not used in the reported run. The text-aware representation begins from the same coordinate-only label and then allows extracted terrain terms to add mountain, inland-water, or coastal narrative cues. The original \texttt{\_terrain\_class} field is retained as the text-aware label for backwards compatibility, while \texttt{\_terrain\_coord\_only} and \texttt{\_terrain\_text\_aware} keep the two evidential bases separate.
+\subsection{Polygon-Based Geographic Context}
 
-The rules are coarse and traceable: every label comes from either a GIS threshold or an extracted terrain cue. That separation prepares the representation for later elevation, slope, land-use, historical-boundary, or higher-resolution gazetteer layers.
+Support metrics use GADM 4.1 polygons, Natural Earth 1:10m coastlines and lakes, and National Land Numerical Information W05 river centre-lines \cite{gadm41,naturalearth,mlitw05}. Distances and areas are computed in EPSG:3095. ``Major water'' is the union of the supplied lake boundaries and W05 river lines; river metrics use W05 lines only.
 
-\section{Experiments}
+For support polygon \(P_i\) and feature geometry \(F\), the minimum distance is
+\begin{equation}
+d_{\min}(P_i,F)=\min_{x\in P_i,y\in F}\lVert x-y\rVert .
+\label{eq:distance}
+\end{equation}
+We additionally draw 128 deterministic area-uniform points \(x_{ij}\) per unique support and report the sampled median distance and the share meeting each threshold. Outputs include polygon area; minimum and sampled-median distance to coast, rivers, and major water; proportions within 0.5 km of major water, 2 km of a river, and 10 km of coastline; river and coastline density; and lake-area share. Sensitivity grids use coast thresholds 5, 10, and 20 km; river thresholds 1, 2, and 5 km; and water thresholds 0.25, 0.5, and 1 km. These thresholds are diagnostics rather than natural classes. No exclusive terrain classification or classification precedence is used.
 
-\subsection{Reproducible Setup}
+\subsection{Archive-Language Associations}
 
-The experiment module reads the enriched archive and writes the statistical summaries and figures. The current run used prefecture centroids for 32,147 records and local GADM admin2 representative points for 1,231 records, with W05 river centre-lines as the river layer. Its main diagnostic compares coordinate-only and text-aware terrain representations. The split keeps GIS thresholds and summary-term evidence in separate fields.
+RQ3 concerns semantic metadata within the archive, not physical geography. For each selected category--feature cell we report observed prevalence, the median null prevalence, observed-to-null ratio, prevalence difference, an odds ratio with a 95\% confidence interval, a two-sided empirical permutation value, and a Benjamini--Hochberg adjusted \(q\)-value \cite{benjamini1995}. The null shuffles category labels within prefectures \PermutationCount{} times, thereby preserving prefectural composition and category size. The empirical tail probability uses \((b+1)/(B+1)\). The screen contains 120 category--feature cells. Source-document blocking was not used because 50 joined records have missing or malformed source-group metadata; this remaining dependence limits inference.
 
-\subsection{Geospatial-Support Coverage}
+Kappa--water and Yurei--death are prespecified construct checks: recovering known archive-language structures shows that the representation can encode them, not that the study discovered them. Snake/Dragon--strict boundary, Kappa--livelihood, and post-hoc mobility, dwelling, and taboo screens are exploratory. Surface-form leakage is reduced by masking category names, but semantic dependence is not claimed to be removed. Dictionary deletion is repeated \RobustnessReplicates{} times at each of 10\%, 20\%, and 30\%.
 
-Coverage is reported for each evidence channel. Formal toponym extraction covers 9,361 records (28.1\%), while place-description terms cover 25,023 records (75.0\%). Terrain terms cover 20,242 records (60.6\%), human-condition terms cover 16,066 (48.1\%), strict boundary-interface terms cover 9,047 (27.1\%), and a broader human-environment interface flag covers 16,102 records (48.2\%).
+\section{Results}
 
-Figure~\ref{fig:support-stage} summarizes this coverage. The local admin2 gazetteer covers only 1,231 records, but it reduces their median support area to 213.6 km\textsuperscript{2}, a 96.4\% median reduction from prefecture scale. Even sparse municipality refinement therefore provides a diagnostic subset for measuring how much coarse metadata changes coordinate-derived interpretation.
+\subsection{Evidence-Channel Coverage}
 
-\begin{figure}[tbp]
+Figure~\ref{fig:coverage} and Table~\ref{tab:channels} report non-exclusive, rule-based coverage. Candidate toponyms occur in \CandidateToponymCount{} records (\CandidateToponymPercent\%), while non-toponymic place descriptions occur in \PlaceDescriptionCount{} (\PlaceDescriptionPercent\%). Human-condition evidence occurs in \HumanConditionCount{} (\HumanConditionPercent\%). The broad interface contains \BroadInterfaceCount{} records (\BroadInterfacePercent\%) and is a verified subset of the human-condition set.
+
+\begin{figure}[t]
 \centering
-\includegraphics[width=\linewidth]{fig_spatial_support_stage_coverage.png}
-\caption{Coverage of geospatial-support evidence channels. Place-description evidence covers more records than formal toponyms.}
-\label{fig:support-stage}
+\includegraphics[width=\columnwidth]{fig2_evidence_coverage.pdf}
+\caption{Rule-based coverage of non-exclusive evidence channels among \ArchiveRecords{} records. Bars report coverage, not extraction accuracy. The broad human--environment interface is defined as environmental evidence conjoined with actor, action, or taboo/time/weather evidence and is therefore a subset of the human-condition channel.}
+\label{fig:coverage}
 \end{figure}
 
-\subsection{Coordinate-Only and Text-Aware Terrain Labels}
+\input{generated_table_channels_submission}
 
-The enrichment stage produced the two terrain representations shown in Table~\ref{tab:terrain-counts}. The coordinate-only baseline is dominated by the geometry of prefecture centroids, with 1,231 records using locally refined municipality coordinates: 17,747 records are labelled coastal, 7,199 valley, 4,824 plain, and 3,608 inland-water. Most coordinate-only results describe metadata coordinates.
+\subsection{Resolution Sensitivity of Polygon Support}
 
-The text-aware representation changes 11,516 labels, or 34.5\% of the archive. The largest off-diagonal transitions are coastal to mountain (4,635 records), valley to mountain (1,990 records), and plain to mountain (1,451 records). The transitions measure terrain cues in summaries that the coordinate representation cannot express.
+Figure~\ref{fig:resolution} and Table~\ref{tab:resolution} compare the \MunicipalitySupportUnits{} uniquely matched municipality polygons with their prefecture polygons. Municipality support reduces polygon area by a median \MedianAreaReduction\% (interquartile range 94.6--98.9\%). The median absolute change in sampled median coastline distance is \MedianCoastSensitivity{} km (4.2--17.0 km); for major water it is \MedianWaterSensitivity{} km (0.0--0.1 km after resolution-aware rounding). These are changes under administrative-support refinement, not corrected coordinates or errors against event locations.
 
-A direct centroid-bias diagnostic confirms the baseline mechanism. Among the 47 prefecture centroids, 28 are classified as coastal, 8 as plain, 7 as valley, and 4 as inland-water. Since 96.3\% of records still inherit prefecture-level coordinates in the reported run, most records in a prefecture share the same coordinate-derived terrain context regardless of within-prefecture topographic diversity. The \texttt{\_geo\_level} field exists to keep this resolution visible in both the interface and the analysis.
-
-\begin{figure}[tbp]
+\begin{figure}[t]
 \centering
-\includegraphics[width=0.62\linewidth]{fig_prefecture_centroid_bias.png}
-\caption{Coordinate-only labels assigned to the 47 prefecture centroids. This diagnostic shows the dominant metadata geography still present after local admin2 refinement.}
-\label{fig:centroid-bias}
+\includegraphics[width=\columnwidth]{fig3_resolution_sensitivity.pdf}
+\caption{Resolution sensitivity for \MunicipalitySupportUnits{} municipality support polygons relative to their prefecture supports. The colour-vision-accessible panels show support-area reduction and absolute changes in sampled-median geographic-proximity metrics. Metrics use whole polygons and 128 deterministic area-uniform samples per support; no representative point is treated as ground truth.}
+\label{fig:resolution}
 \end{figure}
 
-\begin{table}[tbp]
+\input{generated_table_resolution_submission}
+
+\subsection{Archive-Language Associations}
+
+Figure~\ref{fig:effects} and Table~\ref{tab:associations} replace the saturated standardised-residual heatmap with interpretable effect estimates. Kappa--water has 78.0\% observed versus 23.1\% median null prevalence (odds ratio 15.72, 95\% CI 13.82--17.89, \(q=0.0002\)); Yurei--death has 75.1\% versus 16.1\% (odds ratio 23.01, 20.47--25.87, \(q=0.0002\)). These strong values are construct checks for archive wording.
+
+Among the exploratory cells, Snake/Dragon--strict boundary has an observed-to-null ratio of 1.34 and odds ratio \SnakeBoundaryOR{} (1.34--1.66, \(q=\SnakeBoundaryQ\)); Kappa--livelihood has a ratio of 1.47 and odds ratio 1.69 (1.50--1.91). The Oni, Inugami, and Hitodama rows are post-hoc screens, not independent confirmation. These exploratory cells are treated as prompts for close reading rather than as independently confirmed findings.
+
+\begin{figure*}[t]
 \centering
-\caption{Coordinate-only and text-aware terrain labels in the mixed-resolution experiment.}
-\label{tab:terrain-counts}
-\footnotesize
-\setlength{\tabcolsep}{3pt}
-\begin{tabular}{lrrrr}
-\toprule
-Label & Coord. n & Coord. \% & Text n & Text \% \\
-\midrule
-Coastal & 17,747 & 53.17\% & 13,460 & 40.33\% \\
-Plain & 4,824 & 14.45\% & 2,337 & 7.00\% \\
-Valley & 7,199 & 21.57\% & 3,987 & 11.94\% \\
-Mountain & 0 & 0.00\% & 9,156 & 27.43\% \\
-Inland-water & 3,608 & 10.81\% & 4,438 & 13.30\% \\
-\bottomrule
-\end{tabular}
-\end{table}
+\includegraphics[width=0.88\textwidth]{fig4_archive_language_effects.pdf}
+\caption{Prefecture-stratified archive-language effect estimates. Points are odds ratios and horizontal lines are 95\% confidence intervals; the reference line denotes no association. Kappa--water and Yurei--death are construct checks. Other rows are exploratory and describe archive-language co-occurrence, not physical ecological relationships.}
+\label{fig:effects}
+\end{figure*}
 
-\begin{figure}[tbp]
-\centering
-\includegraphics[width=0.82\linewidth]{fig_terrain_representation_transition.png}
-\caption{Transition matrix from coordinate-only labels to text-aware labels. The largest off-diagonal cells show where summary-derived terrain cues add information that prefecture centroids cannot represent.}
-\label{fig:terrain-transition}
-\end{figure}
+\input{generated_table_associations_submission}
 
-\subsection{Prefecture-Polygon GIS Context}
 
-The centroid labels above are diagnostic. Figure~\ref{fig:pref-gis-context} plots the 47 prefectures by coastline density and W05 river density, with point size proportional to record count and colour showing lake-area share. A record assigned only to a prefecture inherits that prefecture's polygon context; locally matched records additionally carry municipality coordinates.
+\subsection{Kappa Water-Distance Diagnostic}
 
-Across prefectures, W05 river density ranges from 545.9 to 1,367.3 km per 1,000 km\textsuperscript{2}, coastline density ranges from 0 to 152.6 km per 1,000 km\textsuperscript{2}, and the largest lake-area share is Shiga at 16.48\%. These metrics describe the polygon support inherited by records that remain at prefecture level.
-
-\begin{figure}[tbp]
-\centering
-\includegraphics[width=0.82\linewidth]{fig_prefecture_gis_context.png}
-\caption{Prefecture-polygon GIS context used in the baseline. The features are computed from GADM prefecture polygons, Natural Earth coast/lake data, and National Land Numerical Information River Data (W05).}
-\label{fig:pref-gis-context}
-\end{figure}
-
-\subsection{Admin2 Refinement as a Distortion Test}
-
-The 1,231 locally refined records serve as a diagnostic set for RQ2. For each refined record, we compare the coordinate-only terrain class inherited from its prefecture centroid with the coordinate-only class computed at its admin2 representative point. In 528 refined records (42.9\%), the terrain class changes. The most common changes are coastal to inland-water (205 records), coastal to plain (89), plain to inland-water (65), valley to inland-water (52), and plain to coastal (45). Median support-area reduction is 96.4\%. Median coast distance increases by 3.7 km in the refined subset, and median water distance decreases by 0.09 km. The subset is produced by successful local name matching, so the result is a distortion diagnostic for the refined records rather than an archive-wide accuracy estimate.
-
-\begin{figure}[tbp]
-\centering
-\includegraphics[width=0.82\linewidth]{fig_admin2_refinement_distortion.png}
-\caption{Changes in coordinate-derived interpretation when the 1,231 locally refined records move from prefecture-centroid support to admin2 support.}
-\label{fig:admin2-distortion}
-\end{figure}
-
-\subsection{Place-Function Associations Under a Null Model}
-
-RQ3 is tested on place-function term incidence. The analysis uses a prefecture-stratified permutation null model: category labels are shuffled within each prefecture, preserving prefecture composition while breaking category-specific association with place-function terms. The test asks whether Kappa records, for example, contain water-setting terms more often than expected among records from the same prefectures. The unit of analysis is record-level term incidence in summaries. Physical proximity is evaluated separately on the admin2 subset below.
-
-Figure~\ref{fig:null-model} shows the resulting z-scores over 500 permutations. The strongest positive associations are Yurei with death-ritual vocabulary (observed 1,233, expected 264.9, observed/expected ratio 4.65), Kappa with water-setting vocabulary (1,101 vs. 326.5, ratio 3.37), Snake/Dragon with water-setting vocabulary (1,090 vs. 488.3, ratio 2.23), and Snake/Dragon with strict boundary-interface terms (930 vs. 632.6, ratio 1.47). Kappa is also positively associated with strict boundary-interface terms (591 vs. 385.3, ratio 1.53) and livelihood terms (398 vs. 270.6, ratio 1.47). The z-scores rank cells; the observed/expected ratios give the more interpretable effect summaries. Within the same prefectures, Kappa and Snake/Dragon summaries disproportionately contain water-setting and interface vocabulary, and Yurei summaries disproportionately contain death-ritual vocabulary.
-
-An admin2-only water-feature diagnostic tests the same category on the 1,231 locally refined records. The distance field uses the same nearest-water layer as the enrichment pipeline: MLIT W05 rivers plus Natural Earth lakes. Among the 48 locally refined Kappa records, the observed median distance to the nearest water feature is 0.371 km. A prefecture-stratified category-shuffle null with 10,000 permutations expects a median of 0.295 km ($p=0.936$ for a smaller median). The observed median is larger than the shuffle expectation, so the Kappa result is treated as summary evidence.
-
-\begin{figure}[tbp]
-\centering
-\includegraphics[width=\linewidth]{fig_place_function_null_residuals.png}
-\caption{Place-function associations after shuffling category labels within prefectures. Positive cells show category-function links that exceed prefectural background composition.}
-\label{fig:null-model}
-\end{figure}
+The one-sided alternative is that Kappa-labelled municipality-supported records have a smaller median representative-point distance to mapped major water than expected after within-prefecture category shuffling. Among 1,231 municipality-supported records, 48 are Kappa. The observed median is \KappaDistanceObserved{} km, while the median of the \PermutationCount{}-permutation null distribution is \KappaDistanceNull{} km with a 95\% null interval of 0.218--0.377 km. The one-sided \(p\)-value for a smaller median is \KappaDistanceOneSidedP{} and the two-sided value is \KappaDistanceTwoSidedP{}; all \PermutationCount{} permutations are valid. Because the observed median exceeds the null median, the physical-proximity hypothesis is not supported. Repeated municipalities, rule-matched units, and use of representative points make this a limited negative diagnostic.
 
 \subsection{Robustness Diagnostics}
 
-The robustness diagnostics target leakage and sensitivity in the geospatial-support representation. All dictionaries, intermediate evidence fields, and rule outputs are inspectable. The checks below rerun the strongest associations under category-name masking, dictionary sensitivity, interface-definition ablation, and prefecture-stratified permutation tests.
+Table~\ref{tab:robustness} shows that dictionary deletion gradually changes the full 120-cell ordering: median Spearman correlation is 0.975 at 10\% deletion, 0.940 at 20\%, and 0.895 at 30\%. Category-name masking removes 22,974 occurrences in 13,140 records and reduces surface-form leakage; it changes the Kappa--water observed-to-null ratio from 3.38 to 2.73 and Yurei--death from 4.65 to 3.57. It does not establish semantic independence. For the Snake/Dragon strict-boundary cell, the positive direction is retained in 100\%, 99\%, and 98\% of deletion replicates at the three rates; Kappa--livelihood retains it in 87\%, 85\%, and 70\%.
 
-\begin{table}[tbp]
+\input{generated_table_robustness_submission}
+
+\begin{table}[t]
 \centering
-\caption{Extraction and support diagnostics on 33,378 records. The table reports evidence-channel coverage.}
-\label{tab:extraction-diagnostics}
-\footnotesize
-\setlength{\tabcolsep}{3pt}
-\begin{tabular}{p{0.50\linewidth}p{0.34\linewidth}}
+\small
+\begin{tabular}{lr}
 \toprule
-Diagnostic & Value \\
+Boundary-interface definition & O/E ratio \\
 \midrule
-Records in extraction run & 33,378 \\
-Records with place mentions & 9,361 (28.1\%) \\
-Records with terrain terms & 20,242 (60.6\%) \\
-Records with place-description terms & 25,023 (75.0\%) \\
-Records with strict boundary-interface terms & 9,047 (27.1\%) \\
-Records with any human-environment interface & 16,102 (48.2\%) \\
-Unique prefecture-place candidate keys & 9,015 \\
-Local admin2-refined records & 1,231 (3.7\%) \\
-Admin2 records with changed coord.-terrain interpretation & 528 (42.9\% of refined records) \\
-Coordinate-only terrain labels & coastal 17,747; valley 7,199; plain 4,824; inland-water 3,608 \\
-Text-aware terrain labels & coastal 13,460; mountain 9,156; inland-water 4,438; valley 3,987; plain 2,337 \\
-Labels changed by terrain terms & 11,516 (34.5\%) \\
+Broad environmental \(\times\) boundary & 1.68 \\
+Strict derived boundary interfaces & 1.34 \\
+Hydrology/mountain boundary interfaces & 1.83 \\
 \bottomrule
 \end{tabular}
+\caption{Interface-definition ablation for the exploratory Snake/Dragon--boundary association. Construct-check rows are not repeated because these definitions do not alter their features.}
+\label{tab:interface-ablation}
 \end{table}
 
-Table~\ref{tab:robustness} reports the three most important robustness checks. First, category-specific surface forms such as kappa, tengu, kitsune, yurei, and snake/dragon terms are masked from summaries before place-function extraction; this affected 13,140 summaries and removed 22,974 surface-form occurrences. Second, 10\%, 20\%, and 30\% of terms are randomly removed from each dictionary group, with five seeded lexical drops per rate. Third, the boundary-interface feature is recomputed under broad, strict, and conservative definitions: broad uses any environmental term plus human-condition term, strict uses the co-occurrence-derived interface types defined above, and conservative removes the water-danger-norm interface from the strict set.
-
-Across these diagnostics, the focal associations remain positive, with changing magnitudes. Category-name masking reduces the Kappa/water-setting and Yurei/death-ritual z-scores, yet both remain large. Dictionary deletion affects the death-ritual association most strongly at 30\% removal, and Snake/Dragon boundary-interface evidence remains positive under all interface definitions. The focal results survive category-name masking, dictionary deletion, and interface-definition changes.
-
-\begin{table}[tbp]
-\centering
-\caption{Robustness diagnostics for key z-scores under prefecture-stratified null models: Kappa-water-setting, Yurei-death-ritual, and Snake/Dragon-boundary-interface. Dictionary-drop rows report median z-scores over five seeded lexical drops; interquartile ranges are released in the accompanying CSV output.}
-\label{tab:robustness}
-\scriptsize
-\setlength{\tabcolsep}{2pt}
-\begin{tabular}{lrrr}
-\toprule
-Condition & Kappa water & Yurei death & Snake bound. \\
-\midrule
-Full & 52.7 & 70.3 & 14.9 \\
-Name masked & 33.7 & 45.1 & 15.4 \\
-Drop 10\% & 54.4 & 70.7 & 12.7 \\
-Drop 20\% & 54.4 & 72.2 & 11.7 \\
-Drop 30\% & 58.6 & 26.0 & 12.9 \\
-Broad & 52.7 & 70.3 & 18.7 \\
-Strict & 52.7 & 70.3 & 14.9 \\
-Conservative & 52.7 & 70.3 & 9.8 \\
-\bottomrule
-\end{tabular}
-\end{table}
+Table~\ref{tab:interface-ablation} demonstrates definition sensitivity rather than choosing a uniquely correct boundary construct.
 
 \section{Discussion}
 
-The results make the resolution of each spatial statement visible. Prefecture metadata supports complete national coverage, admin2 matching supplies a small diagnostic subset, and text-derived place-function terms supply evidence about how summaries describe settings. Keeping these channels separate prevents centroid terrain labels, summary vocabulary, and polygon context from being read as the same kind of evidence.
+\textbf{RQ1.} The archive can be represented without collapsing all spatial evidence into one coordinate. Administrative polygons, candidate toponyms, non-toponymic place descriptions, geographic context, human-condition terms, derived interfaces, and provenance remain inspectable. The present analysis establishes representational coverage, not extraction accuracy.
 
-The category-place-function analysis describes archive language. Kappa records are associated with water-setting, strict boundary-interface, and livelihood terms. Snake/Dragon records combine water-setting, actors, and boundary-interface evidence. Yurei records are dominated by death-ritual vocabulary. The admin2 water-distance diagnostic bounds that interpretation: the Kappa subset has a larger observed median water-feature distance than the within-prefecture shuffle expectation. Human-environment interface language is therefore a useful evidence channel, and physical placement requires finer geocoding.
+\textbf{RQ2.} Municipality support produces much smaller evidential areas and materially different coastline summaries for the matched subset. The small median change in major-water distance reflects the density of the mapped river network and the sampled metric; it does not validate either administrative level as an event location. Polygon distributions are more faithful to the evidence than interpreting one display anchor, but present-day boundaries still remain proxies.
 
-The admin2 distortion test gives the spatial result a narrower and more defensible form. Coarse metadata does more than increase uncertainty: in the locally refined subset, it changes coordinate-derived terrain labels for 42.9\% of records. The refined subset is selected by successful local name matching, so the percentage describes this subset. Its value is diagnostic: it shows where prefecture-centroid maps can change the environmental reading of records that contain enough information for municipality-level support.
+\textbf{RQ3.} Prefecture-stratified permutations recover known Kappa--water and Yurei--death archive-language associations and identify exploratory boundary, livelihood, mobility, dwelling, and taboo cells. The construct checks show that the schema captures obvious language structures; they are not new folklore findings. The exploratory cells require close reading and independent extraction validation before interpretation.
+
+The distinction between textual and geographic evidence is decisive. A water term in a summary is textual landscape evidence; distance from a support polygon to a mapped river is geographic proximity. Conjoining them can produce a derived semantic interface, but it does not observe a local ecology. Likewise, dense archive coverage may reflect source collection, indexing, or repetition rather than regional folklore prevalence. Maps can over-objectify these choices, which is why the interface must show resolution, support polygon, display anchor, matching method, and source trace together.
+
+Transfer to another archive requires a documented record unit, stable source identifiers, local-language place and function dictionaries, an appropriate historical or contemporary gazetteer, explicit redistribution terms, and a new human evaluation if extraction performance is to be claimed.
 
 \section{Limitations}
 
-The reported experiment uses prefecture support for 96.3\% of records. Coordinate-only terrain labels mainly describe prefecture-level metadata, with a small municipality-level supplement from local GADM matching. Place-description and boundary-interface labels are rule-based summary evidence. The paper therefore reports support area, coordinate evidence, text evidence, and confidence reason separately.
+No human gold standard is available, so precision, recall, \(F_1\), annotator agreement, and municipality-match precision are unknown. The rule dictionaries can miss obsolete names, shrine names, spelling variants, and implicit expressions, and can mistake common nouns or beings for places. Current administrative names cannot resolve many historical toponyms.
 
-The water-feature layer uses W05 river centre-lines, Natural Earth lakes, and Natural Earth coastlines. Irrigation canals, village streams, ponds, springs, wells, and small sacred water sites remain underrepresented. Summaries also contain ambiguous local names, obsolete place names, shrine names, and terrain descriptions without formal toponyms. These gaps affect both spatial refinement and rule-based extraction.
+Records sharing a prefecture, municipality, source document, or repeated narrative are dependent. Prefecture-stratified permutations address only the first dependence; source-group blocking was not used because part of the local source metadata is malformed. The polygon sample is deterministic but finite, and W05 river vintages differ by region. Natural Earth 1:10m is appropriate for national context, not detailed local hydrology. No digital elevation model, slope, or terrain-position index is used.
 
-The source archive is a constructed collection. Record density reflects collection history, publication practices, source survival, and database construction. Spatial density is therefore archive density unless normalized against source availability and collection process.
+The municipality subset is rule-matched rather than manually verified, and the representative-point distance diagnostic repeats shared municipal anchors. The analysis therefore does not establish exact event locations, coordinate accuracy, physical ecological relationships, diffusion from Kyoto, or population-level prevalence.
+
+\section{Ethical Considerations}
+
+This computational study involved no human participants. It uses historical source descriptions that may contain discriminatory language, as the database provider itself cautions \cite{nichibun2025}. Public displays should avoid unnecessary exposure of personal names, sacred sites, or small communities and should not turn uncertain narratives into precise-point claims or regional stereotypes.
+
+GADM 4.1 permits academic and other non-commercial use but restricts redistribution and commercial use without permission \cite{gadm41}. Natural Earth data are public domain \cite{naturalearth}. The W05 river page identifies non-commercial conditions \cite{mlitw05}. This article reports derived summaries and does not reproduce source geometries or archive excerpts.
+
+Current boundaries are labelled as present-day support proxies when applied to historical records. Archive density is not presented as folklore prevalence.
+
 
 \section{Conclusion}
 
-The Folklore Geospatial Support Model converts 33,378 records from the Kaii-Yokai Densho Database into evidence channels for prefecture or municipality support, formal place mentions, place-description terms, terrain evidence, human-condition terms, boundary-interface types, and confidence reason. Formal toponyms occur in 28.1\% of records, while place-description terms occur in 75.0\%. Local admin2 refinement covers 1,231 records, reduces support area by a median 96.4\%, and changes coordinate-derived terrain interpretation for 42.9\% of refined records.
+We represented \ArchiveRecords{} folklore records through separate administrative, toponymic, non-toponymic, geographic, human-condition, interface, and provenance channels. For RQ1, this schema preserves what kind of evidence supports each spatial interpretation, although its extractors remain unevaluated. For RQ2, municipality polygons substantially reduce support area and change polygon-derived coastline summaries relative to prefecture support; these changes measure resolution sensitivity, not accuracy. For RQ3, prefecture-stratified analysis recovers expected archive-language constructs and identifies exploratory cells for close reading, but it does not establish physical ecological relationships.
 
-The archive-level analysis is strongest when the evidence channels remain separate. Category-to-place-function associations persist beyond prefectural composition, including Kappa/water-setting, Yurei/death-ritual, and Snake/Dragon/boundary-interface evidence. The admin2 water-distance diagnostic separates the Kappa text association from physical water proximity. The resulting GIS representation keeps vague folklore places analyzable while avoiding a single asserted event point for every record.
+The next necessary step is a preregistered human evaluation of candidate toponyms, place descriptions, human-condition terms, interface derivations, and municipality matches, followed by source-aware models using verified historical place resolution. Until then, the defensible contribution is a failure-aware baseline that distinguishes display anchors from the support areas warranted by the available evidence.
 
-\bibliography{refs}
+\bibliography{refs_revised}
 
 \end{document}

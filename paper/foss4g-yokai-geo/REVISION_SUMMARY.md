@@ -35,7 +35,7 @@ Prefecture-stratified language associations recover expected Kappa–water and
 Yurei–death constructions, but these are construct checks rather than new
 folkloristic findings. A separate Kappa distance diagnostic does not support
 closer physical proximity to mapped major water. The contribution is an
-inspectable, failure-aware baseline that distinguishes display anchors from
+evidence-preserving, failure-aware baseline that distinguishes display anchors from
 the support areas warranted by the archive.
 
 ## Research Questions
@@ -55,6 +55,4 @@ The contributions are (i) an evidence-channel representation that separates
 textual and geographic support; (ii) an application to 33,378 archive records;
 (iii) a rule-constrained municipality-support subset; (iv) polygon-based
 resolution-sensitivity diagnostics; (v) prefecture-stratified archive-language
-association analyses with corrected inference and robustness checks; and
-(vi) an inspectable implementation whose reported numbers and figures are
-generated from one canonical result.
+association analyses with corrected inference and robustness checks.

@@ -79,7 +79,7 @@
     "polygon_sampling": 20260730
   },
   "python_version": "3.10.6 (tags/v3.10.6:9c7b4bd, Aug  1 2022, 21:53:49) [MSC v.1932 64 bit (AMD64)]",
-  "node_version": "TODO-AUTHOR: interface build not executed in this run",
+  "node_version": "not applicable; no interface build is reported",
   "package_versions": {
     "ginza": "5.2.0",
     "ja-ginza": "5.2.0",
@@ -97,7 +97,7 @@
     "platform": "Windows-10-10.0.26200-SP0",
     "processor": "Intel64 Family 6 Model 186 Stepping 2, GenuineIntel",
     "logical_cpu_count": 20,
-    "hardware_memory": "TODO-AUTHOR"
+    "hardware_memory": "not recorded"
   },
   "execution_seconds": 714.541,
   "expected_outputs": [
@@ -136,8 +136,8 @@
     "fig3_resolution_sensitivity.pdf": "15b1de03a14cf0b983226552bddde07a1657c4c2acba75d284b7a0ad367b4a04",
     "fig4_archive_language_effects.pdf": "ca9a209b4ab426956711beb80e71bd72cf8d924d3809adf722aab7475cffbb40"
   },
-  "code_license": "TODO-AUTHOR",
-  "derived_data_license": "TODO-AUTHOR",
+  "code_license": "not stated in the supplied materials",
+  "derived_data_license": "not stated in the supplied materials",
   "finalization_timestamp_utc": "2026-07-30T16:48:23.405307+00:00",
   "final_git_base_commit": "9c6590cee3c844b31f045fa5f3cd8f0553f521dd",
   "personal_main_commit": "77e6d352baf4864a97635b2a7f92234dab54581d",
@@ -145,7 +145,6 @@
   "final_git_tracked_worktree_dirty": true,
   "format_baseline": "paper/foss4g-yokai-geo/main.tex at personal/main",
   "submission_candidate": "paper/foss4g-yokai-geo/main_submission_revised.tex",
-  "presentation_command": "python scripts/analysis/prepare_foss4g_submission_v1.py then latexmk -pdf -interaction=nonstopmode -halt-on-error main_submission_revised.tex in paper/foss4g-yokai-geo",
   "qa_status": "PASS",
   "qa_report": "manuscript_qa_foss4g.json",
   "final_artifact_sha256": {
@@ -168,15 +167,13 @@
     "paper\\foss4g-yokai-geo\\REVISION_SUMMARY.md": "058b008926e1adc2f80427b07e6c45243690194c5766e8ab7ed44a00170de812",
     "paper\\foss4g-yokai-geo\\SECTION_OUTLINE.md": "4c616f72f74326563525ffb523b5c353c219c32763bd1470f805fbd8d2ca7cc8",
     "paper\\foss4g-yokai-geo\\CHANGELOG_REVISED.md": "18987fe475d00eb17d154e88d83b09c09e7e2e06e02304e9c858f919e752026e",
-    "paper\\foss4g-yokai-geo\\TODO_AUTHOR.md": "18dee78e6596ab0623bf5ca09bb4cc21bfab96df44493ae6aeb463b41785c9af",
     "paper\\foss4g-yokai-geo\\CLAIMS_SCOPE.md": "671528d16e893b40624e2aa049e25e7a4463c21fc72ed7ded4cc33bfab6619ed",
     "paper\\foss4g-yokai-geo\\DELIVERABLES_FOSS4G.md": "b565ae2e6178d773ab353be4b625563e717fc52147290cd8ca51fc9192b8ee8a",
-    "paper\\foss4g-yokai-geo\\requirements-paper-lock.txt": "59060a79acf6b45c35973d25387644442778694b767040149045ea47e9d9062f",
     "paper\\foss4g-yokai-geo\\figures\\fig1_crown_jewel.pdf": "050a6c544d9ce1a6b699e23f9e379808de909e3860caadf640627cee489d1985",
     "paper\\foss4g-yokai-geo\\figures\\fig2_evidence_coverage.pdf": "ab3d8a5d848eaaf793939e0ffd3805488e84472b170ca9bdc86aa32be9153534",
     "paper\\foss4g-yokai-geo\\figures\\fig3_resolution_sensitivity.pdf": "98e90daefe058e05847e80a3612daffa739d8739a67c2eb5386d2dbb654dcf48",
     "paper\\foss4g-yokai-geo\\figures\\fig4_archive_language_effects.pdf": "91074c918b354dc8bf3a7cf559ff68e6dc8c49cdd609a80abe83d4e4f5c7f9c0"
   },
   "manual_gold_labels_created": false,
-  "source_excerpt_redistribution": "WITHHELD: TODO-AUTHOR confirm source database terms"
+  "source_excerpt_redistribution": "Source excerpts are not redistributed because permission was not established."
 }

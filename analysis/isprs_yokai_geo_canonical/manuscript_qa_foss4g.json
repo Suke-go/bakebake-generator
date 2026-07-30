@@ -1,42 +1,31 @@
 {
-  "timestamp_utc": "2026-07-30T16:48:23.314209+00:00",
+  "timestamp_utc": "2026-07-30T17:49:03.351505+00:00",
   "status": "PASS",
   "checks": {
-    "broad_interface_subset_totals": {
-      "broad_interface": 9518,
+    "canonical_subset_logic": {
       "human_condition": 16066,
+      "broad_interface": 9518,
+      "record_violations": 0,
+      "cleaned_records": 33378,
       "passed": true
     },
-    "broad_interface_subset_records": {
-      "records": 33378,
-      "violations": 0,
-      "passed": true
-    },
-    "record_count_consistency": {
-      "results": 33378,
-      "evidence_rows": 33378,
-      "passed": true
-    },
-    "association_inference": {
-      "cells": 120,
-      "all_permutations_10000": true,
-      "all_q_values_present": true,
-      "all_effect_intervals_present": true,
-      "passed": true
-    },
-    "robustness_replicates": {
-      "counts_by_rate": {
+    "statistical_outputs": {
+      "association_cells": 120,
+      "permutations": [
+        10000
+      ],
+      "robustness_runs_by_rate": {
         "0.1": 100,
         "0.2": 100,
         "0.3": 100
       },
       "passed": true
     },
-    "threshold_sensitivity": {
-      "rows": 18,
+    "claim_and_content_scope": {
+      "banned_hits": [],
       "passed": true
     },
-    "labels": {
+    "figure_table_references": {
       "labels": [
         "fig:crown",
         "tab:model",
@@ -46,7 +35,6 @@
         "tab:resolution",
         "fig:effects",
         "tab:associations",
-        "tab:examples",
         "tab:robustness",
         "tab:interface-ablation"
       ],
@@ -59,20 +47,17 @@
         "tab:resolution",
         "fig:effects",
         "tab:associations",
-        "tab:examples",
         "tab:robustness",
         "tab:interface-ablation"
       ],
-      "uncited_labels": [],
-      "undefined_labels": []
+      "passed": true
     },
     "citations": {
-      "cited_keys": [
+      "cited": [
         "benjamini1995",
         "cura2018",
         "foster2024",
         "gadm41",
-        "ginza520",
         "gregory2014",
         "higashiyama2024",
         "maceachren2005",
@@ -85,12 +70,11 @@
         "simon2017",
         "stock2022"
       ],
-      "bibliography_keys": [
+      "bibliography": [
         "benjamini1995",
         "cura2018",
         "foster2024",
         "gadm41",
-        "ginza520",
         "gregory2014",
         "higashiyama2024",
         "maceachren2005",
@@ -103,83 +87,83 @@
         "simon2017",
         "stock2022"
       ],
-      "missing": [],
-      "unused": []
-    },
-    "banned_terminology": {
-      "hits": [],
       "passed": true
     },
-    "latex_log": {
-      "hits": [],
+    "tables_and_equations": {
+      "table_count": 6,
+      "all_table_captions_below": true,
+      "numbered_equations": 3,
       "passed": true
     },
-    "abstract_length": {
-      "words": 205,
-      "required_range": [
-        100,
-        250
+    "isprs_format": {
+      "order_positions": [
+        1787,
+        1900,
+        2098,
+        2588,
+        2750,
+        4485,
+        30635,
+        31855,
+        31894
       ],
-      "passed": true
-    },
-    "latest_format_baseline": {
       "missing_signatures": [],
+      "abstract_words": 207,
       "passed": true
     },
-    "pdf": {
+    "reference_format": {
+      "protocol_or_link_hits": [],
+      "doi_entries": 9,
+      "doi_calls": 9,
+      "doi_org_macro": true,
+      "passed": true
+    },
+    "compiled_pdf": {
       "pages": 7,
-      "page_text_lengths": [
-        5690,
-        5955,
-        4919,
-        5836,
-        3763,
-        6082,
-        6814
+      "active_links": 0,
+      "fonts": [
+        "AFAPIU+StandardSymL-Slant_167",
+        "BKFRPT+CMMI10",
+        "BTWUHF+NimbusRomNo9L-ReguItal",
+        "F224",
+        "GIGFZE+CMR10",
+        "GWYNED+Meiryo",
+        "GWYNED+Meiryo-Bold",
+        "HENSHE+NimbusRomNo9L-Regu",
+        "LYGUGM+NimbusRomNo9L-Medi",
+        "YMTPNN+CMSY10"
       ],
-      "all_pages_nonempty": true,
+      "times_family_present": true,
+      "log_hits": [],
       "passed": true
     },
     "vector_figures": {
       "items": [
         {
           "path": "paper\\foss4g-yokai-geo\\figures\\fig1_crown_jewel.pdf",
-          "exists": true,
           "pages": 1,
-          "sha256": "050a6c544d9ce1a6b699e23f9e379808de909e3860caadf640627cee489d1985",
-          "visible_underscore": false
+          "visible_underscore": false,
+          "sha256": "dc9965ab76539415629649bc494a164ff8cc9558425c84824f246dd4c43e03c7"
         },
         {
           "path": "paper\\foss4g-yokai-geo\\figures\\fig2_evidence_coverage.pdf",
-          "exists": true,
           "pages": 1,
-          "sha256": "ab3d8a5d848eaaf793939e0ffd3805488e84472b170ca9bdc86aa32be9153534",
-          "visible_underscore": false
+          "visible_underscore": false,
+          "sha256": "3c2fd5c7c56d7d6ab808d2a3c6394ab16f2a6dd743906bd558ed26fa8005c786"
         },
         {
           "path": "paper\\foss4g-yokai-geo\\figures\\fig3_resolution_sensitivity.pdf",
-          "exists": true,
           "pages": 1,
-          "sha256": "98e90daefe058e05847e80a3612daffa739d8739a67c2eb5386d2dbb654dcf48",
-          "visible_underscore": false
+          "visible_underscore": false,
+          "sha256": "b1db0cd644d00ef175cc24b8c817ca0f7fb440587f51dc2f6142a7fe80187af2"
         },
         {
           "path": "paper\\foss4g-yokai-geo\\figures\\fig4_archive_language_effects.pdf",
-          "exists": true,
           "pages": 1,
-          "sha256": "91074c918b354dc8bf3a7cf559ff68e6dc8c49cdd609a80abe83d4e4f5c7f9c0",
-          "visible_underscore": false
+          "visible_underscore": false,
+          "sha256": "755dfb9bd2960eb9b590b820422574d97514c002433a6da336643d95363c90e7"
         }
       ],
-      "passed": true
-    },
-    "obsolete_artifacts_removed": {
-      "remaining": [],
-      "passed": true
-    },
-    "manual_gold_evaluation": {
-      "configured": false,
-      "precision_recall_f1_reported": false,
       "passed": true
     }
   },
