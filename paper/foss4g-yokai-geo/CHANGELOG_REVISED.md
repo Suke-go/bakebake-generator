@@ -24,3 +24,11 @@
 - Formatted DOI entries as `doi.org/...` without a protocol and website entries
   without a protocol followed by a date.
 - Reduced paragraph spacing and rechecked the two-column page layout.
+- Rebuilt all four figures at their final physical sizes. Figure 1 now wraps
+  Japanese evidence terms within their cards and separates the support heading
+  from the map titles. Figure 3 places the median, interquartile range, and
+  overflow note outside the data marks. Figure 4 separates its legend from the
+  panel headings.
+- Recompiled both manuscript variants and replaced the stale `main.pdf` alias.
+  Vector-PDF checks found no out-of-bounds text, high-overlap text lines, visible
+  underscores, or retained wording from the superseded figures.

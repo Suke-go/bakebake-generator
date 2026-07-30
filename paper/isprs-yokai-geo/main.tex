@@ -97,7 +97,7 @@ The source database's redistribution terms were not located in the supplied mate
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{fig1_crown_jewel.pdf}
-\caption{Crown-jewel view of one record. Original metadata and summary evidence are transformed into separate candidate-toponym, place-description, human-condition, interface, and provenance channels. The map distinguishes the prefecture support polygon, the rule-matched municipality support polygon, and the interior display anchor. The anchor is not asserted to be the narrated event location; the support basis and remaining ambiguity travel with the record.}
+\caption{Crown-jewel view of one record. Archive metadata and extracted summary evidence are separated into candidate-toponym, place-description, human-condition, interface, support-basis, and ambiguity channels; the exact source excerpt is omitted pending confirmation of source-text terms. The maps distinguish the prefecture support, the rule-matched municipality support, and the interior display anchor. The anchor is not asserted to be the narrated event location.}
 \label{fig:crown}
 \end{figure*}
 
@@ -193,7 +193,7 @@ Figure~\ref{fig:resolution} and Table~\ref{tab:resolution} compare the \Municipa
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{fig3_resolution_sensitivity.pdf}
-\caption{Resolution sensitivity for \MunicipalitySupportUnits{} municipality support polygons relative to their prefecture supports. The colour-vision-accessible panels show support-area reduction and absolute changes in sampled-median geographic-proximity metrics. Metrics use whole polygons and 128 deterministic area-uniform samples per support; no representative point is treated as ground truth.}
+\caption{Resolution sensitivity for \MunicipalitySupportUnits{} municipality support polygons relative to their prefecture supports. Pale points show support units; white points are medians, thick intervals are interquartile ranges, and thin intervals span the 5th--95th percentiles. The major-water panel focuses on 0--1 km and explicitly marks values beyond that range. Metrics use whole polygons and 128 deterministic area-uniform samples per support; no representative point is treated as ground truth.}
 \label{fig:resolution}
 \end{figure}
 
@@ -207,8 +207,8 @@ Among the exploratory cells, Snake/Dragon--strict boundary has an observed-to-nu
 
 \begin{figure*}[t]
 \centering
-\includegraphics[width=0.88\textwidth]{fig4_archive_language_effects.pdf}
-\caption{Prefecture-stratified archive-language effect estimates. Points are odds ratios and horizontal lines are 95\% confidence intervals; the reference line denotes no association. Kappa--water and Yurei--death are construct checks. Other rows are exploratory and describe archive-language co-occurrence, not physical ecological relationships.}
+\includegraphics[width=\textwidth]{fig4_archive_language_effects.pdf}
+\caption{Prefecture-stratified archive-language associations. The left panel compares observed prevalence with median prevalence under within-prefecture label permutations; the right panel shows odds ratios and 95\% confidence intervals on a log scale, with the dashed line denoting no association. Kappa--water and Yurei--death are construct checks. Other rows are exploratory and describe archive-language co-occurrence, not physical ecological relationships.}
 \label{fig:effects}
 \end{figure*}
 

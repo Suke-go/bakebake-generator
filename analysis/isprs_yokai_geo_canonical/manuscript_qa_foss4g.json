@@ -1,5 +1,5 @@
 {
-  "timestamp_utc": "2026-07-30T17:49:03.351505+00:00",
+  "timestamp_utc": "2026-07-30T18:07:55.135756+00:00",
   "status": "PASS",
   "checks": {
     "canonical_subset_logic": {
@@ -143,25 +143,41 @@
           "path": "paper\\foss4g-yokai-geo\\figures\\fig1_crown_jewel.pdf",
           "pages": 1,
           "visible_underscore": false,
-          "sha256": "dc9965ab76539415629649bc494a164ff8cc9558425c84824f246dd4c43e03c7"
+          "out_of_bounds_text": [],
+          "overlapping_text_lines": [],
+          "missing_required_text": [],
+          "forbidden_text_hits": [],
+          "sha256": "e271737a4168195256f77e790e956d4cfed7b90645beffb844a32ac64bd4b07b"
         },
         {
           "path": "paper\\foss4g-yokai-geo\\figures\\fig2_evidence_coverage.pdf",
           "pages": 1,
           "visible_underscore": false,
-          "sha256": "3c2fd5c7c56d7d6ab808d2a3c6394ab16f2a6dd743906bd558ed26fa8005c786"
+          "out_of_bounds_text": [],
+          "overlapping_text_lines": [],
+          "missing_required_text": [],
+          "forbidden_text_hits": [],
+          "sha256": "853490026dfd966264657e914238965631b8834994f9f48b8aaf8f2e083e91d7"
         },
         {
           "path": "paper\\foss4g-yokai-geo\\figures\\fig3_resolution_sensitivity.pdf",
           "pages": 1,
           "visible_underscore": false,
-          "sha256": "b1db0cd644d00ef175cc24b8c817ca0f7fb440587f51dc2f6142a7fe80187af2"
+          "out_of_bounds_text": [],
+          "overlapping_text_lines": [],
+          "missing_required_text": [],
+          "forbidden_text_hits": [],
+          "sha256": "cd8afffc1d0de631cfd347004bf53300a75e2d151a8d0ec7b35e5b29496a26ec"
         },
         {
           "path": "paper\\foss4g-yokai-geo\\figures\\fig4_archive_language_effects.pdf",
           "pages": 1,
           "visible_underscore": false,
-          "sha256": "755dfb9bd2960eb9b590b820422574d97514c002433a6da336643d95363c90e7"
+          "out_of_bounds_text": [],
+          "overlapping_text_lines": [],
+          "missing_required_text": [],
+          "forbidden_text_hits": [],
+          "sha256": "85bbd0f89a12db13979514a53e1020da8191840bf2d8f19097cc45ccfb0cdc73"
         }
       ],
       "passed": true
