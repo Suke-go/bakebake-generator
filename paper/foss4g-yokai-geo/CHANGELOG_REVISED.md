@@ -32,3 +32,9 @@
 - Recompiled both manuscript variants and replaced the stale `main.pdf` alias.
   Vector-PDF checks found no out-of-bounds text, high-overlap text lines, visible
   underscores, or retained wording from the superseded figures.
+- Restored nine DOI strings and four dated, protocol-free URLs that the ISPRS
+  bibliography style had omitted. DOI entries have no access date.
+- Reduced the class's excessive paragraph gaps, retained flush-left paragraphs,
+  and removed extra reference-list spacing without changing the 9.25 pt body
+  type, margins, two-column geometry, or zero-indent reference format. The
+  camera-ready ISPRS PDF now runs continuously for seven pages.

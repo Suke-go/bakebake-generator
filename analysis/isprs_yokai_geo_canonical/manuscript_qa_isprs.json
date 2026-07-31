@@ -1,0 +1,272 @@
+{
+  "timestamp_utc": "2026-07-31T01:29:54.948624+00:00",
+  "status": "PASS",
+  "checks": {
+    "document_format": {
+      "order_positions": [
+        913,
+        1071,
+        1219,
+        1522,
+        3191,
+        3327,
+        29457,
+        30607
+      ],
+      "abstract_words": 203,
+      "keywords": [
+        "Folklore geography",
+        "Geospatial support",
+        "Spatial humanities",
+        "Historical geocoding",
+        "Geographic resolution"
+      ],
+      "missing_signatures": [],
+      "author_affiliation_email_present": true,
+      "passed": true
+    },
+    "figures_tables_equations": {
+      "labels": [
+        "fig:crown",
+        "tab:model",
+        "fig:coverage",
+        "tab:channels",
+        "fig:resolution",
+        "tab:resolution",
+        "fig:effects",
+        "tab:associations",
+        "tab:robustness",
+        "tab:interface-ablation"
+      ],
+      "references": [
+        "fig:crown",
+        "tab:model",
+        "fig:coverage",
+        "tab:channels",
+        "fig:resolution",
+        "tab:resolution",
+        "fig:effects",
+        "tab:associations",
+        "tab:robustness",
+        "tab:interface-ablation"
+      ],
+      "vector_figure_inputs": [
+        "fig1_crown_jewel.pdf",
+        "fig2_evidence_coverage.pdf",
+        "fig3_resolution_sensitivity.pdf",
+        "fig4_archive_language_effects.pdf"
+      ],
+      "table_count": 6,
+      "all_table_captions_below": true,
+      "numbered_equations": 3,
+      "passed": true
+    },
+    "citations_and_alphabetization": {
+      "cited": [
+        "benjamini1995",
+        "cura2018",
+        "foster2024",
+        "gadm41",
+        "gregory2014",
+        "higashiyama2024",
+        "maceachren2005",
+        "matsuda2020",
+        "mlitw05",
+        "naturalearth",
+        "nichibun2025",
+        "panagiotidou2023",
+        "richter2017",
+        "simon2017",
+        "stock2022"
+      ],
+      "bibliography_order": [
+        "benjamini1995",
+        "cura2018",
+        "foster2024",
+        "gadm41",
+        "gregory2014",
+        "higashiyama2024",
+        "nichibun2025",
+        "maceachren2005",
+        "matsuda2020",
+        "mlitw05",
+        "naturalearth",
+        "panagiotidou2023",
+        "richter2017",
+        "simon2017",
+        "stock2022"
+      ],
+      "passed": true
+    },
+    "reference_rendering": {
+      "doi_fields": 9,
+      "doi_rendered": 9,
+      "url_fields": 4,
+      "url_rendered": 4,
+      "protocol_hits": [],
+      "dated_urls": 4,
+      "accessed_word": false,
+      "no_hanging_indent_class": true,
+      "passed": true
+    },
+    "claim_scope_and_placeholders": {
+      "banned_hits": [],
+      "passed": true
+    },
+    "compiled_pdf_layout": {
+      "pages": 7,
+      "active_links": 0,
+      "fonts": [
+        "DBPQUZ+CMMI6",
+        "DWSXIP+CMSY9",
+        "EBRGID+CMR6",
+        "GRRGFU+CMMI9",
+        "GWYNED+Meiryo",
+        "GWYNED+Meiryo-Bold",
+        "IXWVRE+CMTT9",
+        "LPTUQV+NimbusRomNo9L-ReguItal",
+        "LYGUGM+NimbusRomNo9L-Medi",
+        "MMHPKF+NimbusRomNo9L-Regu",
+        "RVPZIX+CMMI5",
+        "UKDATJ+CMMI8",
+        "XJLOGF+CMSY6",
+        "YYCUSG+CMR9"
+      ],
+      "times_family_present": true,
+      "log_hits": [],
+      "page_stats": [
+        {
+          "page": 1,
+          "text_chars": 5569,
+          "max_text_y": 773.3,
+          "bottom_clearance_pt": 68.6
+        },
+        {
+          "page": 2,
+          "text_chars": 6413,
+          "max_text_y": 774.2,
+          "bottom_clearance_pt": 67.6
+        },
+        {
+          "page": 3,
+          "text_chars": 4352,
+          "max_text_y": 773.3,
+          "bottom_clearance_pt": 68.6
+        },
+        {
+          "page": 4,
+          "text_chars": 4798,
+          "max_text_y": 773.3,
+          "bottom_clearance_pt": 68.6
+        },
+        {
+          "page": 5,
+          "text_chars": 4334,
+          "max_text_y": 773.3,
+          "bottom_clearance_pt": 68.6
+        },
+        {
+          "page": 6,
+          "text_chars": 4053,
+          "max_text_y": 773.3,
+          "bottom_clearance_pt": 68.6
+        },
+        {
+          "page": 7,
+          "text_chars": 5535,
+          "max_text_y": 773.4,
+          "bottom_clearance_pt": 68.5
+        }
+      ],
+      "reference_flow": [
+        {
+          "bbox": [
+            56.7,
+            488.5,
+            289.1,
+            773.4
+          ],
+          "chars": 1263
+        },
+        {
+          "bbox": [
+            306.1,
+            72.1,
+            538.6,
+            632.2
+          ],
+          "chars": 2401
+        }
+      ],
+      "passed": true
+    },
+    "artifact_sync": {
+      "main_source_identical": true,
+      "pdf_text_and_page_content_identical": true,
+      "note": "PDF binary hashes and package-specific figure hashes are not required to match because TeX job names and final physical figure sizes differ.",
+      "passed": true
+    },
+    "canonical_data_and_figure_qa": {
+      "source_report": "analysis/isprs_yokai_geo_canonical/manuscript_qa_foss4g.json",
+      "canonical_status": "PASS",
+      "human_condition": 16066,
+      "broad_interface": 9518,
+      "subset_violations": 0,
+      "permutations": [
+        10000
+      ],
+      "passed": true,
+      "canonical_check_keys": [
+        "canonical_subset_logic",
+        "statistical_outputs",
+        "vector_figures"
+      ]
+    },
+    "isprs_vector_figures": {
+      "items": [
+        {
+          "path": "paper\\isprs-yokai-geo\\figures\\fig1_crown_jewel.pdf",
+          "pages": 1,
+          "visible_underscore": false,
+          "out_of_bounds_text": [],
+          "overlapping_text_lines": [],
+          "forbidden_text_hits": []
+        },
+        {
+          "path": "paper\\isprs-yokai-geo\\figures\\fig2_evidence_coverage.pdf",
+          "pages": 1,
+          "visible_underscore": false,
+          "out_of_bounds_text": [],
+          "overlapping_text_lines": [],
+          "forbidden_text_hits": []
+        },
+        {
+          "path": "paper\\isprs-yokai-geo\\figures\\fig3_resolution_sensitivity.pdf",
+          "pages": 1,
+          "visible_underscore": false,
+          "out_of_bounds_text": [],
+          "overlapping_text_lines": [],
+          "forbidden_text_hits": []
+        },
+        {
+          "path": "paper\\isprs-yokai-geo\\figures\\fig4_archive_language_effects.pdf",
+          "pages": 1,
+          "visible_underscore": false,
+          "out_of_bounds_text": [],
+          "overlapping_text_lines": [],
+          "forbidden_text_hits": []
+        }
+      ],
+      "passed": true
+    }
+  },
+  "failures": [],
+  "artifacts": {
+    "tex": "paper\\isprs-yokai-geo\\main_submission.tex",
+    "pdf": "paper\\isprs-yokai-geo\\main_submission.pdf",
+    "pdf_sha256": "d6be2bbd7575504930ff58d19d66ccb7eca18e08a496e13fc62a1f20bb579cdf",
+    "bib": "paper\\isprs-yokai-geo\\refs_revised.bib",
+    "bib_sha256": "a2026cb9dbf38f59b4f6970e4660f91103e099dbd60c7ca5d5aa6f4363ce950d",
+    "git_commit_before_final_commit": "085d62db260b115d31be1c6bca58355c4165f2d8"
+  }
+}

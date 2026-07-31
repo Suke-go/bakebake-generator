@@ -5,6 +5,7 @@
 \usepackage{graphicx}
 \usepackage{geometry}
 \usepackage[labelsep=period]{caption}
+\usepackage{etoolbox}
 \usepackage[british]{babel}
 \usepackage[hang]{footmisc}
 \usepackage{booktabs}
@@ -16,10 +17,21 @@
 \def\footnotemargin{1em}
 
 \geometry{a4paper, top=25mm, left=20mm, right=20mm, bottom=25mm, headsep=10mm, footskip=12mm}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.35\baselineskip}
 \graphicspath{{figures/}}
 \captionsetup{justification=centering,font=normal}
 \captionsetup[figure]{font=small}
 \captionsetup[table]{font=small}
+\makeatletter
+\apptocmd{\thebibliography}{%
+  \setlength{\itemsep}{0pt}%
+  \setlength{\parsep}{0pt}%
+  \setlength{\parskip}{0pt}%
+  \setlength{\topsep}{0pt}%
+  \setstretch{1.0}%
+}{}{}
+\makeatother
 
 \input{generated_numbers}
 
