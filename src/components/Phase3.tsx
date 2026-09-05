@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ArtStyle, useApp } from '@/lib/context';
 import { supabase } from '@/lib/supabase';
 import ProgressDots from './ProgressDots';
+import ExperienceComparison from './ExperienceComparison';
 
 const ART_STYLES: { id: ArtStyle; name: string; desc: string }[] = [
     { id: 'sumi', name: '水墨画', desc: '余白とにじみのある、静かな墨の表現' },
@@ -84,6 +85,7 @@ export default function Phase3() {
     if (step === 'review') {
         return (
             <div className="phase-scrollable phase-enter">
+                <ExperienceComparison />
                 <p className="voice" style={{ marginBottom: 10 }}>この妖怪を、あなたの経験に近づけます。</p>
                 <p style={{ color: 'var(--text-dim)', fontSize: 13, lineHeight: 1.8, marginBottom: 22 }}>
                     名前や性質は、ここで自分の言葉に直せます。分からないところは、そのままで大丈夫です。

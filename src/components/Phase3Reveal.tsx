@@ -7,6 +7,7 @@ import { generateImage } from '@/lib/api-client';
 import ProgressDots from './ProgressDots';
 import { supabase } from '@/lib/supabase';
 import SpookyText from './SpookyText';
+import ExperienceComparison from './ExperienceComparison';
 
 const compressImage = (dataUrl: string, maxSize = 512): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -716,6 +717,7 @@ export default function Phase3Reveal() {
                                 {saveError}
                             </p>
                         )}
+                        <ExperienceComparison />
                         <div style={{ width: '100%', maxWidth: 520, display: 'flex', flexDirection: 'column', gap: 8 }}>
                             <label className="label">この妖怪の短い物語</label>
                             <textarea className="text-input" value={narrativeDraft} onChange={e => setNarrativeDraft(e.target.value)} style={{ minHeight: 88, resize: 'vertical' }} />

@@ -29,6 +29,29 @@ function textValue(answers: Answers, key: string) {
     return answers[key] ?? '';
 }
 
+function ChoiceButton({ option, selected, onSelect }: { option: string; selected: boolean; onSelect: () => void }) {
+    return (
+        <button
+            type="button"
+            className={`chip${selected ? ' selected' : ''}`}
+            aria-pressed={selected}
+            onClick={onSelect}
+            style={{
+                minHeight: 42,
+                border: selected ? '1px solid var(--accent)' : '1px solid rgba(255,255,255,0.16)',
+                background: selected ? 'rgba(204, 74, 55, 0.2)' : 'transparent',
+                color: selected ? 'var(--text-bright)' : undefined,
+                fontWeight: selected ? 700 : 400,
+                boxShadow: selected ? 'inset 0 0 0 1px rgba(255,255,255,0.16)' : 'none',
+            }}
+        >
+            {selected && <span aria-hidden="true">✓ </span>}
+            <span>{option}</span>
+            {selected && <span style={{ display: 'block', fontSize: 10, marginTop: 2, opacity: 0.82 }}>選択中</span>}
+        </button>
+    );
+}
+
 export default function Phase1Prime() {
     const { state, goToPhase, setAnswers: saveAnswersToContext, setHandle, backOverrideRef } = useApp();
     const [currentStep, setCurrentStep] = useState(0);
@@ -152,7 +175,7 @@ export default function Phase1Prime() {
                 {step.id === 'duration' && (
                     <div style={{ display: 'grid', gap: 18 }}>
                         <div><p className="label" style={{ marginBottom: 8 }}>同じような経験は、ほかにもありますか？</p><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                            {RECURRENCE_OPTIONS.map(option => <button key={option} type="button" className={'chip' + (textValue(answers, 'recurrence') === option ? ' selected' : '')} onClick={() => updateAnswer('recurrence', option)}>{option}</button>)}
+                            {RECURRENCE_OPTIONS.map(option => <ChoiceButton key={option} option={option} selected={textValue(answers, 'recurrence') === option} onSelect={() => updateAnswer('recurrence', option)} />)}
                         </div></div>
                         <label style={{ display: 'grid', gap: 6 }}><span className="label">一回の経験は、どのくらい続きましたか？</span><input className="text-input" value={textValue(answers, 'duration')} onChange={event => updateAnswer('duration', event.target.value)} placeholder="今も続いている、分からない、でも構いません" /></label>
                         <label style={{ display: 'grid', gap: 6 }}><span className="label">途中や、その後に変わったことがあれば教えてください（任意）</span><textarea className="text-input" value={textValue(answers, 'change')} onChange={event => updateAnswer('change', event.target.value)} rows={3} style={{ width: '100%', minHeight: 76, resize: 'vertical' }} /></label>
@@ -162,7 +185,7 @@ export default function Phase1Prime() {
                 {step.id === 'explanation' && (
                     <div style={{ display: 'grid', gap: 14 }}>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                            {EXPLANATION_OPTIONS.map(option => <button key={option} type="button" className={'chip' + (textValue(answers, 'hasExplanation') === option ? ' selected' : '')} onClick={() => updateAnswer('hasExplanation', option)}>{option}</button>)}
+                            {EXPLANATION_OPTIONS.map(option => <ChoiceButton key={option} option={option} selected={textValue(answers, 'hasExplanation') === option} onSelect={() => updateAnswer('hasExplanation', option)} />)}
                         </div>
                         {textValue(answers, 'hasExplanation') === 'ある' && <label style={{ display: 'grid', gap: 6 }}><span className="label">どのように考えていますか？</span><textarea className="text-input" value={textValue(answers, 'explanation')} onChange={event => updateAnswer('explanation', event.target.value)} rows={4} autoFocus style={{ width: '100%', minHeight: 96, resize: 'vertical' }} /></label>}
                     </div>
