@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useState, use, useRef, useCallback } from 'react';
+import React, { Suspense, useEffect, useState, use, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import QRGlow from '@/components/QRFlameAura';
 import '@/app/globals.css';
@@ -11,7 +12,7 @@ import '@/app/globals.css';
  */
 function StyledQR({ value, size = 260 }: { value: string; size?: number }) {
     const containerRef = useRef<HTMLDivElement>(null);
-    const qrRef = useRef<any>(null);
+    const qrRef = useRef<{ update: (options: { data: string }) => void } | null>(null);
 
     useEffect(() => {
         if (!value || !containerRef.current) return;
@@ -59,16 +60,24 @@ function StyledQR({ value, size = 260 }: { value: string; size?: number }) {
     return <div ref={containerRef} style={{ lineHeight: 0 }} />;
 }
 
-export default function SurveyTicketPage({ params }: { params: Promise<{ id: string }> }) {
+function SurveyTicketContent({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
+    const searchParams = useSearchParams();
+    const isEnglish = searchParams.get('lang') === 'en';
+    const [origin, setOrigin] = useState('');
+    const generatorPath = `/generator?id=${encodeURIComponent(id)}${isEnglish ? '&lang=en' : ''}`;
+    const generatorUrl = origin ? `${origin}${generatorPath}` : generatorPath;
     const [scannedYokai, setScannedYokai] = useState<{ name: string; b64: string; desc: string } | null>(null);
+
+    useEffect(() => { setOrigin(window.location.origin); }, []);
 
     // Wake Lock
     useEffect(() => {
-        let wakeLock: any = null;
+        let wakeLock: { release: () => Promise<void> } | null = null;
         const requestWakeLock = async () => {
-            if ('wakeLock' in navigator) {
-                try { wakeLock = await (navigator as any).wakeLock.request('screen'); } catch { }
+            const wakeLockApi = (navigator as Navigator & { wakeLock?: { request: (type: 'screen') => Promise<{ release: () => Promise<void> }> } }).wakeLock;
+            if (wakeLockApi) {
+                try { wakeLock = await wakeLockApi.request('screen'); } catch { }
             }
         };
         requestWakeLock();
@@ -103,7 +112,7 @@ export default function SurveyTicketPage({ params }: { params: Promise<{ id: str
                 'postgres_changes',
                 { event: 'UPDATE', schema: 'public', table: 'surveys', filter: `id=eq.${id}` },
                 async (payload) => {
-                    const record = payload.new as any;
+                    const record = payload.new as { yokai_name?: string };
                     if (record && record.yokai_name) {
                         // Realtime payloads silently omit fields >64 bytes (e.g. yokai_image_b64).
                         // Use the event as a signal, then fetch full data via REST API.
@@ -195,7 +204,7 @@ export default function SurveyTicketPage({ params }: { params: Promise<{ id: str
                             margin: 0,
                             textAlign: 'center',
                         }}>
-                            ご参加ありがとうございました
+                            {isEnglish ? 'Thank you for taking part' : 'ご参加ありがとうございました'}
                         </p>
 
                         {/* Yokai image */}
@@ -258,7 +267,7 @@ export default function SurveyTicketPage({ params }: { params: Promise<{ id: str
                                     transition: 'background 0.2s ease',
                                 }}
                             >
-                                画像を保存する
+                                {isEnglish ? 'Save image' : '画像を保存する'}
                             </a>
                         )}
                     </div>
@@ -285,7 +294,7 @@ export default function SurveyTicketPage({ params }: { params: Promise<{ id: str
                                 background: '#ffffff',
                                 padding: '8px',        // 白padding層でquiet zone確保
                             }}>
-                                <StyledQR value={id} size={260} />
+                                <StyledQR value={generatorUrl} size={260} />
                             </div>
                         </div>
 
@@ -299,7 +308,7 @@ export default function SurveyTicketPage({ params }: { params: Promise<{ id: str
                             margin: 0,
                             animation: 'breathe 4s ease-in-out infinite',
                         }}>
-                            画面の明るさを最大にしてください
+                            {isEnglish ? 'Set your screen brightness to maximum' : '画面の明るさを最大にしてください'}
                         </p>
 
                         {/* 指示テキスト — 最小限のpill型黒背景 + 白文字 */}
@@ -317,7 +326,7 @@ export default function SurveyTicketPage({ params }: { params: Promise<{ id: str
                             borderRadius: '4px',
                             textShadow: '0 1px 3px rgba(0,0,0,0.9)',
                         }}>
-                            妖怪生成装置に<br />かざしてください
+                            {isEnglish ? <>Hold this up to the<br />yokai generator</> : <>妖怪生成装置に<br />かざしてください</>}
                         </p>
                     </>
                 )}
@@ -338,4 +347,8 @@ export default function SurveyTicketPage({ params }: { params: Promise<{ id: str
             </div>
         </div>
     );
+}
+
+export default function SurveyTicketPage({ params }: { params: Promise<{ id: string }> }) {
+    return <Suspense fallback={<div style={{ minHeight: '100dvh', background: '#000' }} />}> <SurveyTicketContent params={params} /> </Suspense>;
 }

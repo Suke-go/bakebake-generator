@@ -9,6 +9,8 @@ function AuthForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const nextPath = searchParams.get('next') || '/generator';
+    const isEnglish = searchParams.get('lang') === 'en';
+    const nextWithLang = isEnglish && !nextPath.includes('lang=') ? `${nextPath}${nextPath.includes('?') ? '&' : '?'}lang=en` : nextPath;
 
     const [id, setId] = useState('');
     const [password, setPassword] = useState('');
@@ -30,13 +32,13 @@ function AuthForm() {
             });
 
             if (res.ok) {
-                router.push(nextPath);
+                router.push(nextWithLang);
             } else {
                 const data = await res.json();
-                setError(data.error || '認証に失敗しました');
+                setError(data.error || (isEnglish ? 'Authentication failed.' : '認証に失敗しました'));
             }
         } catch {
-            setError('通信エラーが発生しました');
+            setError(isEnglish ? 'A network error occurred.' : '通信エラーが発生しました');
         } finally {
             setLoading(false);
         }
@@ -79,7 +81,7 @@ function AuthForm() {
                     color: 'var(--text-bright)',
                     textAlign: 'center',
                 }}>
-                    管理者認証
+                    {isEnglish ? 'Administrator sign in' : '管理者認証'}
                 </p>
 
                 <form onSubmit={handleSubmit} style={{
@@ -101,7 +103,7 @@ function AuthForm() {
                     <input
                         type="password"
                         autoComplete="current-password"
-                        placeholder="パスワード"
+                        placeholder={isEnglish ? 'Password' : 'パスワード'}
                         value={password}
                         onChange={e => setPassword(e.target.value)}
                         style={inputStyle}
@@ -136,7 +138,7 @@ function AuthForm() {
                             transition: 'opacity 0.2s ease',
                         }}
                     >
-                        {loading ? '確認中...' : '認証'}
+                        {loading ? (isEnglish ? 'Checking...' : '確認中...') : (isEnglish ? 'Sign in' : '認証')}
                     </button>
                 </form>
             </div>
@@ -155,7 +157,7 @@ export default function AuthPage() {
                 background: '#0a0a0c',
                 color: '#666',
             }}>
-                読み込み中...
+                Loading...
             </div>
         }>
             <AuthForm />

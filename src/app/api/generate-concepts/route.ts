@@ -46,13 +46,14 @@ export async function POST(req: Request) {
             );
         }
 
-        const { folklore, answers, handle } = payload as {
+        const { folklore, answers, handle, locale: requestedLocale } = payload as {
             folklore?: unknown;
             answers?: unknown;
             handle?: {
                 id: string;
                 text: string;
             };
+            locale?: 'ja' | 'en';
         };
 
         const validAnswers = typeof answers === 'object' && answers !== null;
@@ -112,7 +113,8 @@ export async function POST(req: Request) {
         }
 
         const conceptAnswers = answers as Record<string, string>;
-        const prompt = buildConceptPrompt(handle, conceptAnswers, conceptInput);
+        const locale = requestedLocale === 'en' ? 'en' : 'ja';
+        const prompt = buildConceptPrompt(handle, conceptAnswers, conceptInput, locale);
         let responseText = '';
         let geminiFailed = true;
 
@@ -182,23 +184,38 @@ export async function POST(req: Request) {
             label: string;
             namingType: string;
         }> = [];
+        let folkloreSummaries: Array<{ folkloreRef: string; summary: string }> = [];
 
         if (responseText) {
             try {
-                // Try to parse JSON array first
-                const arrayMatch = responseText.match(/\[[\s\S]*\]/);
-                if (arrayMatch) {
-                    const parsed = JSON.parse(arrayMatch[0]);
-                    if (Array.isArray(parsed)) {
-                        llmCandidates = parsed.map((item: any) => ({
+                const parsed = JSON.parse(responseText);
+                const conceptItems = Array.isArray(parsed)
+                    ? parsed
+                    : Array.isArray(parsed?.concepts)
+                        ? parsed.concepts
+                        : [];
+                if (conceptItems.length > 0) {
+                    llmCandidates = conceptItems.map((item: unknown) => {
+                        const candidate = item && typeof item === 'object' ? item as Record<string, unknown> : {};
+                        return {
                             source: 'llm' as const,
-                            name: item.name || '名無し',
-                            reading: item.reading || '',
-                            description: item.description || '',
+                            name: typeof candidate.name === 'string' ? candidate.name : '名無し',
+                            reading: typeof candidate.reading === 'string' ? candidate.reading : '',
+                            description: typeof candidate.description === 'string' ? candidate.description : '',
                             label: 'llm-generated',
-                            namingType: item.type || 'unknown',
-                        }));
-                    }
+                            namingType: typeof candidate.type === 'string' ? candidate.type : 'unknown',
+                        };
+                    });
+                }
+                if (locale === 'en' && Array.isArray(parsed?.folkloreSummaries)) {
+                    const permittedIds = new Set<string>(conceptInput
+                        .map((item: { id?: string }) => item.id)
+                        .filter((id): id is string => typeof id === 'string'));
+                    folkloreSummaries = (parsed.folkloreSummaries as unknown[])
+                        .filter((item: unknown): item is { folkloreRef: string; summary: string } =>
+                            Boolean(item) && typeof item === 'object' && typeof (item as { folkloreRef?: unknown }).folkloreRef === 'string' && typeof (item as { summary?: unknown }).summary === 'string')
+                        .filter((item) => permittedIds.has(item.folkloreRef) && item.summary.trim().length > 0)
+                        .map((item) => ({ folkloreRef: item.folkloreRef, summary: item.summary.trim() }));
                 }
                 // Fallback: try single object
                 if (llmCandidates.length === 0) {
@@ -234,6 +251,7 @@ export async function POST(req: Request) {
         return NextResponse.json(
             {
                 concepts: [...dbConcepts, ...llmCandidates],
+                ...(folkloreSummaries.length > 0 ? { folkloreSummaries } : {}),
             },
             {
                 headers: {

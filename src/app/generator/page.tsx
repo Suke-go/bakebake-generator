@@ -1,7 +1,8 @@
 'use client';
 
 import { useApp } from '@/lib/context';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { Suspense, useState, useEffect, useRef, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Phase0 from '@/components/Phase0';
 import Phase1 from '@/components/Phase1';
 import Phase1Prime from '@/components/Phase1Prime';
@@ -128,6 +129,13 @@ function BackButton({ phase, onBack, onReset }: {
   );
 }
 
+function LanguageToggle({ locale, onChange }: { locale: 'ja' | 'en'; onChange: (locale: 'ja' | 'en') => void }) {
+  return <div style={{ position: 'fixed', top: 18, right: 18, zIndex: 100, display: 'flex', gap: 6 }}>
+    <button type="button" className="button" aria-pressed={locale === 'ja'} onClick={() => onChange('ja')}>日本語</button>
+    <button type="button" className="button" aria-pressed={locale === 'en'} onClick={() => onChange('en')}>English</button>
+  </div>;
+}
+
 /**
  * Phase の逆引きマップ（1つ前の Phase を返す）
  */
@@ -141,9 +149,20 @@ function getPreviousPhase(current: number): number {
   return 0;
 }
 
-export default function Home() {
-  const { state, goToPhase, resetState, backOverrideRef } = useApp();
+function GeneratorContent() {
+  const { state, goToPhase, resetState, setLocale, setTicketId, backOverrideRef } = useApp();
+  const searchParams = useSearchParams();
   const [showIdleWarning, setShowIdleWarning] = useState(false);
+
+  useEffect(() => {
+    const requestedLocale = searchParams.get('lang');
+    if (requestedLocale === 'en' || requestedLocale === 'ja') setLocale(requestedLocale);
+    const ticketId = searchParams.get('id');
+    if (ticketId && ticketId.length >= 10) {
+      setTicketId(ticketId);
+      if (state.currentPhase === 0) goToPhase(1);
+    }
+  }, [searchParams, setLocale, setTicketId, goToPhase, state.currentPhase]);
 
   // #4: overflow hidden を generator ルートだけに適用
   useEffect(() => {
@@ -230,6 +249,7 @@ export default function Home() {
         onBack={handleBack}
         onReset={handleReset}
       />
+      {state.currentPhase !== 0 && state.currentPhase !== 1 && <LanguageToggle locale={state.locale} onChange={setLocale} />}
       <PhaseTransition phaseKey={state.currentPhase} />
       {showIdleWarning && (
         <div style={{
@@ -250,4 +270,8 @@ export default function Home() {
       )}
     </div>
   );
+}
+
+export default function Home() {
+  return <Suspense fallback={<div data-yokai-zone="generator-loading" />}><GeneratorContent /></Suspense>;
 }

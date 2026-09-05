@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { Suspense, useEffect, useState, useRef, useCallback } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Html5QrcodeScanner, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import '@/app/globals.css';
 
-export default function SurveyScanPage() {
+function SurveyScanContent() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const isEnglish = searchParams.get('lang') === 'en';
     const [scanResult, setScanResult] = useState<string | null>(null);
     const scannerRef = useRef<Html5QrcodeScanner | null>(null);
     const hasScanned = useRef(false);
@@ -54,9 +56,20 @@ export default function SurveyScanPage() {
 
     useEffect(() => {
         if (scanResult) {
-            router.push(`/survey/exit?id=${scanResult}`);
+            let id = scanResult;
+            let scannedLanguage: 'ja' | 'en' | null = null;
+            try {
+                if (/^https?:\/\//i.test(scanResult) || scanResult.startsWith('/')) {
+                    const scannedUrl = new URL(scanResult, window.location.origin);
+                    id = scannedUrl.searchParams.get('id') || scannedUrl.pathname.split('/').filter(Boolean).pop() || scanResult;
+                    scannedLanguage = scannedUrl.searchParams.get('lang') === 'en' ? 'en' : null;
+                }
+            } catch { /* A bare observation ID is also valid. */ }
+            const params = new URLSearchParams({ id });
+            if (scannedLanguage === 'en' || isEnglish) params.set('lang', 'en');
+            router.push(`/survey/exit?${params.toString()}`);
         }
-    }, [scanResult, router]);
+    }, [scanResult, router, isEnglish]);
 
     return (
         <div data-yokai-zone="survey-scan-main" style={{
@@ -69,11 +82,11 @@ export default function SurveyScanPage() {
             background: '#000'
         }}>
             <h1 className="title-text" style={{ fontSize: '2rem', marginBottom: '2rem', textAlign: 'center' }}>
-                スキャナー
+                {isEnglish ? 'Scanner' : 'スキャナー'}
             </h1>
 
             <p className="body-text" style={{ textAlign: 'center', opacity: 0.8, marginBottom: '2rem' }}>
-                参加者のスマートフォンのQRコードを読み取ってください。
+                {isEnglish ? 'Scan the participant’s QR code.' : '参加者のスマートフォンのQRコードを読み取ってください。'}
             </p>
 
             <div style={{
@@ -88,7 +101,7 @@ export default function SurveyScanPage() {
 
             {scanResult && (
                 <div style={{ marginTop: '2rem', color: '#00ff00' }}>
-                    ID: {scanResult} を読み込みました。リダイレクト中...
+                    {isEnglish ? `Scanned ID: ${scanResult}. Redirecting...` : `ID: ${scanResult} を読み込みました。リダイレクト中...`}
                 </div>
             )}
 
@@ -100,8 +113,12 @@ export default function SurveyScanPage() {
                 className="interactive-button"
                 style={{ marginTop: '3rem', padding: '0.8rem 1.5rem', opacity: 0.6 }}
             >
-                スキャナーをリセット
+                {isEnglish ? 'Reset scanner' : 'スキャナーをリセット'}
             </button>
         </div>
     );
+}
+
+export default function SurveyScanPage() {
+    return <Suspense fallback={<div style={{ minHeight: '100dvh', background: '#000' }} />}> <SurveyScanContent /> </Suspense>;
 }

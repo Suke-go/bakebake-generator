@@ -7,6 +7,7 @@ export type HandleId = 'A' | 'B' | 'C' | 'D' | 'E' | 'free';
 export type AbsenceQuality = 'invisible' | 'blurry' | 'clear' | null;
 export type ConceptSource = 'db' | 'llm';
 export type ArtStyle = 'sumi' | 'emaki' | 'ukiyoe' | 'manga' | 'dennou' | null;
+export type Locale = 'ja' | 'en';
 
 export interface Handle {
   id: HandleId;
@@ -21,6 +22,7 @@ export interface FolkloreResult {
   location: string;
   similarity: number;
   source?: string;
+  englishSummary?: string;
 }
 
 export interface YokaiConcept {
@@ -45,6 +47,7 @@ export interface ConceptRevision {
 
 export interface AppState {
   currentPhase: number; // 0, 1, 1.5, 2, 2.5, 3, 3.5
+  locale: Locale;
   // Ticket (参加者のQRスキャンで取得)
   ticketId: string | null;
   // Phase 1
@@ -75,6 +78,7 @@ export interface AppState {
 interface AppContextType {
   state: AppState;
   goToPhase: (phase: number) => void;
+  setLocale: (locale: Locale) => void;
   setHandle: (handle: Handle) => void;
   setArtStyle: (style: ArtStyle) => void;
   setTexture: (texture: string) => void;
@@ -101,6 +105,7 @@ interface AppContextType {
 
 const initialState: AppState = {
   currentPhase: 0,
+  locale: 'ja',
   ticketId: null,
   selectedHandle: null,
   artStyle: null,
@@ -220,6 +225,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const setLocale = useCallback((locale: Locale) => {
+    setState(prev => ({ ...prev, locale }));
+  }, []);
+
   const setVisualInput = useCallback((input: string) => {
     setState(prev => ({ ...prev, visualInput: input }));
   }, []);
@@ -302,6 +311,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const contextValue = useMemo(() => ({
     state,
     goToPhase,
+    setLocale,
     setHandle,
     setArtStyle,
     setTexture,
@@ -326,6 +336,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }), [
     state,
     goToPhase,
+    setLocale,
     setHandle,
     setArtStyle,
     setTexture,

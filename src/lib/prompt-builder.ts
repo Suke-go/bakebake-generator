@@ -118,15 +118,35 @@ export function buildSearchQuery(handle: HandleInfo, answers: UserAnswers): stri
 export function buildConceptPrompt(
     handle: HandleInfo,
     answers: UserAnswers,
-    folklore: Array<{ kaiiName: string; content: string }>
+    folklore: Array<{ id?: string; kaiiName: string; content: string }>,
+    locale: 'ja' | 'en' = 'ja',
 ): string {
     const context = [
         buildSearchQuery(handle, answers),
         'Generation constraints: preserve the account as stated. Do not add pursuit, attack, fear, a clear body, or a supernatural cause unless stated. If an ordinary explanation is provided, the yokai is a creative representation, never the factual cause.',
+        locale === 'en'
+            ? 'Output language: English. This overrides Japanese naming examples elsewhere in this prompt: do not require kanji or kana. Use an evocative English yokai name; `reading` may contain a romanized Japanese-inspired reading or be empty. Write every description in natural English. Do not translate the supplied Japanese folklore as if it were the participant’s account.'
+            : 'Output language: Japanese.',
     ].join('\n');
     const folkloreRef = folklore
-        .map(f => `- ${f.kaiiName}: ${f.content}`)
+        .map(f => `- [${f.id ?? ''}] ${f.kaiiName}: ${f.content}`)
         .join('\n');
+
+    if (locale === 'en') {
+        return [
+            'You create yokai concepts from a participant’s personal experience.',
+            'Return exactly one JSON object with `concepts` and `folkloreSummaries`.',
+            '`concepts` is an array of exactly three concepts. Each has `name`, `reading`, `description`, and `type`.',
+            '`folkloreSummaries` is an array with at most one entry for each supplied folklore reference: `folkloreRef` must copy its bracketed id exactly and `summary` is a one- or two-sentence English reading aid based only on that Japanese source. Do not call it an authoritative translation.',
+            'Write name and description in natural English. `reading` may be empty or a romanized Japanese-inspired reading.',
+            'Description must be 60–100 English words describing the yokai’s nature, behavior, and a short story.',
+            'Preserve only what the participant states. Do not invent pursuit, attack, fear, a clear body, or a supernatural factual cause.',
+            'If an ordinary explanation is provided, present the yokai as a creative representation, never the factual cause.',
+            '', 'Participant account:', context,
+            '', 'Japanese folklore references (do not claim a translation or invent a source):', folkloreRef,
+            '', 'Output example:', '{"concepts":[{"name":"The Room-Stayer","reading":"heya-zumi","description":"...","type":"place_action"}],"folkloreSummaries":[{"folkloreRef":"record-id","summary":"..."}]}',
+        ].join('\n');
+    }
 
     return [
         'あなたは日本の民俗学（柳田國男『妖怪談義』）に基づく妖怪研究者です。',
@@ -267,10 +287,12 @@ export function buildNarrativePrompt(
     answers: UserAnswers,
     folklore: FolkloreEntry[],
     feedback?: string,
+    locale: 'ja' | 'en' = 'ja',
 ): string {
     const originalAccount = [
         buildExperienceContext(answers),
         feedback?.trim() ? `Participant's requested preservation/change: ${feedback.trim()}` : '',
+        locale === 'en' ? 'Output language: English. Write the narrative in natural English.' : 'Output language: Japanese.',
     ].filter(Boolean).join('\n');
     const folkloreRef = folklore
         .map(f => {
@@ -327,7 +349,7 @@ export function buildNarrativePrompt(
         '- 体験者の場所・知覚・印象を物語の骨格にすること（ここが他の伝承と違う独自性の源）',
         '- 既存伝承の語り口・雰囲気・モチーフは積極的に取り入れてよいが、筋書きをそのまま借用しないこと',
         '- 2-3文、50-100文字程度の簡潔な伝承記録として出力すること',
-        '- 日本語で出力すること',
+        locale === 'en' ? '- Write the narrative in English.' : '- 日本語で出力すること',
         '- 伝承テキストのみを出力すること（前置きや説明は不要）',
     ].filter(Boolean).join('\n');
 }

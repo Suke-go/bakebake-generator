@@ -19,6 +19,11 @@ export interface ConceptResponse {
         folkloreRef?: string;
         namingType?: string;
     }>;
+    /** English reading aid for Japanese archive records, returned with the concept request. */
+    folkloreSummaries?: Array<{
+        folkloreRef: string;
+        summary: string;
+    }>;
 }
 
 export interface ImageResponse {
@@ -108,7 +113,8 @@ function getSearchCache(key: string): FolkloreSearchResponse | null {
 function buildConceptCacheKey(
     folklore: SearchResult[],
     answers: Record<string, string>,
-    handle: { id: string; text: string }
+    handle: { id: string; text: string },
+    locale = 'ja',
 ): string {
     const sortedAnswerKeys = Object.keys(answers).sort();
     const normalizedAnswers = sortedAnswerKeys.map((key) => `${key}:${answers[key] ?? ''}`).join(SEARCH_CACHE_KEY_SEPARATOR);
@@ -116,7 +122,7 @@ function buildConceptCacheKey(
         .slice(0, 3)
         .map((item) => item.id)
         .join(SEARCH_CACHE_KEY_SEPARATOR);
-    return `${handle.id}|${normalizedAnswers}|${folkloreSignature}`;
+    return `${handle.id}|${normalizedAnswers}|${folkloreSignature}|${locale}`;
 }
 
 function getConceptCache(key: string): ConceptResponse | null {
@@ -355,11 +361,12 @@ export async function generateConcepts(
     folklore: SearchResult[],
     answers: Record<string, string>,
     handle: { id: string; text: string },
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    locale: 'ja' | 'en' = 'ja',
 ): Promise<ConceptResponse> {
     throwIfAborted(signal);
 
-    const cacheKey = buildConceptCacheKey(folklore, answers, handle);
+    const cacheKey = buildConceptCacheKey(folklore, answers, handle, locale);
     const cached = getConceptCache(cacheKey);
     if (cached) {
         return cached;
@@ -370,7 +377,7 @@ export async function generateConcepts(
         return withAbortSignal(inFlight, signal);
     }
 
-    const sharedRequest = requestJsonInternal<ConceptResponse>('/api/generate-concepts', { folklore, answers, handle })
+    const sharedRequest = requestJsonInternal<ConceptResponse>('/api/generate-concepts', { folklore, answers, handle, locale })
         .then((result) => {
             setConceptCache(cacheKey, result);
             return result;
@@ -397,10 +404,11 @@ export async function generateImage(
     signal?: AbortSignal,
     folklore?: Array<{ kaiiName: string; content: string; location?: string }>,
     generationVersion = 0,
+    locale: 'ja' | 'en' = 'ja',
 ): Promise<ImageResponse> {
     throwIfAborted(signal);
 
-    const cacheKey = buildImageCacheKey(concept, artStyle, visualInput, answers, generationVersion);
+    const cacheKey = buildImageCacheKey(concept, artStyle, visualInput, answers, generationVersion) + IMAGE_CACHE_KEY_SEPARATOR + locale;
     const cached = getImageCache(cacheKey);
     if (cached) {
         return cached;
@@ -411,7 +419,7 @@ export async function generateImage(
         return withAbortSignal(inFlight, signal);
     }
 
-    const sharedRequest = requestJsonInternal<ImageResponse>('/api/generate-image', { concept, artStyle, visualInput, answers, folklore: folklore || [], generationVersion })
+    const sharedRequest = requestJsonInternal<ImageResponse>('/api/generate-image', { concept, artStyle, visualInput, answers, folklore: folklore || [], generationVersion, locale })
         .then((result) => {
             setImageCache(cacheKey, result);
             return result;

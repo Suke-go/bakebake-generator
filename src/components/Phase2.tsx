@@ -21,6 +21,12 @@ const ANIM_CONCEPT_STEP_MS = 120;
 
 export default function Phase2() {
     const { state, goToPhase, setFolkloreResults, setConcepts, selectConcept } = useApp();
+    const isEnglish = state.locale === 'en';
+    const copy = isEnglish ? {
+        loading: 'Searching folklore records...', wait: 'Please wait a few seconds', error: 'We could not search the records.', retrying: 'Retrying...', retry: 'Try again', searched: 'We searched the folklore archive using your experience.', related: 'We found related folklore records.', generating: 'Creating name ideas...', relatedLabel: 'Related Japanese folklore', source: 'Source', conceptsReady: 'We created some name ideas.', concepts: 'Name ideas', nameYourself: 'Name it yourself', customPrompt: 'Enter the name that feels right to you', customPlaceholder: 'For example: Shadow Crosser', useName: 'Use this name', customDescription: 'A yokai you named yourself',
+    } : {
+        loading: '伝承の記録を検索しています...', wait: '数秒お待ちください', error: '記録の検索に失敗しました。', retrying: '再試行中...', retry: '再試行', searched: '体験内容をもとに、伝承データベースを検索しました。', related: '類似する伝承記録を抽出しました。', generating: '名前の候補を生成しています...', relatedLabel: '関連する伝承', source: '出典', conceptsReady: '名前の候補を生成しました。', concepts: '名前の候補', nameYourself: '自分で名付ける', customPrompt: 'あなたが感じた名前を入力してください', customPlaceholder: '例: 影渡り', useName: 'この名前で記録する', customDescription: 'あなた自身が名付けた妖怪',
+    };
     const [stage, setStage] = useState<'loading' | 'intro' | 'folklore' | 'concepts' | 'error'>('loading');
     const [showLine1, setShowLine1] = useState(false);
     const [showLine2, setShowLine2] = useState(false);
@@ -93,7 +99,7 @@ export default function Phase2() {
 
     const fetchData = useCallback(async (retryCount = 0) => {
         if (!state.selectedHandle) {
-            setErrorMsg('選択された手がかりがありません。');
+            setErrorMsg(isEnglish ? 'No experience was selected.' : '選択された手がかりがありません。');
             setStage('error');
             return;
         }
@@ -113,7 +119,7 @@ export default function Phase2() {
         setStage('loading');
 
         if (retryCount > 0) {
-            setRetryMsg(`少し間をおいて再試行します (${retryCount}/${RETRY_MAX})`);
+            setRetryMsg(isEnglish ? `Trying again shortly (${retryCount}/${RETRY_MAX})` : `少し間をおいて再試行します (${retryCount}/${RETRY_MAX})`);
         }
 
         if (retryTimerRef.current) {
@@ -139,7 +145,7 @@ export default function Phase2() {
 
             setFolkloreData(folklore);
             setFolkloreResults(folklore);
-            setRetryMsg('概念候補を生成しています...');
+            setRetryMsg(isEnglish ? 'Creating yokai ideas...' : '概念候補を生成しています...');
             setIsGeneratingConcepts(true);
             setStage('intro');
 
@@ -148,8 +154,16 @@ export default function Phase2() {
                     folklore,
                     state.answers,
                     { id: state.selectedHandle.id, text: state.selectedHandle.text },
-                    controller.signal
+                    controller.signal,
+                    state.locale,
                 );
+                const summariesById = new Map((conceptResult.folkloreSummaries ?? []).map((item) => [item.folkloreRef, item.summary]));
+                const folkloreWithSummaries = folklore.map((item) => ({
+                    ...item,
+                    ...(summariesById.has(item.id) ? { englishSummary: summariesById.get(item.id) } : {}),
+                }));
+                setFolkloreData(folkloreWithSummaries);
+                setFolkloreResults(folkloreWithSummaries);
                 setConceptData(conceptResult.concepts as YokaiConcept[]);
                 setConcepts(conceptResult.concepts as YokaiConcept[]);
             } catch (conceptErr) {
@@ -196,8 +210,8 @@ export default function Phase2() {
                     message.toLowerCase().includes('network');
                 setRetryMsg(
                     isNetworkIssue
-                        ? `通信が不安定です。${(delayMs / 1000).toFixed(1)}秒後に再試行します...`
-                        : `混み合っています。${(delayMs / 1000).toFixed(1)}秒後に再試行します...`
+                        ? (isEnglish ? `Connection is unstable. Trying again in ${(delayMs / 1000).toFixed(1)} seconds...` : `通信が不安定です。${(delayMs / 1000).toFixed(1)}秒後に再試行します...`)
+                        : (isEnglish ? `The service is busy. Trying again in ${(delayMs / 1000).toFixed(1)} seconds...` : `混み合っています。${(delayMs / 1000).toFixed(1)}秒後に再試行します...`)
                 );
 
                 retryTimerRef.current = setTimeout(() => {
@@ -220,6 +234,8 @@ export default function Phase2() {
     }, [
         state.selectedHandle,
         state.answers,
+        state.locale,
+        isEnglish,
         setConcepts,
         setFolkloreResults,
         abortCurrentRequest,
@@ -300,7 +316,7 @@ export default function Phase2() {
             source: 'llm',
             name: customName.trim(),
             reading: '',
-            description: 'あなた自身が名付けた妖怪',
+            description: copy.customDescription,
             label: '自分で名付けた',
         };
         setSelectedIdx(-1);
@@ -309,11 +325,10 @@ export default function Phase2() {
         setTimeout(() => goToPhase(3), 1000);
     };
 
-    const NAMING_TYPE_LABELS: Record<string, string> = {
-        place_action: '場所・行動型',
-        appearance_sound: '外見・音型',
-        vernacular: '土着・方言型',
-        fallback: '補助候補',
+    const NAMING_TYPE_LABELS: Record<string, string> = isEnglish ? {
+        place_action: 'place and action', appearance_sound: 'appearance or sound', vernacular: 'everyday wording', fallback: 'reference idea',
+    } : {
+        place_action: '場所・行動型', appearance_sound: '外見・音型', vernacular: '土着・方言型', fallback: '補助候補',
     };
 
     const handleRetry = useCallback(() => {
@@ -324,10 +339,10 @@ export default function Phase2() {
         return (
             <div className="phase" style={{ justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
                 <p className="voice" style={{ animation: 'breathe 3s ease-in-out infinite' }}>
-                    伝承の記録を検索しています...
+                    {copy.loading}
                 </p>
                 <p style={{ fontSize: 11, color: 'var(--text-ghost)', marginTop: 16, letterSpacing: '0.1em' }}>
-                    数秒お待ちください
+                    {copy.wait}
                 </p>
                 {retryMsg && (
                     <p style={{ fontSize: 12, color: 'var(--text-ghost)', marginTop: 12 }}>
@@ -342,7 +357,7 @@ export default function Phase2() {
         return (
             <div className="phase" style={{ justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
                 <p className="voice" style={{ marginBottom: 16 }}>
-                    記録の検索に失敗しました。
+                    {copy.error}
                 </p>
                 <p style={{ fontSize: 12, color: 'var(--text-ghost)', marginBottom: 24 }}>
                     {errorMsg}
@@ -357,7 +372,7 @@ export default function Phase2() {
                     onClick={handleRetry}
                     disabled={isFetching}
                 >
-                    {isFetching ? '再試行中...' : '再試行'}
+                    {isFetching ? copy.retrying : copy.retry}
                 </button>
             </div>
         );
@@ -367,25 +382,25 @@ export default function Phase2() {
         <div className="phase-scrollable">
             {showLine1 && (
                 <p className="voice float-up" style={{ marginBottom: 12 }}>
-                    体験内容をもとに、伝承データベースを検索しました。
+                    {copy.searched}
                 </p>
             )}
             {showLine2 && (
                 <p className="voice float-up" style={{ marginBottom: 48, animationDelay: '0.2s' }}>
-                    類似する伝承記録を抽出しました。
+                    {copy.related}
                 </p>
             )}
 
             {isGeneratingConcepts && stage !== 'concepts' && (
                 <p className="label" style={{ marginBottom: 24 }}>
-                    名前の候補を生成しています...
+                    {copy.generating}
                 </p>
             )}
 
             {(stage === 'folklore' || stage === 'concepts') && visibleFolklore > 0 && (
                 <>
                     <p className="label fade-in" style={{ marginBottom: 16 }}>
-                        関連する伝承
+                        {copy.relatedLabel}
                     </p>
                     <div className="folklore-field" style={{ display: 'flex', flexDirection: 'column' }}>
                         {folkloreData.slice(0, visibleFolklore).map((f, i) => {
@@ -422,7 +437,7 @@ export default function Phase2() {
                                     />
                                     <p className="folklore-meta">{f.location}</p>
                                     {f.source && (
-                                        <p className="folklore-meta" style={{ opacity: 0.7 }}>出典: {f.source}</p>
+                                        <p className="folklore-meta" style={{ opacity: 0.7 }}>{copy.source}: {f.source}</p>
                                     )}
                                 </div>
                             );
@@ -438,10 +453,10 @@ export default function Phase2() {
                     {showConceptIntro && (
                         <>
                             <p className="voice float-up" style={{ marginBottom: 8 }}>
-                                名前の候補を生成しました。
+                                {copy.conceptsReady}
                             </p>
                             <p className="label float-up" style={{ animationDelay: '0.4s', marginTop: 32, marginBottom: 8 }}>
-                                名前の候補
+                                {copy.concepts}
                             </p>
                         </>
                     )}
@@ -483,16 +498,16 @@ export default function Phase2() {
                                     style={{ textAlign: 'center', opacity: 0.8 }}
                                     onClick={() => setShowCustomInput(true)}
                                 >
-                                    <div className="yokai-desc">自分で名付ける</div>
+                                    <div className="yokai-desc">{copy.nameYourself}</div>
                                 </button>
                             ) : (
                                 <div className="concept-card" style={{ padding: '16px' }}>
-                                    <p className="label" style={{ marginBottom: 8 }}>あなたが感じた名前を入力してください</p>
+                                    <p className="label" style={{ marginBottom: 8 }}>{copy.customPrompt}</p>
                                     <input
                                         type="text"
                                         value={customName}
                                         onChange={(e) => setCustomName(e.target.value)}
-                                        placeholder="例: 影渡り"
+                                        placeholder={copy.customPlaceholder}
                                         style={{
                                             width: '100%',
                                             padding: '8px 12px',
@@ -512,7 +527,7 @@ export default function Phase2() {
                                         disabled={!customName.trim()}
                                         style={{ width: '100%' }}
                                     >
-                                        この名前で記録する
+                                        {copy.useName}
                                     </button>
                                 </div>
                             )}

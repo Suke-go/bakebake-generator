@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { Suspense, useState, useEffect, useCallback } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import '@/app/globals.css';
 
@@ -24,24 +24,24 @@ const YOKAI_PERCEPTION_OPTIONS = [
     { value: 'none', label: 'あまり考えたことがない' }
 ];
 
-function ConsentScreen({ onAccept, onDecline, isDeclining }: { onAccept: () => void; onDecline: () => void; isDeclining: boolean }) {
+function ConsentScreen({ onAccept, onDecline, isDeclining, isEnglish }: { onAccept: () => void; onDecline: () => void; isDeclining: boolean; isEnglish: boolean }) {
 
     const infoItems = [
         {
-            title: '研究の目的',
-            body: '本アンケートは、「BAKEBAKE XR」の体験評価の一環として実施されます。'
+            title: isEnglish ? 'Purpose' : '研究の目的',
+            body: isEnglish ? 'This survey is part of an evaluation of the BAKEBAKE XR experience.' : '本アンケートは、「BAKEBAKE XR」の体験評価の一環として実施されます。'
         },
         {
-            title: '回答の取扱い',
-            body: '回答は匿名で収集され、個人を特定する情報は取得しません。収集したデータは統計的に処理し、研究・体験評価・改善目的以外には使用しません。'
+            title: isEnglish ? 'How your answers are handled' : '回答の取扱い',
+            body: isEnglish ? 'Answers are collected anonymously. We do not collect information that identifies you. The data is used only for research, experience evaluation, and improvement.' : '回答は匿名で収集され、個人を特定する情報は取得しません。収集したデータは統計的に処理し、研究・体験評価・改善目的以外には使用しません。'
         },
         {
-            title: '所要時間',
-            body: 'アンケートは体験前・体験後の2回に分かれており、それぞれ1〜2分程度です。'
+            title: isEnglish ? 'Time required' : '所要時間',
+            body: isEnglish ? 'The survey has a short part before and after the experience, each taking about 1–2 minutes.' : 'アンケートは体験前・体験後の2回に分かれており、それぞれ1〜2分程度です。'
         },
         {
-            title: '参加の任意性',
-            body: '参加は任意です。途中で回答をやめることもできます。回答しなくても体験には一切影響しません。'
+            title: isEnglish ? 'Voluntary participation' : '参加の任意性',
+            body: isEnglish ? 'Participation is voluntary. You may stop at any time. Choosing not to answer will not affect the experience.' : '参加は任意です。途中で回答をやめることもできます。回答しなくても体験には一切影響しません。'
         },
     ];
 
@@ -68,12 +68,11 @@ function ConsentScreen({ onAccept, onDecline, isDeclining }: { onAccept: () => v
                 marginBottom: 'auto'
             }}>
                 <h1 className="title-text" style={{ fontSize: '1.8rem', textAlign: 'center', letterSpacing: '0.1em' }}>
-                    研究参加のご案内
+                    {isEnglish ? 'Research participation' : '研究参加のご案内'}
                 </h1>
 
                 <p className="body-text" style={{ textAlign: 'center', opacity: 0.8, lineHeight: 1.8 }}>
-                    アンケートへのご協力をお願いするにあたり、<br />
-                    以下の内容をご確認ください。
+                    {isEnglish ? <>Before you decide whether to take the survey,<br />please read the following.</> : <>アンケートへのご協力をお願いするにあたり、<br />以下の内容をご確認ください。</>}
                 </p>
 
                 <div style={{
@@ -134,7 +133,7 @@ function ConsentScreen({ onAccept, onDecline, isDeclining }: { onAccept: () => v
                         className="interactive-button"
                         style={{ padding: '1.2rem', fontSize: '1.1rem', width: '100%' }}
                     >
-                        同意してアンケートに進む
+                        {isEnglish ? 'I agree — continue to the survey' : '同意してアンケートに進む'}
                     </button>
                     <button
                         onClick={onDecline}
@@ -151,7 +150,7 @@ function ConsentScreen({ onAccept, onDecline, isDeclining }: { onAccept: () => v
                             padding: '0.5rem'
                         }}
                     >
-                        {isDeclining ? '処理中...' : 'アンケートには回答せず体験に進む'}
+                        {isDeclining ? (isEnglish ? 'Please wait...' : '処理中...') : (isEnglish ? 'Continue without the survey' : 'アンケートには回答せず体験に進む')}
                     </button>
                 </div>
             </div>
@@ -159,8 +158,11 @@ function ConsentScreen({ onAccept, onDecline, isDeclining }: { onAccept: () => v
     );
 }
 
-export default function SurveyEnterPage() {
+function SurveyEnterContent() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const isEnglish = searchParams.get('lang') === 'en';
+    const ticketPath = useCallback((id: string) => `/survey/ticket/${id}${isEnglish ? '?lang=en' : ''}`, [isEnglish]);
     const [consentAccepted, setConsentAccepted] = useState(false);
     const [isDeclining, setIsDeclining] = useState(false);
     const [visitorType, setVisitorType] = useState("");
@@ -180,18 +182,18 @@ export default function SurveyEnterPage() {
     useEffect(() => {
         const savedId = localStorage.getItem('yokai_ticket_id');
         if (savedId) {
-            router.push(`/survey/ticket/${savedId}`);
+            router.push(ticketPath(savedId));
         } else {
             setIsCheckingSession(false);
         }
-    }, [router]);
+    }, [router, ticketPath]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
 
         if (!visitorType || !origin || !familiarity || !preImage.trim() || !age || !yokaiPerception) {
-            setError("必須項目をすべて入力してください。");
+            setError(isEnglish ? 'Please complete all required fields.' : '必須項目をすべて入力してください。');
             return;
         }
 
@@ -221,13 +223,13 @@ export default function SurveyEnterPage() {
                 // スマホのローカルストレージにIDを保存（誤って閉じた時の復帰用）
                 localStorage.setItem('yokai_ticket_id', newId);
                 // Navigate to the ticket page
-                router.push(`/survey/ticket/${newId}`);
+                router.push(ticketPath(newId));
             } else {
                 throw new Error("Failed to create record");
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error(err);
-            setError("通信エラーが発生しました。もう一度お試しください。");
+            setError(isEnglish ? 'A network error occurred. Please try again.' : '通信エラーが発生しました。もう一度お試しください。');
             setIsSubmitting(false);
         }
     };
@@ -235,7 +237,7 @@ export default function SurveyEnterPage() {
     if (isCheckingSession) {
         return (
             <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000' }}>
-                <p className="body-text" style={{ opacity: 0.5 }}>以前の記録を確認中...</p>
+                <p className="body-text" style={{ opacity: 0.5 }}>{isEnglish ? 'Checking a previous record...' : '以前の記録を確認中...'}</p>
             </div>
         );
     }
@@ -251,7 +253,7 @@ export default function SurveyEnterPage() {
             if (data && data.length > 0) {
                 const newId = data[0].id;
                 localStorage.setItem('yokai_ticket_id', newId);
-                router.push(`/survey/ticket/${newId}`);
+                router.push(ticketPath(newId));
             }
         } catch (err) {
             console.error(err);
@@ -265,6 +267,7 @@ export default function SurveyEnterPage() {
                 onAccept={() => setConsentAccepted(true)}
                 onDecline={handleDecline}
                 isDeclining={isDeclining}
+                isEnglish={isEnglish}
             />
         );
     }
@@ -292,11 +295,11 @@ export default function SurveyEnterPage() {
                 marginBottom: 'auto'
             }}>
                 <h1 className="title-text" style={{ fontSize: '2rem', textAlign: 'center' }}>
-                    参加者アンケート
+                    {isEnglish ? 'Participant survey' : '参加者アンケート'}
                 </h1>
 
                 <p className="body-text" style={{ textAlign: 'center', opacity: 0.8, maxWidth: '100%' }}>
-                    妖怪生成体験の前に、いくつか質問にお答えください。回答は研究目的でのみ利用されます。
+                    {isEnglish ? 'Please answer a few questions before the yokai-making experience. Your answers are used only for research.' : '妖怪生成体験の前に、いくつか質問にお答えください。回答は研究目的でのみ利用されます。'}
                 </p>
 
                 <form data-yokai-zone="survey-enter-form" onSubmit={handleSubmit} style={{
@@ -313,31 +316,31 @@ export default function SurveyEnterPage() {
                     {error && <div style={{ color: '#ff6b6b', textAlign: 'center' }}>{error}</div>}
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                        <label className="body-text">1. あなたについて</label>
+                        <label className="body-text">{isEnglish ? '1. Which best describes you?' : '1. あなたについて'}</label>
                         <select
                             className="glass-input"
                             value={visitorType}
                             onChange={e => setVisitorType(e.target.value)}
                             style={{ padding: '1rem', width: '100%' }}
                         >
-                            <option value="" disabled>選択してください</option>
-                            <option value="一般来場者">一般来場者</option>
-                            <option value="妖怪・怪談の愛好家">妖怪・怪談の愛好家</option>
-                            <option value="研究者・教育・文化関係者">研究者・教育・文化関係者</option>
-                            <option value="展示・クリエイティブ関係者">展示・クリエイティブ関係者</option>
-                            <option value="その他">その他</option>
+                            <option value="" disabled>{isEnglish ? 'Select one' : '選択してください'}</option>
+                            <option value="一般来場者">{isEnglish ? 'General visitor' : '一般来場者'}</option>
+                            <option value="妖怪・怪談の愛好家">{isEnglish ? 'Yokai or ghost-story enthusiast' : '妖怪・怪談の愛好家'}</option>
+                            <option value="研究者・教育・文化関係者">{isEnglish ? 'Research, education, or culture professional' : '研究者・教育・文化関係者'}</option>
+                            <option value="展示・クリエイティブ関係者">{isEnglish ? 'Exhibition or creative professional' : '展示・クリエイティブ関係者'}</option>
+                            <option value="その他">{isEnglish ? 'Other' : 'その他'}</option>
                         </select>
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                        <label className="body-text">2. どちらからお越しですか？</label>
+                        <label className="body-text">{isEnglish ? '2. Where are you visiting from?' : '2. どちらからお越しですか？'}</label>
                         <select
                             className="glass-input"
                             value={origin}
                             onChange={e => setOrigin(e.target.value)}
                             style={{ padding: '1rem', width: '100%' }}
                         >
-                            <option value="" disabled>選択してください</option>
+                            <option value="" disabled>{isEnglish ? 'Select one' : '選択してください'}</option>
                             {PREFECTURES.map(pref => (
                                 <option key={pref} value={pref}>{pref}</option>
                             ))}
@@ -345,7 +348,7 @@ export default function SurveyEnterPage() {
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                        <label className="body-text">3. 「妖怪」や「伝承」にどれくらい馴染みがありますか？</label>
+                        <label className="body-text">{isEnglish ? '3. How familiar are you with yokai or folklore?' : '3. 「妖怪」や「伝承」にどれくらい馴染みがありますか？'}</label>
                         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem' }}>
                             {[1, 2, 3, 4, 5].map(num => (
                                 <button
@@ -364,19 +367,19 @@ export default function SurveyEnterPage() {
                             ))}
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', opacity: 0.6 }}>
-                            <span>全くない</span>
-                            <span>非常にある</span>
+                            <span>{isEnglish ? 'Not at all' : '全くない'}</span>
+                            <span>{isEnglish ? 'Very familiar' : '非常にある'}</span>
                         </div>
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                         <label className="body-text">
-                            4. 「妖怪」と聞いて、最初に思い浮かぶイメージや言葉を1つだけ教えてください。
+                            {isEnglish ? '4. When you hear “yokai,” what is the first image or word that comes to mind?' : '4. 「妖怪」と聞いて、最初に思い浮かぶイメージや言葉を1つだけ教えてください。'}
                         </label>
                         <input
                             type="text"
                             className="glass-input"
-                            placeholder="例：怖い、河童、不思議な音..."
+                            placeholder={isEnglish ? 'For example: scary, kappa, a strange sound...' : '例：怖い、河童、不思議な音...'}
                             value={preImage}
                             onChange={e => setPreImage(e.target.value)}
                             style={{ padding: '1rem', width: '100%' }}
@@ -385,43 +388,43 @@ export default function SurveyEnterPage() {
 
                     {/* Q5: 年齢 */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                        <label className="body-text">5. 年齢層<span style={{ color: '#ff6b6b', fontSize: '0.8rem', marginLeft: '0.5rem' }}>必須</span></label>
+                        <label className="body-text">{isEnglish ? '5. Age group' : '5. 年齢層'}<span style={{ color: '#ff6b6b', fontSize: '0.8rem', marginLeft: '0.5rem' }}>{isEnglish ? 'Required' : '必須'}</span></label>
                         <select
                             className="glass-input"
                             value={age}
                             onChange={e => setAge(e.target.value)}
                             style={{ padding: '1rem', width: '100%' }}
                         >
-                            <option value="" disabled>選択してください</option>
-                            <option value="10代">10代</option>
-                            <option value="20代">20代</option>
-                            <option value="30代">30代</option>
-                            <option value="40代">40代</option>
-                            <option value="50代以上">50代以上</option>
+                            <option value="" disabled>{isEnglish ? 'Select one' : '選択してください'}</option>
+                            <option value="10代">{isEnglish ? 'Under 20' : '10代'}</option>
+                            <option value="20代">{isEnglish ? '20s' : '20代'}</option>
+                            <option value="30代">{isEnglish ? '30s' : '30代'}</option>
+                            <option value="40代">{isEnglish ? '40s' : '40代'}</option>
+                            <option value="50代以上">{isEnglish ? '50 or older' : '50代以上'}</option>
                         </select>
                     </div>
 
                     {/* Q6: 性別 */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                        <label className="body-text">6. 性別（任意）</label>
+                        <label className="body-text">{isEnglish ? '6. Gender (optional)' : '6. 性別（任意）'}</label>
                         <select
                             className="glass-input"
                             value={gender}
                             onChange={e => setGender(e.target.value)}
                             style={{ padding: '1rem', width: '100%' }}
                         >
-                            <option value="">回答しない</option>
-                            <option value="男性">男性</option>
-                            <option value="女性">女性</option>
-                            <option value="その他">その他</option>
+                            <option value="">{isEnglish ? 'Prefer not to say' : '回答しない'}</option>
+                            <option value="男性">{isEnglish ? 'Man' : '男性'}</option>
+                            <option value="女性">{isEnglish ? 'Woman' : '女性'}</option>
+                            <option value="その他">{isEnglish ? 'Other' : 'その他'}</option>
                         </select>
                     </div>
 
                     {/* Q7: 妖怪の知覚ベースライン (CRITICAL for paper §4.1) */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                         <label className="body-text">
-                            7. 「妖怪」をひとことで表すなら、最も近いものはどれですか？
-                            <span style={{ color: '#ff6b6b', fontSize: '0.8rem', marginLeft: '0.5rem' }}>必須</span>
+                            {isEnglish ? '7. Which description comes closest to what “yokai” means to you?' : '7. 「妖怪」をひとことで表すなら、最も近いものはどれですか？'}
+                            <span style={{ color: '#ff6b6b', fontSize: '0.8rem', marginLeft: '0.5rem' }}>{isEnglish ? 'Required' : '必須'}</span>
                         </label>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                             {YOKAI_PERCEPTION_OPTIONS.map(opt => (
@@ -434,7 +437,7 @@ export default function SurveyEnterPage() {
                                         onChange={() => setYokaiPerception(opt.value)}
                                         style={{ width: '1.2rem', height: '1.2rem', accentColor: 'var(--accent)' }}
                                     />
-                                    <span className="body-text" style={{ fontSize: '0.9rem' }}>{opt.label}</span>
+                                    <span className="body-text" style={{ fontSize: '0.9rem' }}>{isEnglish ? ({ character: 'A character from anime or games', scary: 'Something frightening, felt on a dark road or in a dark place', culture: 'A place-bound being from old tales and oral traditions', psychology: 'A name people give to what they cannot explain', spiritual: 'A being connected with shrines, temples, or festivals', none: 'I have not thought much about it' }[opt.value] || opt.label) : opt.label}</span>
                                 </label>
                             ))}
                         </div>
@@ -442,7 +445,7 @@ export default function SurveyEnterPage() {
 
                     {/* Q8: 生成AI経験 */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                        <label className="body-text">8. 生成AI（ChatGPT, 画像生成AIなど）の利用経験はありますか？</label>
+                        <label className="body-text">{isEnglish ? '8. How much experience do you have using generative AI (such as ChatGPT or image generators)?' : '8. 生成AI（ChatGPT, 画像生成AIなど）の利用経験はありますか？'}</label>
                         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem' }}>
                             {[1, 2, 3, 4, 5].map(num => (
                                 <button
@@ -461,8 +464,8 @@ export default function SurveyEnterPage() {
                             ))}
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', opacity: 0.6 }}>
-                            <span>全くない</span>
-                            <span>日常的に使う</span>
+                            <span>{isEnglish ? 'None' : '全くない'}</span>
+                            <span>{isEnglish ? 'Use it regularly' : '日常的に使う'}</span>
                         </div>
                     </div>
 
@@ -472,10 +475,14 @@ export default function SurveyEnterPage() {
                         disabled={isSubmitting}
                         style={{ marginTop: '1rem', padding: '1.2rem', fontSize: '1.1rem' }}
                     >
-                        {isSubmitting ? '処理中...' : 'アンケートを完了する'}
+                        {isSubmitting ? (isEnglish ? 'Saving...' : '処理中...') : (isEnglish ? 'Complete survey' : 'アンケートを完了する')}
                     </button>
                 </form>
             </div>
         </div>
     );
+}
+
+export default function SurveyEnterPage() {
+    return <Suspense fallback={<div style={{ minHeight: '100dvh', background: '#000' }} />}> <SurveyEnterContent /> </Suspense>;
 }

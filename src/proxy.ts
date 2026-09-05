@@ -24,7 +24,7 @@ export function proxy(req: NextRequest) {
     // Redirect to auth page with return URL
     const authUrl = req.nextUrl.clone();
     authUrl.pathname = '/auth';
-    authUrl.searchParams.set('next', pathname);
+    authUrl.searchParams.set('next', `${pathname}${req.nextUrl.search}`);
     return NextResponse.redirect(authUrl);
 }
 

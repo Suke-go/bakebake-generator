@@ -123,13 +123,14 @@ function buildImageRequestKey(
     visualInput: string,
     answers: Record<string, string>,
     generationVersion = 0,
+    locale = 'ja',
 ): string {
     const sortedAnswerKeys = Object.keys(answers).sort();
     const answerSig = sortedAnswerKeys
         .map((key) => `${key}:${answers[key] ?? ''}`)
         .join(IMAGE_CACHE_KEY_SEPARATOR);
 
-    return `${concept.name}${IMAGE_CACHE_KEY_SEPARATOR}${concept.reading}${IMAGE_CACHE_KEY_SEPARATOR}${concept.description}${IMAGE_CACHE_KEY_SEPARATOR}${artStyle ?? ''}${IMAGE_CACHE_KEY_SEPARATOR}${answerSig}${IMAGE_CACHE_KEY_SEPARATOR}${visualInput}${IMAGE_CACHE_KEY_SEPARATOR}${generationVersion}`;
+    return `${concept.name}${IMAGE_CACHE_KEY_SEPARATOR}${concept.reading}${IMAGE_CACHE_KEY_SEPARATOR}${concept.description}${IMAGE_CACHE_KEY_SEPARATOR}${artStyle ?? ''}${IMAGE_CACHE_KEY_SEPARATOR}${answerSig}${IMAGE_CACHE_KEY_SEPARATOR}${visualInput}${IMAGE_CACHE_KEY_SEPARATOR}${generationVersion}${IMAGE_CACHE_KEY_SEPARATOR}${locale}`;
 }
 
 function getImageFromResponse(
@@ -397,6 +398,7 @@ export async function POST(req: Request) {
             answers?: Record<string, string>;
             folklore?: Array<{ kaiiName: string; content: string; location?: string }>;
             generationVersion?: number;
+            locale?: 'ja' | 'en';
         };
         try {
             body = JSON.parse(rawBody);
@@ -414,6 +416,7 @@ export async function POST(req: Request) {
             answers = {},
             folklore = [],
             generationVersion = 0,
+            locale = 'ja',
         } = body;
         const concept = rawConcept as ConceptPayload | undefined;
         const answerMap = answers;
@@ -447,7 +450,8 @@ export async function POST(req: Request) {
             );
         }
 
-        const requestKey = buildImageRequestKey(concept, artStyle, visualInput, answerMap as Record<string, string>, generationVersion);
+        const normalizedLocale = locale === 'en' ? 'en' : 'ja';
+        const requestKey = buildImageRequestKey(concept, artStyle, visualInput, answerMap as Record<string, string>, generationVersion, normalizedLocale);
         const cached = getImageCache(requestKey);
         if (cached) {
             return NextResponse.json(cached, {
@@ -490,6 +494,7 @@ export async function POST(req: Request) {
                 answerMap as Record<string, string>,
                 folklore.map(f => ({ kaiiName: f.kaiiName, content: f.content, location: f.location })),
                 visualInput,
+                normalizedLocale,
             );
             const warnings: string[] = [];
 

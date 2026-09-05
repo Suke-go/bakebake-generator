@@ -37,6 +37,8 @@ function ExitSurveyForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const id = searchParams.get('id');
+    const isEnglish = searchParams.get('lang') === 'en';
+    const localizedPath = React.useCallback((path: string) => `${path}${isEnglish ? `${path.includes('?') ? '&' : '?'}lang=en` : ''}`, [isEnglish]);
 
     const [triggerSent, setTriggerSent] = useState(false);
 
@@ -117,12 +119,12 @@ function ExitSurveyForm() {
         setError("");
 
         if (!id) {
-            setError("IDが存在しません。受付からやり直してください。");
+            setError(isEnglish ? 'No observation ID was found. Please start again at reception.' : 'IDが存在しません。受付からやり直してください。');
             return;
         }
 
         if (!theme.trim()) {
-            setError("「何についての作品だと思いましたか？」の回答は必須です。");
+            setError(isEnglish ? 'Please answer what you think this work was about.' : '「何についての作品だと思いましたか？」の回答は必須です。');
             return;
         }
 
@@ -149,9 +151,9 @@ function ExitSurveyForm() {
             localStorage.removeItem('yokai_ticket_id');
 
             setIsComplete(true);
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error(err);
-            setError("通信エラーが発生しました。");
+            setError(isEnglish ? 'A network error occurred.' : '通信エラーが発生しました。');
             setIsSubmitting(false);
         }
     };
@@ -177,10 +179,10 @@ function ExitSurveyForm() {
         idleTimerRef.current = setTimeout(() => {
             setShowIdlePrompt(true);
             resetTimerRef.current = setTimeout(() => {
-                router.push('/generator');
+                router.push(localizedPath('/generator'));
             }, 10000);
         }, 30000);
-    }, [clearIdleTimers, router]);
+    }, [clearIdleTimers, router, localizedPath]);
 
     useEffect(() => {
         if (!isComplete) return;
@@ -204,7 +206,7 @@ function ExitSurveyForm() {
     if (!id) {
         return (
             <div data-yokai-zone="survey-exit-missing-id" style={{ color: 'red', textAlign: 'center', marginTop: '5rem' }}>
-                有効な観測IDがありません。QRコードをもう一度スキャンしてください。
+                {isEnglish ? 'No valid observation ID was found. Please scan the QR code again.' : '有効な観測IDがありません。QRコードをもう一度スキャンしてください。'}
             </div>
         );
     }
@@ -226,7 +228,7 @@ function ExitSurveyForm() {
                         marginBottom: '1.5rem',
                         letterSpacing: '0.15em',
                     }}>
-                        ご体験ありがとうございました
+                        {isEnglish ? 'Thank you for taking part' : 'ご体験ありがとうございました'}
                     </h1>
                 )}
 
@@ -243,16 +245,14 @@ function ExitSurveyForm() {
                             lineHeight: 2.0,
                             letterSpacing: '0.08em',
                         }}>
-                            印刷されたお札をお受け取りください。
+                            {isEnglish ? 'Please collect your printed talisman.' : '印刷されたお札をお受け取りください。'}
                         </p>
                         <p className="body-text" style={{
                             fontSize: '0.85rem',
                             opacity: 0.5,
                             lineHeight: 1.8,
                         }}>
-                            この記録は感熱紙に印刷されています。<br />
-                            時間が経てば、この記憶も消えます。<br />
-                            気をつけてお帰りください。
+                            {isEnglish ? <>This record is printed on thermal paper.<br />It may fade over time.<br />Have a safe journey home.</> : <>この記録は感熱紙に印刷されています。<br />時間が経てば、この記憶も消えます。<br />気をつけてお帰りください。</>}
                         </p>
                     </div>
                 )}
@@ -266,18 +266,18 @@ function ExitSurveyForm() {
                         gap: '0.8rem',
                     }}>
                         <button
-                            onClick={() => router.push('/generator')}
+                            onClick={() => router.push(localizedPath('/generator'))}
                             className="interactive-button"
                             style={{ padding: '1rem 2rem' }}
                         >
-                            初期画面へ戻る
+                            {isEnglish ? 'Return to start' : '初期画面へ戻る'}
                         </button>
                         <button
-                            onClick={() => router.push('/survey/enter')}
+                            onClick={() => router.push(localizedPath('/survey/enter'))}
                             className="interactive-button"
                             style={{ padding: '0.7rem 1.5rem', opacity: 0.5, fontSize: '0.85rem' }}
                         >
-                            もう一度参加する
+                            {isEnglish ? 'Take part again' : 'もう一度参加する'}
                         </button>
                     </div>
                 )}
@@ -289,7 +289,7 @@ function ExitSurveyForm() {
                         opacity: 0.6,
                         animation: 'breathe 2s ease-in-out infinite',
                     }}>
-                        操作がありません。まもなく初期画面に戻ります…
+                        {isEnglish ? 'No activity. Returning to the start shortly…' : '操作がありません。まもなく初期画面に戻ります…'}
                     </p>
                 )}
             </div>
@@ -308,11 +308,11 @@ function ExitSurveyForm() {
             width: '100%',
         }}>
             <h1 className="title-text" style={{ fontSize: '2rem' }}>
-                体験のふりかえり
+                {isEnglish ? 'Reflect on the experience' : '体験のふりかえり'}
             </h1>
 
             <p className="body-text" style={{ textAlign: 'center', opacity: 0.8, maxWidth: '600px' }}>
-                プリンターから記録が出力されるのを待ちながら、以下の質問にお答えください。
+                {isEnglish ? 'While your record is printing, please answer the following questions.' : 'プリンターから記録が出力されるのを待ちながら、以下の質問にお答えください。'}
             </p>
 
             <form onSubmit={handleSubmit} style={{
@@ -330,7 +330,7 @@ function ExitSurveyForm() {
                 {error && <div style={{ color: '#ff6b6b', textAlign: 'center' }}>{error}</div>}
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                    <label className="body-text">1. 本日利用・体験したシステム（複数選択）</label>
+                    <label className="body-text">{isEnglish ? '1. Which systems did you use today? (Select all that apply)' : '1. 本日利用・体験したシステム（複数選択）'}</label>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                         {SYSTEM_OPTIONS.map(sys => (
                             <label key={sys} style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', cursor: 'pointer' }}>
@@ -340,17 +340,17 @@ function ExitSurveyForm() {
                                     onChange={() => handleSystemSelect(sys)}
                                     style={{ width: '1.2rem', height: '1.2rem' }}
                                 />
-                                {sys}
+                                {isEnglish ? ({ 'VR体験': 'VR experience', '地図へのマッピング（GIS）': 'Map (GIS)', '妖怪ジェネレーター': 'Yokai generator', '投稿機能': 'Contribution feature' }[sys] || sys) : sys}
                             </label>
                         ))}
                     </div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                    <label className="body-text">2. この作品は、「何について」の作品だと思いましたか？<span style={{ color: '#ff6b6b', fontSize: '0.8rem', marginLeft: '0.5rem' }}>必須</span></label>
+                    <label className="body-text">{isEnglish ? '2. What do you think this work was about?' : '2. この作品は、「何について」の作品だと思いましたか？'}<span style={{ color: '#ff6b6b', fontSize: '0.8rem', marginLeft: '0.5rem' }}>{isEnglish ? 'Required' : '必須'}</span></label>
                     <textarea
                         className="glass-input"
-                        placeholder="自由にお書きください"
+                        placeholder={isEnglish ? 'Write freely' : '自由にお書きください'}
                         value={theme}
                         onChange={e => setTheme(e.target.value)}
                         rows={3}
@@ -359,10 +359,10 @@ function ExitSurveyForm() {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                    <label className="body-text">3. 体験の中で、最も印象に残った場面や内容を1つ教えてください。</label>
+                    <label className="body-text">{isEnglish ? '3. What moment or part of the experience stayed with you most?' : '3. 体験の中で、最も印象に残った場面や内容を1つ教えてください。'}</label>
                     <textarea
                         className="glass-input"
-                        placeholder="任意入力"
+                        placeholder={isEnglish ? 'Optional' : '任意入力'}
                         value={impression}
                         onChange={e => setImpression(e.target.value)}
                         rows={3}
@@ -371,7 +371,7 @@ function ExitSurveyForm() {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                    <label className="body-text">4. この作品の説明として、最も近いと感じるものを最大2つ選んでください</label>
+                    <label className="body-text">{isEnglish ? '4. Select up to two descriptions that feel closest to this work.' : '4. この作品の説明として、最も近いと感じるものを最大2つ選んでください'}</label>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                         {THEME_OPTIONS.map(opt => (
                             <label key={opt.value} style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', cursor: 'pointer' }}>
@@ -382,14 +382,14 @@ function ExitSurveyForm() {
                                     disabled={!selections.includes(opt.value) && selections.length >= 2}
                                     style={{ width: '1.2rem', height: '1.2rem' }}
                                 />
-                                {opt.label}
+                                {isEnglish ? ({ A: 'An exhibition where yokai are appreciated as characters', B: 'An experience of making yokai-like images with AI', C: 'An exhibition about yokai culture connected with local stories and places', D: 'Tourism or local promotion using digital technology', E: 'An exhibition that makes human anxiety and fear visible', F: 'An experience of the fading nature of memory and oral tradition', G: 'I am not sure' }[opt.value] || opt.label) : opt.label}
                             </label>
                         ))}
                     </div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                    <label className="body-text">5. 帰った後に、地元の伝承や怪談について調べたり、誰かに聞いてみたいと思いますか？</label>
+                    <label className="body-text">{isEnglish ? '5. After you leave, would you like to look into or ask someone about local folklore or ghost stories?' : '5. 帰った後に、地元の伝承や怪談について調べたり、誰かに聞いてみたいと思いますか？'}</label>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem' }}>
                         {[1, 2, 3, 4, 5].map(num => (
                             <button
@@ -408,14 +408,14 @@ function ExitSurveyForm() {
                         ))}
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', opacity: 0.6 }}>
-                        <span>思わない</span>
-                        <span>強く思う</span>
+                            <span>{isEnglish ? 'Not at all' : '思わない'}</span>
+                            <span>{isEnglish ? 'Very much' : '強く思う'}</span>
                     </div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                     <label className="body-text">
-                        6. この体験を通じて、「妖怪」に対するあなたの印象に最も近いものはどれですか？
+                        {isEnglish ? '6. After this experience, which description is closest to your impression of yokai?' : '6. この体験を通じて、「妖怪」に対するあなたの印象に最も近いものはどれですか？'}
                     </label>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                         {POST_YOKAI_PERCEPTION_OPTIONS.map(opt => (
@@ -428,7 +428,7 @@ function ExitSurveyForm() {
                                     onChange={() => setPostYokaiPerception(opt.value)}
                                     style={{ width: '1.2rem', height: '1.2rem', accentColor: 'var(--accent)' }}
                                 />
-                                <span className="body-text" style={{ fontSize: '0.9rem' }}>{opt.label}</span>
+                                <span className="body-text" style={{ fontSize: '0.9rem' }}>{isEnglish ? ({ spiritual: 'An invisible force in deities or nature', psychology: 'A form people give to unnamed anxieties', scary: 'Something vaguely frightening or eerie', culture: 'A cultural practice rooted in a place or time', character: 'A familiar character from anime or games', none: 'My impression has not changed' }[opt.value] || opt.label) : opt.label}</span>
                             </label>
                         ))}
                     </div>
@@ -440,7 +440,7 @@ function ExitSurveyForm() {
                     disabled={isSubmitting}
                     style={{ marginTop: '1rem', padding: '1.2rem', fontSize: '1.1rem' }}
                 >
-                    {isSubmitting ? '記録中...' : '送信する'}
+                    {isSubmitting ? (isEnglish ? 'Saving...' : '記録中...') : (isEnglish ? 'Submit' : '送信する')}
                 </button>
             </form>
         </div>

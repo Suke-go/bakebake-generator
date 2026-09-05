@@ -12,7 +12,8 @@ import { Html5QrcodeScanner, Html5QrcodeSupportedFormats } from 'html5-qrcode';
  * タップ操作は不要。
  */
 export default function Phase0() {
-    const { goToPhase, setTicketId } = useApp();
+    const { state, goToPhase, setLocale, setTicketId } = useApp();
+    const isEnglish = state.locale === 'en';
     const [stage, setStage] = useState(0);
     const [scannerReady, setScannerReady] = useState(false);
     const [scanError, setScanError] = useState('');
@@ -57,15 +58,23 @@ export default function Phase0() {
                 (decodedText) => {
                     if (scannedRef.current) return;
                     const trimmed = decodedText.trim();
-                    if (trimmed.length < 10) {
-                        setScanError('有効なQRコードではありません。');
+                    let ticketId = trimmed;
+                    try {
+                        if (/^https?:\/\//i.test(trimmed) || trimmed.startsWith('/')) {
+                            const scannedUrl = new URL(trimmed, window.location.origin);
+                            ticketId = scannedUrl.searchParams.get('id') || trimmed;
+                            if (scannedUrl.searchParams.get('lang') === 'en') setLocale('en');
+                        }
+                    } catch { /* QR may contain a bare ticket id */ }
+                    if (ticketId.length < 10) {
+                        setScanError(isEnglish ? 'This QR code is not valid.' : '有効なQRコードではありません。');
                         return;
                     }
                     // スキャン成功
                     scannedRef.current = true;
                     try { scanner.clear().catch(() => { }); } catch { }
                     scannerRef.current = null;
-                    setTicketId(trimmed);
+                    setTicketId(ticketId);
                     setStage(5);
                     setTimeout(() => goToPhase(1), 800);
                 },
@@ -80,7 +89,7 @@ export default function Phase0() {
                 scannerRef.current = null;
             }
         };
-    }, [scannerReady, setTicketId, goToPhase]);
+    }, [scannerReady, setTicketId, setLocale, goToPhase, isEnglish]);
 
     const handleTap = () => {
         if (stage < 3 && !scannedRef.current) {
@@ -100,6 +109,10 @@ export default function Phase0() {
                 cursor: stage < 3 ? 'pointer' : 'default',
             }}
         >
+            <div style={{ position: 'fixed', top: 18, right: 18, zIndex: 20, display: 'flex', gap: 6 }}>
+                <button type="button" className="button" aria-pressed={!isEnglish} onClick={(event) => { event.stopPropagation(); setLocale('ja'); }}>日本語</button>
+                <button type="button" className="button" aria-pressed={isEnglish} onClick={(event) => { event.stopPropagation(); setLocale('en'); }}>English</button>
+            </div>
             {/* タイトル */}
             <p
                 style={{
@@ -116,7 +129,7 @@ export default function Phase0() {
                         : 'opacity 2.2s var(--ease), transform 2.2s var(--ease)',
                 }}
             >
-                妖怪生成装置
+                {isEnglish ? 'Yokai Generator' : '妖怪生成装置'}
             </p>
 
             {/* サブテキスト */}
@@ -136,9 +149,7 @@ export default function Phase0() {
                         : 'opacity 1.4s ease, transform 1.4s ease',
                 }}
             >
-                あなたの体験から
-                <br />
-                新たな妖怪の記録を生成します
+                {isEnglish ? <>From your experience,<br />we will create a record of a new yokai.</> : <>あなたの体験から<br />新たな妖怪の記録を生成します</>}
             </p>
 
             {/* QRスキャナー（タイトル完了後に自動表示） */}
@@ -162,7 +173,7 @@ export default function Phase0() {
                             animation: 'breathe 4s ease-in-out infinite',
                         }}
                     >
-                        QRコードをかざしてください
+                        {isEnglish ? 'Hold your QR code in front of the camera' : 'QRコードをかざしてください'}
                     </p>
 
                     <div

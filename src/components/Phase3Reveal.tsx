@@ -263,6 +263,12 @@ function FogGenerationCanvas({ apiDoneRef }: { apiDoneRef: React.RefObject<boole
 
 export default function Phase3Reveal() {
     const { state, goToPhase, setNarrative, setGeneratedImage, setImageFeedback, completeImageGeneration, setTicketId, resetState } = useApp();
+    const isEnglish = state.locale === 'en';
+    const copy = isEnglish ? {
+        generating: 'Bringing the presence into an image...', imageError: 'We could not generate the image.', remake: 'Try again', back: 'Back to appearance', saved: 'Your record was saved.', imageAlt: 'Yokai', story: 'A short story for this yokai', saveStory: 'Save story', saveError: 'We could not save the text', kept: 'What fits this image? (optional)', changed: 'What differs from your experience? (optional)', keptPlaceholder: 'For example: it remains, a misty shape', changedPlaceholder: 'For example: it does not chase me; it is more annoying than scary', remakeWithFeedback: (remaining: number) => `Remake with these notes (${remaining} left)`, limit: 'The image remake limit has been reached', survey: 'Continue to the survey', thanks: 'Thank you, whether or not you continue to the survey.', redraw: 'Edit or remake', chooseConcept: 'Choose a concept again', home: 'Return to the start', idle: 'There has been no activity. Returning to the start soon…',
+    } : {
+        generating: '気配を像に写しています...', imageError: '画像の生成処理に失敗しました。', remake: '再生成', back: '画風選択へ戻る', saved: '記録が完了しました。', imageAlt: '妖怪', story: 'この妖怪の短い物語', saveStory: '文章を保存する', saveError: '文章を保存できませんでした', kept: 'この画像で合っているところ（任意）', changed: 'あなたの経験と違うところ（任意）', keptPlaceholder: '例：ずっといる感じ、霧の姿', changedPlaceholder: '例：追いかけてはこない。怖いより鬱陶しい', remakeWithFeedback: (remaining: number) => `この内容を反映して作り直す（残り ${remaining} 回）`, limit: '画像の作り直し上限に達しました', survey: 'アンケートへ進む', thanks: 'アンケートに回答されない方もありがとうございました。', redraw: '再描画', chooseConcept: '概念から選び直す', home: '初期画面へ戻る', idle: '操作がありません。まもなく初期画面に戻ります…',
+    };
     const [showImage, setShowImage] = useState(false);
     const [showName, setShowName] = useState(false);
     const [showNarrative, setShowNarrative] = useState(false);
@@ -399,6 +405,7 @@ export default function Phase3Reveal() {
                     location: f.location,
                 })) || [],
                 state.imageGenerationVersion,
+                state.locale,
             );
 
             if (!mountedRef.current || requestId !== reqRef.current || controller.signal.aborted) {
@@ -514,6 +521,7 @@ export default function Phase3Reveal() {
         state.ticketId,
         state.generatedImageUrl,
         state.imageGenerationVersion,
+        state.locale,
         state.completedImageGenerationVersion,
         setGeneratedImage,
         setNarrative,
@@ -598,7 +606,7 @@ export default function Phase3Reveal() {
                     position: 'relative',
                     zIndex: 11,
                 }}>
-                    <p className="generation-wait">気配を像に写しています...</p>
+                    <p className="generation-wait">{copy.generating}</p>
                     {warning && (
                         <p style={{ fontSize: 12, color: 'var(--text-ghost)' }}>
                             {warning}
@@ -613,7 +621,7 @@ export default function Phase3Reveal() {
         return (
             <div className="phase" style={{ justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
                 <p className="voice" style={{ marginBottom: 16 }}>
-                    画像の生成処理に失敗しました。
+                    {copy.imageError}
                 </p>
                 <p style={{ fontSize: 12, color: 'var(--text-ghost)', marginBottom: 24 }}>
                     {error}
@@ -627,14 +635,14 @@ export default function Phase3Reveal() {
                     <button className="button" onClick={() => {
                         goToPhase(3);
                     }}>
-                        再生成
+                        {copy.remake}
                     </button>
                     <button className="button button-primary" onClick={() => {
                         if (isTransitioning) return;
                         setIsTransitioning(true);
                         goToPhase(3);
                     }} disabled={isTransitioning}>
-                        画風選択へ戻る
+                        {copy.back}
                     </button>
                 </div>
             </div>
@@ -650,7 +658,7 @@ export default function Phase3Reveal() {
                             <div style={{ position: 'relative', width: '100%', height: '100%' }}>
                                 <img
                                     src={imageDataUrl}
-                                    alt={state.yokaiName || '妖怪'}
+                                    alt={state.yokaiName || copy.imageAlt}
                                     style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 2 }}
                                 />
                             </div>
@@ -664,7 +672,7 @@ export default function Phase3Reveal() {
                                 background: 'var(--bg-surface)',
                             }}>
                                 <p style={{ color: 'var(--text-ghost)', fontSize: 12 }}>
-                                    画像の生成処理に失敗しました。
+                                    {copy.imageError}
                                 </p>
                             </div>
                         )}
@@ -709,7 +717,7 @@ export default function Phase3Reveal() {
                     }}>
                         {saveSuccess && (
                             <p style={{ color: 'var(--text-dim)', fontSize: 14, marginBottom: 8 }}>
-                                記録が完了しました。
+                                {copy.saved}
                             </p>
                         )}
                         {saveError && (
@@ -719,30 +727,30 @@ export default function Phase3Reveal() {
                         )}
                         <ExperienceComparison />
                         <div style={{ width: '100%', maxWidth: 520, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                            <label className="label">この妖怪の短い物語</label>
+                            <label className="label">{copy.story}</label>
                             <textarea className="text-input" value={narrativeDraft} onChange={e => setNarrativeDraft(e.target.value)} style={{ minHeight: 88, resize: 'vertical' }} />
                             <button className="button" disabled={!narrativeDraft.trim()} onClick={async () => {
                                 const nextNarrative = narrativeDraft.trim();
                                 setNarrative(nextNarrative);
                                 if (state.ticketId) {
                                     const { error: updateError } = await supabase.from('surveys').update({ yokai_name: state.yokaiName, yokai_desc: nextNarrative }).eq('id', state.ticketId);
-                                    if (updateError) setSaveError(`文章を保存できませんでした: ${updateError.message}`);
+                                    if (updateError) setSaveError(`${copy.saveError}: ${updateError.message}`);
                                     else setSaveSuccess(true);
                                 }
-                            }}>文章を保存する</button>
-                            <label className="label">この画像で合っているところ（任意）</label>
-                            <textarea className="text-input" value={kept} onChange={e => setKept(e.target.value)} style={{ minHeight: 64, resize: 'vertical' }} placeholder="例：ずっといる感じ、霧の姿" />
-                            <label className="label">あなたの経験と違うところ（任意）</label>
-                            <textarea className="text-input" value={changed} onChange={e => setChanged(e.target.value)} style={{ minHeight: 64, resize: 'vertical' }} placeholder="例：追いかけてはこない。怖いより鬱陶しい" />
+                            }}>{copy.saveStory}</button>
+                            <label className="label">{copy.kept}</label>
+                            <textarea className="text-input" value={kept} onChange={e => setKept(e.target.value)} style={{ minHeight: 64, resize: 'vertical' }} placeholder={copy.keptPlaceholder} />
+                            <label className="label">{copy.changed}</label>
+                            <textarea className="text-input" value={changed} onChange={e => setChanged(e.target.value)} style={{ minHeight: 64, resize: 'vertical' }} placeholder={copy.changedPlaceholder} />
                             <button className="button" disabled={state.imageGenerationCount >= 3} onClick={() => {
                                 setImageFeedback(kept.trim(), changed.trim());
                                 goToPhase(3);
                             }}>
-                                {state.imageGenerationCount < 3 ? `この内容を反映して作り直す（残り ${3 - state.imageGenerationCount} 回）` : '画像の作り直し上限に達しました'}
+                                {state.imageGenerationCount < 3 ? copy.remakeWithFeedback(3 - state.imageGenerationCount) : copy.limit}
                             </button>
                         </div>
                         <a
-                            href={`/survey/exit?id=${state.ticketId}`}
+                            href={`/survey/exit?id=${state.ticketId}${state.locale === 'en' ? '&lang=en' : ''}`}
                             className="button button-primary"
                             style={{
                                 display: 'inline-block',
@@ -753,30 +761,30 @@ export default function Phase3Reveal() {
                                 letterSpacing: '0.15em',
                             }}
                         >
-                            アンケートへ進む
+                            {copy.survey}
                         </a>
                         <p className="voice" style={{ fontSize: 12, opacity: 0.45, marginTop: 4 }}>
-                            アンケートに回答されない方もありがとうございました。
+                            {copy.thanks}
                         </p>
                         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
                             <button className="button" onClick={() => {
                                 goToPhase(3);
                             }}>
-                                再描画
+                                {copy.redraw}
                             </button>
                             <button className="button" onClick={() => {
                                 if (isTransitioning) return;
                                 setIsTransitioning(true);
                                 goToPhase(2);
                             }} disabled={isTransitioning}>
-                                概念から選び直す
+                                {copy.chooseConcept}
                             </button>
                             <button className="button" onClick={() => {
                                 if (isTransitioning) return;
                                 setIsTransitioning(true);
                                 resetState();
                             }} disabled={isTransitioning}>
-                                初期画面へ戻る
+                                {copy.home}
                             </button>
                         </div>
 
@@ -787,7 +795,7 @@ export default function Phase3Reveal() {
                                 marginTop: 16,
                                 animation: 'breathe 2s ease-in-out infinite',
                             }}>
-                                操作がありません。まもなく初期画面に戻ります…
+                                {copy.idle}
                             </p>
                         )}
                     </div>
