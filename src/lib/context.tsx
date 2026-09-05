@@ -20,6 +20,7 @@ export interface FolkloreResult {
   content: string;
   location: string;
   similarity: number;
+  source?: string;
 }
 
 export interface YokaiConcept {
@@ -29,6 +30,17 @@ export interface YokaiConcept {
   description: string;
   label: string;
   folkloreRef?: FolkloreResult;
+  namingType?: string;
+}
+
+export interface ConceptRevision {
+  name: string;
+  description: string;
+  previousName: string;
+  previousDescription: string;
+  kept: string;
+  changed: string;
+  createdAt: string;
 }
 
 export interface AppState {
@@ -52,6 +64,12 @@ export interface AppState {
   generatedImageUrl: string | null;
   yokaiName: string;
   narrative: string;
+  conceptRevisions: ConceptRevision[];
+  imageGenerationCount: number;
+  imageGenerationVersion: number;
+  completedImageGenerationVersion: number;
+  imageKept: string;
+  imageChanged: string;
 }
 
 interface AppContextType {
@@ -70,6 +88,11 @@ interface AppContextType {
   setGeneratedImage: (url: string) => void;
   setYokaiName: (name: string) => void;
   setNarrative: (narrative: string) => void;
+  reviseSelectedConcept: (revision: Omit<ConceptRevision, 'createdAt' | 'previousName' | 'previousDescription'>) => void;
+  undoConceptRevision: () => void;
+  setImageFeedback: (kept: string, changed: string) => void;
+  requestImageGeneration: () => boolean;
+  completeImageGeneration: () => void;
   setTicketId: (id: string) => void;
   resetState: () => void;
   /** Phase内サブステップの戻りハンドラーを登録するためのref */
@@ -92,6 +115,12 @@ const initialState: AppState = {
   generatedImageUrl: null,
   yokaiName: '',
   narrative: '',
+  conceptRevisions: [],
+  imageGenerationCount: 0,
+  imageGenerationVersion: 0,
+  completedImageGenerationVersion: 0,
+  imageKept: '',
+  imageChanged: '',
 };
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -129,7 +158,10 @@ function persistState(state: AppState) {
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(() => loadPersistedState() ?? initialState);
+  const stateRef = useRef(state);
   const backOverrideRef = useRef<(() => boolean) | null>(null);
+
+  useEffect(() => { stateRef.current = state; }, [state]);
 
   // Debounced persistence to sessionStorage
   const persistTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -180,6 +212,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ...prev,
       selectedConcept: concept,
       yokaiName: concept.name,
+      conceptRevisions: [],
+      imageKept: '',
+      imageChanged: '',
+      generatedImageUrl: null,
+      narrative: '',
     }));
   }, []);
 
@@ -197,6 +234,60 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const setNarrative = useCallback((narrative: string) => {
     setState(prev => ({ ...prev, narrative }));
+  }, []);
+
+  const reviseSelectedConcept = useCallback((revision: Omit<ConceptRevision, 'createdAt' | 'previousName' | 'previousDescription'>) => {
+    setState(prev => {
+      if (!prev.selectedConcept) return prev;
+      const nextConcept = { ...prev.selectedConcept, name: revision.name, description: revision.description };
+      return {
+        ...prev,
+        selectedConcept: nextConcept,
+        yokaiName: revision.name,
+        conceptRevisions: [...prev.conceptRevisions, {
+          ...revision,
+          previousName: prev.selectedConcept.name,
+          previousDescription: prev.selectedConcept.description,
+          createdAt: new Date().toISOString(),
+        }],
+      };
+    });
+  }, []);
+
+  const undoConceptRevision = useCallback(() => {
+    setState(prev => {
+      const last = prev.conceptRevisions.at(-1);
+      if (!last || !prev.selectedConcept) return prev;
+      return {
+        ...prev,
+        selectedConcept: { ...prev.selectedConcept, name: last.previousName, description: last.previousDescription },
+        yokaiName: last.previousName,
+        conceptRevisions: prev.conceptRevisions.slice(0, -1),
+      };
+    });
+  }, []);
+
+  const setImageFeedback = useCallback((kept: string, changed: string) => {
+    setState(prev => ({ ...prev, imageKept: kept, imageChanged: changed }));
+  }, []);
+
+  // Initial image plus two user-requested remakes. Incrementing happens only
+  // immediately before an explicit generation request.
+  const requestImageGeneration = useCallback(() => {
+    if (stateRef.current.imageGenerationCount >= 3) return false;
+    setState(prev => {
+      if (prev.imageGenerationCount >= 3) return prev;
+      return {
+        ...prev,
+        imageGenerationCount: prev.imageGenerationCount + 1,
+        imageGenerationVersion: prev.imageGenerationVersion + 1,
+      };
+    });
+    return true;
+  }, []);
+
+  const completeImageGeneration = useCallback(() => {
+    setState(prev => ({ ...prev, completedImageGenerationVersion: prev.imageGenerationVersion }));
   }, []);
 
   const setTicketId = useCallback((id: string) => {
@@ -224,6 +315,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setGeneratedImage,
     setYokaiName,
     setNarrative,
+    reviseSelectedConcept,
+    undoConceptRevision,
+    setImageFeedback,
+    requestImageGeneration,
+    completeImageGeneration,
     setTicketId,
     resetState,
     backOverrideRef,
@@ -243,6 +339,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setGeneratedImage,
     setYokaiName,
     setNarrative,
+    reviseSelectedConcept,
+    undoConceptRevision,
+    setImageFeedback,
+    requestImageGeneration,
+    completeImageGeneration,
     setTicketId,
     resetState,
     backOverrideRef,

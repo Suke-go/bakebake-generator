@@ -165,7 +165,7 @@ async function runSearchFallback(
     }
 
     // アスペクト分離検索を優先、なければ従来検索にフォールバック
-    const userRegion = answers.where?.trim() || undefined;
+    const userRegion = answers.location?.trim() || answers.where?.trim() || undefined;
     const aspectResults = searchByAspects(queryEmbedding, 5, userRegion);
     if (aspectResults) {
         return { folklore: aspectResults, searchQuery };

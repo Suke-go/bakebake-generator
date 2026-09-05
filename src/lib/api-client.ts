@@ -143,11 +143,12 @@ function buildImageCacheKey(
     concept: { name: string; reading: string; description: string },
     artStyle: string,
     visualInput: string,
-    answers: Record<string, string>
+    answers: Record<string, string>,
+    generationVersion = 0,
 ): string {
     const sortedAnswerKeys = Object.keys(answers).sort();
     const answerSig = sortedAnswerKeys.map((key) => `${key}:${answers[key] ?? ''}`).join(IMAGE_CACHE_KEY_SEPARATOR);
-    return `${concept.name}${IMAGE_CACHE_KEY_SEPARATOR}${concept.reading}${IMAGE_CACHE_KEY_SEPARATOR}${concept.description}${IMAGE_CACHE_KEY_SEPARATOR}${artStyle}${IMAGE_CACHE_KEY_SEPARATOR}${answerSig}${IMAGE_CACHE_KEY_SEPARATOR}${visualInput}`;
+    return `${concept.name}${IMAGE_CACHE_KEY_SEPARATOR}${concept.reading}${IMAGE_CACHE_KEY_SEPARATOR}${concept.description}${IMAGE_CACHE_KEY_SEPARATOR}${artStyle}${IMAGE_CACHE_KEY_SEPARATOR}${answerSig}${IMAGE_CACHE_KEY_SEPARATOR}${visualInput}${IMAGE_CACHE_KEY_SEPARATOR}${generationVersion}`;
 }
 
 function getImageCache(key: string): ImageResponse | null {
@@ -170,7 +171,9 @@ function setImageCache(key: string, value: ImageResponse) {
     imageClientCache.set(key, { value, expiresAt: Date.now() + IMAGE_CACHE_TTL_MS });
 }
 
-const API_RETRY_MAX_ATTEMPTS = 3;
+// Image generation is already provider-cached and rate-limited server-side.
+// Retrying a failed POST here can silently spend several image attempts.
+const API_RETRY_MAX_ATTEMPTS = 1;
 const API_RETRY_BASE_MS = 600;
 
 type ApiError = Error & {
@@ -392,11 +395,12 @@ export async function generateImage(
     visualInput: string,
     answers: Record<string, string>,
     signal?: AbortSignal,
-    folklore?: Array<{ kaiiName: string; content: string; location?: string }>
+    folklore?: Array<{ kaiiName: string; content: string; location?: string }>,
+    generationVersion = 0,
 ): Promise<ImageResponse> {
     throwIfAborted(signal);
 
-    const cacheKey = buildImageCacheKey(concept, artStyle, visualInput, answers);
+    const cacheKey = buildImageCacheKey(concept, artStyle, visualInput, answers, generationVersion);
     const cached = getImageCache(cacheKey);
     if (cached) {
         return cached;
@@ -407,7 +411,7 @@ export async function generateImage(
         return withAbortSignal(inFlight, signal);
     }
 
-    const sharedRequest = requestJsonInternal<ImageResponse>('/api/generate-image', { concept, artStyle, visualInput, answers, folklore: folklore || [] })
+    const sharedRequest = requestJsonInternal<ImageResponse>('/api/generate-image', { concept, artStyle, visualInput, answers, folklore: folklore || [], generationVersion })
         .then((result) => {
             setImageCache(cacheKey, result);
             return result;

@@ -44,11 +44,12 @@ function buildImageRequestKey(
     concept: { name: string; reading: string; description: string },
     artStyle: string | null,
     visualInput: string,
-    answers: Record<string, string>
+    answers: Record<string, string>,
+    generationVersion = 0,
 ): string {
     const sortedAnswerKeys = Object.keys(answers).sort();
     const answerSig = sortedAnswerKeys.map((key) => `${key}:${answers[key] ?? ''}`).join('|');
-    return `${concept.name}|${concept.reading}|${concept.description}|${artStyle || ''}|${answerSig}|${visualInput}`;
+    return `${concept.name}|${concept.reading}|${concept.description}|${artStyle || ''}|${answerSig}|${visualInput}|${generationVersion}`;
 }
 
 const MOTE_POOL_SIZE = 200;
@@ -260,7 +261,7 @@ function FogGenerationCanvas({ apiDoneRef }: { apiDoneRef: React.RefObject<boole
 }
 
 export default function Phase3Reveal() {
-    const { state, goToPhase, setNarrative, setGeneratedImage, resetState } = useApp();
+    const { state, goToPhase, setNarrative, setGeneratedImage, setImageFeedback, completeImageGeneration, setTicketId, resetState } = useApp();
     const [showImage, setShowImage] = useState(false);
     const [showName, setShowName] = useState(false);
     const [showNarrative, setShowNarrative] = useState(false);
@@ -278,11 +279,15 @@ export default function Phase3Reveal() {
     const lastRequestKeyRef = useRef('');
     const activeRequestKeyRef = useRef<string | null>(null);
     const cachedImageUrlRef = useRef<string | null>(state.generatedImageUrl);
+    const callApiRef = useRef<() => Promise<void>>(async () => {});
 
     // Save State
     const [saveSuccess, setSaveSuccess] = useState(false);
     const [saveError, setSaveError] = useState('');
     const [isTransitioning, setIsTransitioning] = useState(false);
+    const [kept, setKept] = useState(state.imageKept);
+    const [changed, setChanged] = useState(state.imageChanged);
+    const [narrativeDraft, setNarrativeDraft] = useState(state.narrative);
 
     // Auto-reset idle timer
     const [showIdlePrompt, setShowIdlePrompt] = useState(false);
@@ -302,30 +307,26 @@ export default function Phase3Reveal() {
         }
     }, []);
 
-    const resetRevealState = useCallback(() => {
-        setShowImage(false);
-        setShowName(false);
-        setShowNarrative(false);
-        setShowActions(false);
-        // Revoke old blob URL to free memory
-        if (blobUrlRef.current) {
-            URL.revokeObjectURL(blobUrlRef.current);
-            blobUrlRef.current = null;
-        }
-        setImageDataUrl('');
-        setApiDone(false);
-        apiDoneRef.current = false;
-        setError('');
-        setWarning('');
-        setGeneratedImage('');
-        setNarrative('');
-    }, [setGeneratedImage, setNarrative]);
-
     useEffect(() => {
         cachedImageUrlRef.current = state.generatedImageUrl;
     }, [state.generatedImageUrl]);
 
     const callApi = useCallback(async () => {
+        if (state.imageGenerationVersion === 0) {
+            setError('画像を生成するには、前の画面で「この内容で画像を生成する」を選んでください。');
+            setApiDone(true);
+            apiDoneRef.current = true;
+            return;
+        }
+        if (
+            state.generatedImageUrl &&
+            state.completedImageGenerationVersion >= state.imageGenerationVersion
+        ) {
+            setImageDataUrl(state.generatedImageUrl);
+            setApiDone(true);
+            apiDoneRef.current = true;
+            return;
+        }
         if (!state.selectedConcept) {
             setError('概念が選択されていません。');
             apiDoneRef.current = true;
@@ -341,7 +342,8 @@ export default function Phase3Reveal() {
             },
             state.artStyle ?? null,
             state.visualInput,
-            state.answers
+            state.answers,
+            state.imageGenerationVersion,
         );
 
         const cachedImageUrl = cachedImageUrlRef.current;
@@ -357,13 +359,19 @@ export default function Phase3Reveal() {
             return;
         }
 
-        resetRevealState();
+        // A remake is a new explicit attempt. Keep the previous saved image in
+        // state until the new request succeeds so an error cannot destroy it.
+        const hasPreviousImage = Boolean(state.generatedImageUrl);
+        if (hasPreviousImage) setImageDataUrl(state.generatedImageUrl!);
+        setShowImage(hasPreviousImage);
+        setShowName(hasPreviousImage);
+        setShowNarrative(hasPreviousImage);
+        setShowActions(false);
         setApiDone(false);
         setError('');
         setWarning('');
-        setImageDataUrl('');
-        setGeneratedImage('');
-        setNarrative('');
+        // Keep the current image and narrative in state until a new image has
+        // arrived. A failed remake must leave the prior work recoverable.
 
         lastRequestKeyRef.current = requestKey;
         activeRequestKeyRef.current = requestKey;
@@ -388,7 +396,8 @@ export default function Phase3Reveal() {
                     kaiiName: f.kaiiName,
                     content: f.content,
                     location: f.location,
-                })) || []
+                })) || [],
+                state.imageGenerationVersion,
             );
 
             if (!mountedRef.current || requestId !== reqRef.current || controller.signal.aborted) {
@@ -412,12 +421,16 @@ export default function Phase3Reveal() {
                 blobUrlRef.current = blobUrl;
                 setImageDataUrl(blobUrl);
                 setGeneratedImage(blobUrl);
-            } else {
+            } else if (!state.generatedImageUrl) {
                 setImageDataUrl('');
-                setGeneratedImage('');
             }
 
-            setNarrative(data.narrative);
+            // An image-less remake must not replace the text stored with the
+            // previous image; otherwise the receipt and screen diverge.
+            if (data.narrative && (data.imageBase64 || !state.generatedImageUrl)) {
+                setNarrative(data.narrative);
+                setNarrativeDraft(data.narrative);
+            }
             setApiDone(true);
             apiDoneRef.current = true;
 
@@ -459,6 +472,7 @@ export default function Phase3Reveal() {
                             setSaveError(`DB保存エラー: ${insertError.message}`);
                         } else {
                             console.log('[Phase3Reveal] Yokai inserted as new row:', inserted?.[0]?.id);
+                            if (inserted?.[0]?.id) setTicketId(inserted[0].id);
                             setSaveSuccess(true);
                         }
                     }
@@ -484,36 +498,40 @@ export default function Phase3Reveal() {
             apiDoneRef.current = true;
             setApiDone(true);
         } finally {
+            completeImageGeneration();
             if (activeRequestKeyRef.current === requestKey) {
                 activeRequestKeyRef.current = null;
             }
         }
     }, [
         abortCurrentRequest,
-        resetRevealState,
         state.selectedConcept,
         state.artStyle,
         state.visualInput,
         state.answers,
+        state.folkloreResults,
         state.ticketId,
+        state.generatedImageUrl,
+        state.imageGenerationVersion,
+        state.completedImageGenerationVersion,
         setGeneratedImage,
         setNarrative,
+        completeImageGeneration,
+        setTicketId,
     ]);
+
+    callApiRef.current = callApi;
 
     useEffect(() => {
         mountedRef.current = true;
         return () => {
             mountedRef.current = false;
-            abortCurrentRequest('phase3 unmount');
         };
-    }, [abortCurrentRequest]);
+    }, []);
 
     useEffect(() => {
-        void Promise.resolve().then(() => callApi());
-        return () => {
-            abortCurrentRequest('phase3 effect cleanup');
-        };
-    }, [callApi, abortCurrentRequest]);
+        void callApiRef.current();
+    }, [state.imageGenerationVersion]);
 
 
     // Auto-reset: 30s idle → prompt, 10s more → reset
@@ -606,7 +624,7 @@ export default function Phase3Reveal() {
                 )}
                 <div style={{ display: 'flex', gap: 12 }}>
                     <button className="button" onClick={() => {
-                        void callApi();
+                        goToPhase(3);
                     }}>
                         再生成
                     </button>
@@ -698,6 +716,29 @@ export default function Phase3Reveal() {
                                 {saveError}
                             </p>
                         )}
+                        <div style={{ width: '100%', maxWidth: 520, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            <label className="label">この妖怪の短い物語</label>
+                            <textarea className="text-input" value={narrativeDraft} onChange={e => setNarrativeDraft(e.target.value)} style={{ minHeight: 88, resize: 'vertical' }} />
+                            <button className="button" disabled={!narrativeDraft.trim()} onClick={async () => {
+                                const nextNarrative = narrativeDraft.trim();
+                                setNarrative(nextNarrative);
+                                if (state.ticketId) {
+                                    const { error: updateError } = await supabase.from('surveys').update({ yokai_name: state.yokaiName, yokai_desc: nextNarrative }).eq('id', state.ticketId);
+                                    if (updateError) setSaveError(`文章を保存できませんでした: ${updateError.message}`);
+                                    else setSaveSuccess(true);
+                                }
+                            }}>文章を保存する</button>
+                            <label className="label">この画像で合っているところ（任意）</label>
+                            <textarea className="text-input" value={kept} onChange={e => setKept(e.target.value)} style={{ minHeight: 64, resize: 'vertical' }} placeholder="例：ずっといる感じ、霧の姿" />
+                            <label className="label">あなたの経験と違うところ（任意）</label>
+                            <textarea className="text-input" value={changed} onChange={e => setChanged(e.target.value)} style={{ minHeight: 64, resize: 'vertical' }} placeholder="例：追いかけてはこない。怖いより鬱陶しい" />
+                            <button className="button" disabled={state.imageGenerationCount >= 3} onClick={() => {
+                                setImageFeedback(kept.trim(), changed.trim());
+                                goToPhase(3);
+                            }}>
+                                {state.imageGenerationCount < 3 ? `この内容を反映して作り直す（残り ${3 - state.imageGenerationCount} 回）` : '画像の作り直し上限に達しました'}
+                            </button>
+                        </div>
                         <a
                             href={`/survey/exit?id=${state.ticketId}`}
                             className="button button-primary"
@@ -717,7 +758,7 @@ export default function Phase3Reveal() {
                         </p>
                         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
                             <button className="button" onClick={() => {
-                                void callApi();
+                                goToPhase(3);
                             }}>
                                 再描画
                             </button>

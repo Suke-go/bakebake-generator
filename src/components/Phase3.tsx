@@ -1,220 +1,144 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useApp, ArtStyle } from '@/lib/context';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { ArtStyle, useApp } from '@/lib/context';
+import { supabase } from '@/lib/supabase';
 import ProgressDots from './ProgressDots';
 
 const ART_STYLES: { id: ArtStyle; name: string; desc: string }[] = [
-    {
-        id: 'sumi',
-        name: '水墨画',
-        desc: '余白とにじみの筆致。石燕以前の妖怪画の系譜。',
-    },
-    {
-        id: 'emaki',
-        name: '絵巻',
-        desc: '百鬼夜行絵巻に連なる横長の物語様式。',
-    },
-    {
-        id: 'ukiyoe',
-        name: '浮世絵',
-        desc: '鳥山石燕の拭きぼかしを継ぐ木版画様式。',
-    },
-    {
-        id: 'manga',
-        name: '漫画風',
-        desc: '点描と綻密な背景が織りなす現代妖怪画。',
-    },
-    {
-        id: 'dennou',
-        name: '電脳',
-        desc: 'ノイズと光の電子的様式。デジタルの怪異。',
-    },
+    { id: 'sumi', name: '水墨画', desc: '余白とにじみのある、静かな墨の表現' },
+    { id: 'emaki', name: '絵巻', desc: '物語の一場面のような、連なる時間の表現' },
+    { id: 'ukiyoe', name: '浮世絵', desc: '輪郭と色を生かした、版画のような表現' },
+    { id: 'manga', name: '漫画', desc: '線と間で気配を描く、現代的な表現' },
+    { id: 'dennou', name: '電脳', desc: 'ノイズと光を使った、現代の怪異の表現' },
 ];
 
 export default function Phase3() {
-    const { state, goToPhase, setVisualInput, setArtStyle, backOverrideRef } = useApp();
-    const [step, setStep] = useState<'style' | 'describe'>('style');
-    const [selectedStyle, setSelectedStyle] = useState<ArtStyle>(null);
-    const [showStyleIntro, setShowStyleIntro] = useState(false);
-    const [showStyleOptions, setShowStyleOptions] = useState(false);
-    const [input, setInput] = useState('');
-    const [showDescribe, setShowDescribe] = useState(false);
-    const [isTransitioning, setIsTransitioning] = useState(false);
+    const { state, goToPhase, setVisualInput, setArtStyle, reviseSelectedConcept, undoConceptRevision, requestImageGeneration, backOverrideRef } = useApp();
+    const [step, setStep] = useState<'review' | 'style' | 'visual'>('review');
+    const [name, setName] = useState(state.selectedConcept?.name ?? '');
+    const [description, setDescription] = useState(state.selectedConcept?.description ?? '');
+    const [kept, setKept] = useState(state.imageKept);
+    const [changed, setChanged] = useState(state.imageChanged);
+    const [visual, setVisual] = useState(state.visualInput);
 
-    // describe ステップから style 選択に戻る
-    const goBackToStyle = useCallback(() => {
-        setShowDescribe(false);
-        setTimeout(() => {
-            setStep('style');
-            setSelectedStyle(null);
-            setArtStyle(null);
-            setInput('');
-            setIsTransitioning(false);
-        }, 300);
-    }, [setArtStyle]);
-
-    // ←ボタンにサブステップ戻りを登録
     useEffect(() => {
-        if (step === 'describe') {
-            backOverrideRef.current = () => {
-                goBackToStyle();
-                return true;
-            };
-        } else {
-            backOverrideRef.current = null;
-        }
+        backOverrideRef.current = () => {
+            if (step === 'visual') { setStep('style'); return true; }
+            if (step === 'style') { setStep('review'); return true; }
+            return false;
+        };
         return () => { backOverrideRef.current = null; };
-    }, [step, goBackToStyle, backOverrideRef]);
+    }, [backOverrideRef, step]);
 
-    useEffect(() => {
-        if (step === 'style') {
-            const t1 = setTimeout(() => setShowStyleIntro(true), 260);
-            const t2 = setTimeout(() => setShowStyleOptions(true), 900);
-            return () => {
-                clearTimeout(t1);
-                clearTimeout(t2);
-            };
+    const saveReview = useCallback(() => {
+        const nextName = name.trim() || state.selectedConcept?.name || '';
+        const nextDescription = description.trim() || state.selectedConcept?.description || '';
+        const last = state.conceptRevisions.at(-1);
+        const hasChanged = nextName !== state.selectedConcept?.name ||
+            nextDescription !== state.selectedConcept?.description ||
+            kept.trim() !== (last?.kept ?? '') ||
+            changed.trim() !== (last?.changed ?? '');
+        if (hasChanged) {
+            reviseSelectedConcept({ name: nextName, description: nextDescription, kept: kept.trim(), changed: changed.trim() });
         }
-        return undefined;
-    }, [step]);
+    }, [changed, description, kept, name, reviseSelectedConcept, state.conceptRevisions, state.selectedConcept]);
 
-    useEffect(() => {
-        if (step === 'describe') {
-            const t = setTimeout(() => setShowDescribe(true), 240);
-            return () => clearTimeout(t);
-        }
-        return undefined;
-    }, [step]);
-
-    const handleStyleSelect = (style: ArtStyle) => {
-        if (isTransitioning) return;
-        setIsTransitioning(true);
-        setSelectedStyle(style);
+    const chooseStyle = (style: ArtStyle) => {
+        saveReview();
         setArtStyle(style);
-        setTimeout(() => {
-            setStep('describe');
-            setIsTransitioning(false);
-        }, 420);
+        setStep('visual');
     };
 
-    const handleSubmit = () => {
-        if (isTransitioning) return;
-        setIsTransitioning(true);
-        if (document.activeElement instanceof HTMLElement) {
-            document.activeElement.blur();
-        }
-        if (input.trim()) {
-            setVisualInput(input.trim());
-        }
-        setShowDescribe(false);
-        setTimeout(() => goToPhase(3.5), 260);
+    const generate = () => {
+        saveReview();
+        setVisualInput([visual.trim(), kept.trim() ? `残す: ${kept.trim()}` : '', changed.trim() ? `変える: ${changed.trim()}` : ''].filter(Boolean).join('\n'));
+        if (requestImageGeneration()) goToPhase(3.5);
     };
 
-    if (step === 'style') {
+    const undoLatestRevision = () => {
+        const previous = state.conceptRevisions.at(-1);
+        if (!previous) return;
+        undoConceptRevision();
+        setName(previous.previousName);
+        setDescription(previous.previousDescription);
+        setKept(previous.kept);
+        setChanged(previous.changed);
+    };
+
+    const returnToCompletedWork = async () => {
+        const finalName = name.trim() || state.selectedConcept?.name || '';
+        saveReview();
+        if (state.ticketId) {
+            const { error } = await supabase
+                .from('surveys')
+                .update({ yokai_name: finalName, yokai_desc: state.narrative })
+                .eq('id', state.ticketId);
+            if (error) console.warn('Could not synchronize final yokai text:', error.message);
+        }
+        goToPhase(3.5);
+    };
+
+    if (!state.selectedConcept) return null;
+
+    if (step === 'review') {
         return (
             <div className="phase-scrollable phase-enter">
-                {showStyleIntro && (
-                    <>
-                        <p className="voice float-up" style={{ marginBottom: 12 }}>
-                            {state.selectedConcept?.name || ''}
-                            {state.selectedConcept?.reading ? ` / ${state.selectedConcept.reading}` : ''}
-                        </p>
-                        <p className="voice float-up" style={{ marginBottom: 34, animationDelay: '0.25s' }}>
-                            記録に残すための画風を選択してください。
-                        </p>
-                    </>
+                <p className="voice" style={{ marginBottom: 10 }}>この妖怪を、あなたの経験に近づけます。</p>
+                <p style={{ color: 'var(--text-dim)', fontSize: 13, lineHeight: 1.8, marginBottom: 22 }}>
+                    名前や性質は、ここで自分の言葉に直せます。分からないところは、そのままで大丈夫です。
+                </p>
+                <label className="label">名前</label>
+                <input className="text-input" value={name} onChange={e => setName(e.target.value)} />
+                <label className="label" style={{ marginTop: 18 }}>性質と短い物語</label>
+                <textarea className="text-input" style={{ minHeight: 120, resize: 'vertical' }} value={description} onChange={e => setDescription(e.target.value)} />
+                {state.conceptRevisions.length > 0 && (
+                    <button className="button" style={{ alignSelf: 'flex-start', marginTop: 10 }} onClick={undoLatestRevision}>直前の編集を取り消す</button>
                 )}
-
-                {showStyleOptions && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-                        {ART_STYLES.map((s, i) => (
-                            <button
-                                key={s.id}
-                                className={`handle-option fade-in ${selectedStyle && selectedStyle !== s.id ? 'dimmed' : ''} ${selectedStyle === s.id ? 'selected' : ''}`}
-                                style={{ animationDelay: `${i * 0.1}s` }}
-                                onClick={() => !selectedStyle && handleStyleSelect(s.id)}
-                            >
-                                <span
-                                    style={{
-                                        fontSize: 18,
-                                        color: 'var(--text-bright)',
-                                        letterSpacing: '0.12em',
-                                    }}
-                                >
-                                    {s.name}
-                                </span>
-                                <br />
-                                <span
-                                    style={{
-                                        fontSize: 13,
-                                        color: 'var(--text-dim)',
-                                        letterSpacing: '0.04em',
-                                        marginTop: 4,
-                                        display: 'inline-block',
-                                    }}
-                                >
-                                    {s.desc}
-                                </span>
-                            </button>
-                        ))}
-                    </div>
-                )}
-
-                <div style={{ height: 60 }} />
+                <label className="label" style={{ marginTop: 18 }}>ここは残したいこと（任意）</label>
+                <textarea className="text-input" style={{ minHeight: 72, resize: 'vertical' }} value={kept} onChange={e => setKept(e.target.value)} placeholder="例：動かずにずっといる感じ" />
+                <label className="label" style={{ marginTop: 18 }}>違うところ・変えたいこと（任意）</label>
+                <textarea className="text-input" style={{ minHeight: 72, resize: 'vertical' }} value={changed} onChange={e => setChanged(e.target.value)} placeholder="例：追いかけてはこない" />
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 20 }}>
+                    <button className="button button-primary" onClick={() => { saveReview(); setStep('style'); }}>姿を選ぶ</button>
+                </div>
                 <ProgressDots current={4} />
             </div>
         );
     }
 
+    if (step === 'style') {
+        return (
+            <div className="phase-scrollable phase-enter">
+                <p className="voice" style={{ marginBottom: 26 }}>どんな姿で現れてほしいですか？</p>
+                {ART_STYLES.map(style => (
+                    <button key={style.id} className={`handle-option ${state.artStyle === style.id ? 'selected' : ''}`} onClick={() => chooseStyle(style.id)}>
+                        <span style={{ fontSize: 18 }}>{style.name}</span><br />
+                        <span style={{ color: 'var(--text-dim)', fontSize: 13 }}>{style.desc}</span>
+                    </button>
+                ))}
+                <ProgressDots current={4} />
+            </div>
+        );
+    }
+
+    const remaining = 3 - state.imageGenerationCount;
     return (
-        <div
-            className="phase"
-            style={{
-                opacity: showDescribe ? 1 : 0,
-                transition: 'opacity 0.5s ease',
-            }}
-        >
-            <p className="question-text" style={{ marginBottom: 16 }}>
-                外見の補足があれば入力してください。
+        <div className="phase-scrollable phase-enter">
+            <p className="question-text">姿について、付け加えたいことはありますか？</p>
+            <p style={{ color: 'var(--text-dim)', fontSize: 13, lineHeight: 1.8, marginBottom: 14 }}>
+                空欄でも生成できます。画像は最初の一枚と、作り直し二回までです。
             </p>
-
-            <p
-                style={{
-                    fontSize: 13,
-                    color: 'var(--text-dim)',
-                    marginBottom: 14,
-                    fontFamily: 'var(--font-main)',
-                }}
-            >
-                体格、距離感、光、動きなど。
-            </p>
-
-            <textarea
-                className="text-input"
-                style={{ minHeight: 100, resize: 'none' }}
-                placeholder="例: 霧の奥で、輪郭だけが揺れていた"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-            />
-
-            <div style={{ marginTop: 20, display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
-                {!input.trim() ? (
-                    <button className="button" onClick={handleSubmit}>
-                        おまかせで記録する
-                    </button>
+            <textarea className="text-input" style={{ minHeight: 100, resize: 'vertical' }} value={visual} onChange={e => setVisual(e.target.value)} placeholder="例：霧のように輪郭をはっきりさせない" />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 20 }}>
+                {remaining > 0 ? (
+                    <button className="button button-primary" onClick={generate}>この内容で画像を生成する</button>
+                ) : state.generatedImageUrl ? (
+                    <button className="button button-primary" onClick={() => void returnToCompletedWork()}>完成した妖怪に戻る</button>
                 ) : (
-                    <button
-                        className="button button-primary"
-                        onClick={handleSubmit}
-                        style={{ opacity: 1 }}
-                    >
-                        決定
-                    </button>
+                    <button className="button" onClick={() => goToPhase(2)}>概念を選び直す</button>
                 )}
             </div>
-
             <ProgressDots current={4} />
         </div>
     );

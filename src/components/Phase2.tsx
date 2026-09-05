@@ -42,6 +42,7 @@ export default function Phase2() {
         content: string;
         location: string;
         similarity: number;
+        source?: string;
     }>>([]);
     const [conceptData, setConceptData] = useState<YokaiConcept[]>([]);
 
@@ -127,7 +128,7 @@ export default function Phase2() {
                 controller.signal
             );
             const folklore = searchResult.folklore;
-            const localFallbackConcepts = folklore.slice(0, 3).map((entry: any) => ({
+            const localFallbackConcepts = folklore.slice(0, 3).map((entry) => ({
                 source: 'db' as const,
                 name: entry.kaiiName,
                 reading: '',
@@ -420,6 +421,9 @@ export default function Phase2() {
                                         charSizeVariation={0.08}
                                     />
                                     <p className="folklore-meta">{f.location}</p>
+                                    {f.source && (
+                                        <p className="folklore-meta" style={{ opacity: 0.7 }}>出典: {f.source}</p>
+                                    )}
                                 </div>
                             );
                         })}
@@ -445,7 +449,7 @@ export default function Phase2() {
                     <div>
                         {conceptData.filter(c => c.source === 'llm').slice(0, visibleConcepts).map((c, i) => {
                             const globalIdx = conceptData.indexOf(c);
-                            const namingType = (c as any).namingType as string | undefined;
+                            const namingType = c.namingType;
                             const typeLabel = namingType ? NAMING_TYPE_LABELS[namingType] || '' : '';
                             return (
                                 <button

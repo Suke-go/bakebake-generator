@@ -1,300 +1,178 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useApp } from '@/lib/context';
 import ProgressDots from './ProgressDots';
 
+type Answers = Record<string, string>;
+type StepId = 'experience' | 'context' | 'salientFeature' | 'duration' | 'explanation';
+
 interface StepDef {
-    id: string;
+    id: StepId;
     question: string;
     subtext?: string;
-    type: 'choice' | 'text' | 'choice+text';
-    options?: string[];
-    placeholder?: string;
+    optional?: boolean;
 }
 
 const STEPS: StepDef[] = [
-    {
-        id: 'perception',
-        question: '何を感じ取りましたか。',
-        subtext: '夢で見たこと、日常のふとした違和感——なんでも構いません。自由にお書きください。',
-        type: 'text',
-        placeholder: '例: 暗い廊下の奥から、誰かに見られている気がした',
-    },
-    {
-        id: 'where',
-        question: 'どんな場所での体験ですか。',
-        type: 'choice+text',
-        options: ['自宅', '通勤・通学路', '職場・学校', '旅先', '水辺', '決まっていない'],
-        placeholder: '自由に入力する',
-    },
-    {
-        id: 'when',
-        question: 'いつ頃のことですか。',
-        type: 'choice',
-        options: ['夜', '夕方', '明け方', '時間はばらばら'],
-    },
-    {
-        id: 'impression',
-        question: 'その体験の印象に近いものはどれですか。',
-        subtext: '身体の感覚でも、気持ちでも構いません。',
-        type: 'choice+text',
-        options: ['冷たい', '重い', '不思議', '懐かしい', '心細い', '惹かれる'],
-        placeholder: '自由に入力する',
-    },
-    {
-        id: 'nature',
-        question: 'もしそれが妖怪のしわざだとしたら——',
-        subtext: '現象だと思いますか、それとも何か実体があると思いますか。',
-        type: 'choice',
-        options: ['目に見えない現象だと思う', '気配はあるが姿はない', '何か実体があると思う'],
-    },
+    { id: 'experience', question: 'どんなことがありましたか？', subtext: '一度だけの出来事でも、繰り返す感覚でも構いません。覚えていることを、短い言葉で書いてください。' },
+    { id: 'context', question: 'どんな場面でしたか？', subtext: '場所や、そのときしていたことを、覚えている範囲で教えてください。', optional: true },
+    { id: 'salientFeature', question: 'その経験で、特に気になったのはどんなところですか？', subtext: '最初の回答と同じことを書いても構いません。', optional: true },
+    { id: 'duration', question: 'その経験は、どのように続きましたか？', subtext: '同じことが繰り返されたか、一度の経験がどのくらい続いたかを教えてください。', optional: true },
+    { id: 'explanation', question: 'この経験について、すでに自分なりの説明はありますか？', subtext: 'ここで新しく考え出す必要はありません。', optional: true },
 ];
 
-export default function Phase1Prime() {
-    const {
-        state,
-        goToPhase,
-        setTexture,
-        setStance,
-        setAbsenceQuality,
-        setAnswers: saveAnswersToContext,
-        backOverrideRef,
-    } = useApp();
+const RECURRENCE_OPTIONS = ['今回だけ', 'ほかにもある', '分からない'];
+const EXPLANATION_OPTIONS = ['ある', '特にない', '回答しない'];
 
+function textValue(answers: Answers, key: string) {
+    return answers[key] ?? '';
+}
+
+export default function Phase1Prime() {
+    const { state, goToPhase, setAnswers: saveAnswersToContext, setHandle, backOverrideRef } = useApp();
     const [currentStep, setCurrentStep] = useState(0);
-    const [answers, setAnswers] = useState<Record<string, string>>({});
-    const [customText, setCustomText] = useState('');
+    const [answers, setAnswers] = useState<Answers>(() => state.answers);
     const [visible, setVisible] = useState(false);
-    const [history, setHistory] = useState<Array<{ question: string; answer: string }>>([]);
+    const [isTransitioning, setIsTransitioning] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
 
-    // 指定したステップまで巻き戻す（そのステップ以降の回答を消去）
-    const goBackToStep = useCallback((targetStep: number) => {
-        if (targetStep < 0 || targetStep >= currentStep) return;
-        setVisible(false);
-        setCustomText('');
-        setTimeout(() => {
-            // targetStep 以降のすべての回答を消去
-            setAnswers(prev => {
-                const next = { ...prev };
-                for (let i = targetStep; i < STEPS.length; i++) {
-                    delete next[STEPS[i].id];
-                }
-                return next;
-            });
-            setHistory(prev => prev.slice(0, targetStep));
-            // 消去されたステップに紐づくコンテキストもリセット
-            for (let i = targetStep; i < currentStep; i++) {
-                if (STEPS[i].id === 'impression') {
-                    setTexture('');
-                    setStance('');
-                }
-                if (STEPS[i].id === 'nature') setAbsenceQuality(null);
-            }
-            setCurrentStep(targetStep);
-        }, 320);
-    }, [currentStep, setTexture, setStance, setAbsenceQuality]);
+    const updateAnswer = useCallback((key: string, value: string) => {
+        setAnswers(previous => (
+            key === 'hasExplanation' && value !== 'ある'
+                ? { ...previous, hasExplanation: value, explanation: '' }
+                : { ...previous, [key]: value }
+        ));
+    }, []);
 
-    // サブステップを1つ戻す（←ボタン用）
+    const goBackToStep = useCallback((targetStep: number) => {
+        if (isTransitioning || targetStep < 0 || targetStep >= currentStep) return;
+        setVisible(false);
+        setIsTransitioning(true);
+        window.setTimeout(() => {
+            setCurrentStep(targetStep);
+            setIsTransitioning(false);
+        }, 220);
+    }, [currentStep, isTransitioning]);
+
     const goBackStep = useCallback(() => {
-        goBackToStep(currentStep - 1);
+        if (currentStep > 0) goBackToStep(currentStep - 1);
     }, [currentStep, goBackToStep]);
 
-    // ページレベルの戻るボタンにサブステップ戻りを登録
     useEffect(() => {
-        if (currentStep > 0) {
-            backOverrideRef.current = () => {
+        backOverrideRef.current = currentStep > 0
+            ? () => {
                 goBackStep();
                 return true;
-            };
-        } else {
-            backOverrideRef.current = null;
-        }
+            }
+            : null;
         return () => { backOverrideRef.current = null; };
-    }, [currentStep, goBackStep, backOverrideRef]);
+    }, [backOverrideRef, currentStep, goBackStep]);
 
     useEffect(() => {
-        const t = setTimeout(() => setVisible(true), 180);
-        return () => clearTimeout(t);
+        const timer = window.setTimeout(() => setVisible(true), 140);
+        return () => clearTimeout(timer);
     }, [currentStep]);
 
     useEffect(() => {
-        if (scrollRef.current) {
-            scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-        }
-    }, [history, currentStep]);
+        scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    }, [currentStep]);
 
-    const answerStep = (value: string) => {
-        if (!value.trim()) return;
-        if (document.activeElement instanceof HTMLElement) {
-            document.activeElement.blur();
-        }
-        const step = STEPS[currentStep];
-        const nextAnswers = { ...answers, [step.id]: value };
-        setAnswers(nextAnswers);
+    const finish = useCallback(() => {
+        const experience = textValue(answers, 'experience').trim();
+        if (!experience) return;
+        const completedAnswers = { ...answers, experience };
+        saveAnswersToContext(completedAnswers);
+        // The participant's own experience supplies Phase 2's search source.
+        setHandle({ id: 'free', text: experience, shortText: experience.slice(0, 24) });
+        goToPhase(2);
+    }, [answers, goToPhase, saveAnswersToContext, setHandle]);
 
-        if (step.id === 'impression') {
-            setTexture(value);
-            setStance(value);
-        }
-        if (step.id === 'nature') {
-            if (value === '目に見えない現象だと思う') {
-                setAbsenceQuality('invisible');
-            } else if (value === '気配はあるが姿はない') {
-                setAbsenceQuality('blurry');
-            } else {
-                setAbsenceQuality('clear');
-            }
-        }
-
-        setHistory((prev) => [...prev, { question: step.question, answer: value }]);
+    const advance = useCallback(() => {
+        if (isTransitioning || (STEPS[currentStep].id === 'experience' && !textValue(answers, 'experience').trim())) return;
         setVisible(false);
-        setCustomText('');
-
-        setTimeout(() => {
-            if (currentStep < STEPS.length - 1) {
-                setCurrentStep((prev) => prev + 1);
-            } else {
-                saveAnswersToContext(nextAnswers);
-                goToPhase(2);
+        setIsTransitioning(true);
+        window.setTimeout(() => {
+            if (currentStep === STEPS.length - 1) finish();
+            else {
+                setCurrentStep(stepIndex => stepIndex + 1);
+                setIsTransitioning(false);
             }
-        }, 320);
-    };
+        }, 220);
+    }, [answers, currentStep, finish, isTransitioning]);
 
     const step = STEPS[currentStep];
-    const handleText = state.selectedHandle?.text || '';
+    const canAdvance = step.optional || Boolean(textValue(answers, 'experience').trim());
+    const history = STEPS.slice(0, currentStep).map((previousStep, index) => {
+        const summary = previousStep.id === 'context'
+            ? [textValue(answers, 'location'), textValue(answers, 'activity')].filter(Boolean).join(' / ')
+            : previousStep.id === 'duration'
+                ? [textValue(answers, 'recurrence'), textValue(answers, 'duration')].filter(Boolean).join(' / ')
+                : previousStep.id === 'explanation'
+                    ? textValue(answers, 'hasExplanation') === 'ある'
+                        ? textValue(answers, 'explanation') || 'ある'
+                        : textValue(answers, 'hasExplanation')
+                    : textValue(answers, previousStep.id);
+        return { index, question: previousStep.question, answer: summary || '回答なし' };
+    });
 
     return (
-        <div
-            ref={scrollRef}
-            className="phase-scrollable"
-            style={{ display: 'flex', flexDirection: 'column' }}
-        >
+        <div ref={scrollRef} className="phase-scrollable" style={{ display: 'flex', flexDirection: 'column' }}>
             {history.length > 0 && (
                 <div style={{ marginBottom: 24 }}>
-                    {history.map((h, i) => (
-                        <div
-                            key={i}
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => goBackToStep(i)}
-                            style={{
-                                padding: '8px 0',
-                                opacity: Math.max(0.16, 0.52 - (history.length - 1 - i) * 0.06),
-                                cursor: 'pointer',
-                                transition: 'opacity 0.2s ease',
-                            }}
-                            onPointerEnter={e => (e.currentTarget.style.opacity = '0.7')}
-                            onPointerLeave={e => (e.currentTarget.style.opacity = String(Math.max(0.16, 0.52 - (history.length - 1 - i) * 0.06)))}
-                        >
-                            <p
-                                style={{
-                                    fontSize: 11,
-                                    color: 'var(--text-ghost)',
-                                    marginBottom: 2,
-                                    letterSpacing: '0.05em',
-                                }}
-                            >
-                                {h.question}
-                            </p>
-                            <p
-                                style={{
-                                    fontSize: 14,
-                                    color: 'var(--text-dim)',
-                                    fontFamily: 'var(--font-main)',
-                                }}
-                            >
-                                {h.answer}
-                            </p>
-                        </div>
+                    {history.map(item => (
+                        <button key={item.index} type="button" onClick={() => goBackToStep(item.index)} style={{ display: 'block', width: '100%', padding: '8px 0', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', opacity: 0.42 }}>
+                            <p style={{ fontSize: 11, color: 'var(--text-ghost)', marginBottom: 2, letterSpacing: '0.05em' }}>{item.question}</p>
+                            <p style={{ fontSize: 14, color: 'var(--text-dim)', fontFamily: 'var(--font-main)' }}>{item.answer}</p>
+                        </button>
                     ))}
                 </div>
             )}
 
-            <div
-                className="question-block"
-                style={{
-                    opacity: visible ? 1 : 0,
-                    transform: visible ? 'translateY(0)' : 'translateY(8px)',
-                    transition: 'all 0.35s ease',
-                }}
-            >
-                <p style={{
-                    fontSize: 10,
-                    color: 'var(--text-ghost)',
-                    letterSpacing: '0.15em',
-                    marginBottom: 8,
-                }}>
-                    {currentStep + 1} / {STEPS.length}
-                </p>
-
-                {currentStep === 0 && handleText && (
-                    <p className="question-context">
-                        {handleText.split('\n').map((line, i) => (
-                            <span key={i}>
-                                {line}
-                                {i < handleText.split('\n').length - 1 && <br />}
-                            </span>
-                        ))}
-                    </p>
-                )}
-
+            <div className="question-block" style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(8px)', transition: 'all 0.28s ease' }}>
+                <p style={{ fontSize: 10, color: 'var(--text-ghost)', letterSpacing: '0.15em', marginBottom: 8 }}>{currentStep + 1} / {STEPS.length}</p>
                 <p className="question-text">{step.question}</p>
+                {step.subtext && <p style={{ fontSize: 13, color: 'var(--text-dim)', margin: '-6px 0 14px', fontFamily: 'var(--font-main)', lineHeight: 1.8 }}>{step.subtext}</p>}
 
-                {step.subtext && (
-                    <p
-                        style={{
-                            fontSize: 13,
-                            color: 'var(--text-dim)',
-                            marginBottom: 14,
-                            marginTop: -6,
-                            fontFamily: 'var(--font-main)',
-                        }}
-                    >
-                        {step.subtext}
-                    </p>
+                {step.id === 'experience' && (
+                    <textarea className="text-input" value={textValue(answers, 'experience')} onChange={event => updateAnswer('experience', event.target.value)} placeholder="たとえば、気になったことや、説明しにくかった感覚をそのまま書いてください" rows={5} autoFocus style={{ width: '100%', minHeight: 116, resize: 'vertical' }} />
                 )}
 
-                {(step.type === 'text' || step.type === 'choice+text') && (
-                    <div style={{ marginTop: 8, display: 'flex', gap: 8, alignItems: 'center' }}>
-                        <input
-                            type="text"
-                            className="text-input"
-                            placeholder={step.placeholder || '自由に入力する'}
-                            value={customText}
-                            onChange={(e) => setCustomText(e.target.value)}
-                            onFocus={(e) => {
-                                setTimeout(() => {
-                                    e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                }, 300);
-                            }}
-
-                            style={{ flex: 1, maxWidth: 'none' }}
-                        />
-                        {customText.trim() && (
-                            <button
-                                className="button button-primary"
-                                style={{ padding: '10px 16px', fontSize: 13 }}
-                                onClick={() => answerStep(customText.trim())}
-                            >
-                                送信
-                            </button>
-                        )}
+                {step.id === 'context' && (
+                    <div style={{ display: 'grid', gap: 14 }}>
+                        <label style={{ display: 'grid', gap: 6 }}><span className="label">どこでのことでしたか？</span><input className="text-input" value={textValue(answers, 'location')} onChange={event => updateAnswer('location', event.target.value)} placeholder="場所や、その場の様子" /></label>
+                        <label style={{ display: 'grid', gap: 6 }}><span className="label">そのとき、何をしていましたか？</span><input className="text-input" value={textValue(answers, 'activity')} onChange={event => updateAnswer('activity', event.target.value)} placeholder="していたことがあれば" /></label>
                     </div>
                 )}
 
-                {(step.type === 'choice' || step.type === 'choice+text') && step.options && (
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
-                        {step.options.map((opt) => (
-                            <button key={opt} className="chip" onClick={() => answerStep(opt)}>
-                                {opt}
-                            </button>
-                        ))}
+                {step.id === 'salientFeature' && (
+                    <textarea className="text-input" value={textValue(answers, 'salientFeature')} onChange={event => updateAnswer('salientFeature', event.target.value)} placeholder="気になったことを、自分の言葉で" rows={4} style={{ width: '100%', minHeight: 96, resize: 'vertical' }} />
+                )}
+
+                {step.id === 'duration' && (
+                    <div style={{ display: 'grid', gap: 18 }}>
+                        <div><p className="label" style={{ marginBottom: 8 }}>同じような経験は、ほかにもありますか？</p><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                            {RECURRENCE_OPTIONS.map(option => <button key={option} type="button" className={'chip' + (textValue(answers, 'recurrence') === option ? ' selected' : '')} onClick={() => updateAnswer('recurrence', option)}>{option}</button>)}
+                        </div></div>
+                        <label style={{ display: 'grid', gap: 6 }}><span className="label">一回の経験は、どのくらい続きましたか？</span><input className="text-input" value={textValue(answers, 'duration')} onChange={event => updateAnswer('duration', event.target.value)} placeholder="今も続いている、分からない、でも構いません" /></label>
+                        <label style={{ display: 'grid', gap: 6 }}><span className="label">途中や、その後に変わったことがあれば教えてください（任意）</span><textarea className="text-input" value={textValue(answers, 'change')} onChange={event => updateAnswer('change', event.target.value)} rows={3} style={{ width: '100%', minHeight: 76, resize: 'vertical' }} /></label>
                     </div>
                 )}
+
+                {step.id === 'explanation' && (
+                    <div style={{ display: 'grid', gap: 14 }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                            {EXPLANATION_OPTIONS.map(option => <button key={option} type="button" className={'chip' + (textValue(answers, 'hasExplanation') === option ? ' selected' : '')} onClick={() => updateAnswer('hasExplanation', option)}>{option}</button>)}
+                        </div>
+                        {textValue(answers, 'hasExplanation') === 'ある' && <label style={{ display: 'grid', gap: 6 }}><span className="label">どのように考えていますか？</span><textarea className="text-input" value={textValue(answers, 'explanation')} onChange={event => updateAnswer('explanation', event.target.value)} rows={4} autoFocus style={{ width: '100%', minHeight: 96, resize: 'vertical' }} /></label>}
+                    </div>
+                )}
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 20 }}>
+                    {step.optional && <button type="button" className="button" disabled={isTransitioning} onClick={advance}>このまま進む</button>}
+                    <button type="button" className="button button-primary" disabled={!canAdvance || isTransitioning} onClick={advance} style={{ opacity: canAdvance && !isTransitioning ? 1 : 0.45 }}>{currentStep === STEPS.length - 1 ? '妖怪を探す' : '次へ'}</button>
+                </div>
             </div>
-
             <div style={{ height: 60 }} />
             <ProgressDots current={2} />
         </div>

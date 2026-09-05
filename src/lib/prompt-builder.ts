@@ -7,6 +7,17 @@
  */
 
 export interface UserAnswers {
+    /** The participant's original account; it remains the source of truth. */
+    experience?: string;
+    location?: string;
+    activity?: string;
+    salientFeature?: string;
+    recurrence?: string;
+    duration?: string;
+    change?: string;
+    hasExplanation?: string;
+    explanation?: string;
+    // Legacy keys are kept while unfinished older sessions are still readable.
     event?: string;
     perception?: string;
     where?: string;
@@ -33,10 +44,36 @@ export interface FolkloreEntry {
     location?: string;
 }
 
+function buildExperienceContext(answers: UserAnswers): string {
+    const labels: Array<[keyof UserAnswers, string]> = [
+        ['experience', 'Original account'], ['location', 'Location'],
+        ['activity', 'Activity'], ['salientFeature', 'Most important feature'],
+        ['recurrence', 'Recurrence'], ['duration', 'Duration'],
+        ['change', 'Change over time'], ['explanation', 'Existing explanation'],
+    ];
+    return labels.flatMap(([key, label]) => {
+        const value = answers[key]?.trim();
+        return value ? [`${label}: ${value}`] : [];
+    }).join('\n');
+}
+
 /**
  * Phase 1' の回答を、embedding検索用の自然文に変換
  */
 export function buildSearchQuery(handle: HandleInfo, answers: UserAnswers): string {
+    if (answers.experience?.trim()) {
+        const labels: Array<[keyof UserAnswers, string]> = [
+            ['location', '場所'], ['activity', 'そのときしていたこと'],
+            ['salientFeature', '特に気になったこと'], ['recurrence', '同様の経験'],
+            ['duration', '一回の続き方'], ['change', '変化'],
+            ['explanation', '本人がすでに持つ説明'],
+        ];
+        const details = labels.flatMap(([key, label]) => {
+            const value = answers[key]?.trim();
+            return value ? [`${label}: ${value}`] : [];
+        });
+        return [answers.experience.trim(), ...details].join('\n');
+    }
     const parts: string[] = [];
 
     // 体験の要約を最初の文として扱う
@@ -83,7 +120,10 @@ export function buildConceptPrompt(
     answers: UserAnswers,
     folklore: Array<{ kaiiName: string; content: string }>
 ): string {
-    const context = buildSearchQuery(handle, answers);
+    const context = [
+        buildSearchQuery(handle, answers),
+        'Generation constraints: preserve the account as stated. Do not add pursuit, attack, fear, a clear body, or a supernatural cause unless stated. If an ordinary explanation is provided, the yokai is a creative representation, never the factual cause.',
+    ].join('\n');
     const folkloreRef = folklore
         .map(f => `- ${f.kaiiName}: ${f.content}`)
         .join('\n');
@@ -123,19 +163,19 @@ export function buildConceptPrompt(
         '  {',
         '    "name": "漢字の名前",',
         '    "reading": "ひらがなの読み",',
-        '    "description": "この名前の由来（10-20文字）",',
+        '    "description": "経験をどう表すかが分かる、性質・振る舞い・短い物語（60-100文字）",',
         '    "type": "place_action"',
         '  },',
         '  {',
         '    "name": "外見や音に由来する名前",',
         '    "reading": "ひらがな",',
-        '    "description": "由来（10-20文字）",',
+        '    "description": "経験をどう表すかが分かる、性質・振る舞い・短い物語（60-100文字）",',
         '    "type": "appearance_sound"',
         '  },',
         '  {',
         '    "name": "カタカナやひらがなの名前",',
         '    "reading": "",',
-        '    "description": "由来（10-20文字）",',
+        '    "description": "経験をどう表すかが分かる、性質・振る舞い・短い物語（60-100文字）",',
         '    "type": "vernacular"',
         '  }',
         ']',
@@ -164,6 +204,11 @@ export function buildImagePrompt(
         `Subject: A Japanese yokai called "${concept.name}" (${concept.reading}).`,
         `Description: ${concept.description}`,
     ];
+
+    const originalAccount = answers ? buildExperienceContext(answers) : '';
+    if (originalAccount) {
+        parts.push('', 'Witness account (preserve what is stated; do not invent pursuit, attack, fear, a cause, or a body):', originalAccount);
+    }
 
     // ユーザーの体験を画像の世界観に反映
     if (answers) {
@@ -220,8 +265,13 @@ export function buildImagePrompt(
 export function buildNarrativePrompt(
     concept: ConceptInfo,
     answers: UserAnswers,
-    folklore: FolkloreEntry[]
+    folklore: FolkloreEntry[],
+    feedback?: string,
 ): string {
+    const originalAccount = [
+        buildExperienceContext(answers),
+        feedback?.trim() ? `Participant's requested preservation/change: ${feedback.trim()}` : '',
+    ].filter(Boolean).join('\n');
     const folkloreRef = folklore
         .map(f => {
             const loc = f.location ? `（${f.location}）` : '';
@@ -231,6 +281,9 @@ export function buildNarrativePrompt(
 
     // 体験者の報告を自然文として構成（フィールド列挙ではなく物語的に）
     const experienceParts: string[] = [];
+    if (answers.experience?.trim()) {
+        experienceParts.push(answers.experience.trim());
+    }
     if (answers.when?.trim()) {
         experienceParts.push(`${answers.when}のころ`);
     }
@@ -258,6 +311,7 @@ export function buildNarrativePrompt(
         '',
         '## 体験者の報告（★中核：この体験の固有要素を必ず反映すること）',
         experienceText,
+        ...(originalAccount ? ['## 原文（書かれていない原因・攻撃・恐怖・主体を足さないこと）', originalAccount, ''] : []),
         '',
         '## 新たに観測された怪異',
         `呼称: ${concept.name}（${concept.reading}）`,

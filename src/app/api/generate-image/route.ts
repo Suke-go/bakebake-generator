@@ -12,7 +12,6 @@ import {
 
 const IMAGE_MODEL_CANDIDATES = [
     'gemini-2.5-flash-image',
-    'gemini-3-pro-image-preview',
 ] as const;
 const TEXT_MODEL = 'gemini-2.5-flash';
 const IMAGE_CONFIG = {
@@ -21,7 +20,9 @@ const IMAGE_CONFIG = {
 };
 const IMAGE_RESPONSE_MODALITIES: Modality[] = [Modality.IMAGE];
 const GENERATION_MODELS = IMAGE_MODEL_CANDIDATES;
-const MAX_RETRY_ATTEMPTS = 3;
+// A participant chooses when to spend one of the three image attempts. Do not
+// multiply that choice into hidden provider retries or a premium model sweep.
+const MAX_RETRY_ATTEMPTS = 1;
 const INITIAL_RETRY_DELAY_MS = 400;
 const RATE_LIMIT_COOLDOWN_MS = 45_000;
 const IMAGE_CACHE_TTL_MS = 60_000;
@@ -120,14 +121,15 @@ function buildImageRequestKey(
     concept: { name: string; reading: string; description: string },
     artStyle: string | null,
     visualInput: string,
-    answers: Record<string, string>
+    answers: Record<string, string>,
+    generationVersion = 0,
 ): string {
     const sortedAnswerKeys = Object.keys(answers).sort();
     const answerSig = sortedAnswerKeys
         .map((key) => `${key}:${answers[key] ?? ''}`)
         .join(IMAGE_CACHE_KEY_SEPARATOR);
 
-    return `${concept.name}${IMAGE_CACHE_KEY_SEPARATOR}${concept.reading}${IMAGE_CACHE_KEY_SEPARATOR}${concept.description}${IMAGE_CACHE_KEY_SEPARATOR}${artStyle ?? ''}${IMAGE_CACHE_KEY_SEPARATOR}${answerSig}${IMAGE_CACHE_KEY_SEPARATOR}${visualInput}`;
+    return `${concept.name}${IMAGE_CACHE_KEY_SEPARATOR}${concept.reading}${IMAGE_CACHE_KEY_SEPARATOR}${concept.description}${IMAGE_CACHE_KEY_SEPARATOR}${artStyle ?? ''}${IMAGE_CACHE_KEY_SEPARATOR}${answerSig}${IMAGE_CACHE_KEY_SEPARATOR}${visualInput}${IMAGE_CACHE_KEY_SEPARATOR}${generationVersion}`;
 }
 
 function getImageFromResponse(
@@ -394,6 +396,7 @@ export async function POST(req: Request) {
             visualInput?: string;
             answers?: Record<string, string>;
             folklore?: Array<{ kaiiName: string; content: string; location?: string }>;
+            generationVersion?: number;
         };
         try {
             body = JSON.parse(rawBody);
@@ -410,6 +413,7 @@ export async function POST(req: Request) {
             visualInput = '',
             answers = {},
             folklore = [],
+            generationVersion = 0,
         } = body;
         const concept = rawConcept as ConceptPayload | undefined;
         const answerMap = answers;
@@ -443,7 +447,7 @@ export async function POST(req: Request) {
             );
         }
 
-        const requestKey = buildImageRequestKey(concept, artStyle, visualInput, answerMap as Record<string, string>);
+        const requestKey = buildImageRequestKey(concept, artStyle, visualInput, answerMap as Record<string, string>, generationVersion);
         const cached = getImageCache(requestKey);
         if (cached) {
             return NextResponse.json(cached, {
@@ -484,7 +488,8 @@ export async function POST(req: Request) {
             const narrativePrompt = buildNarrativePrompt(
                 concept,
                 answerMap as Record<string, string>,
-                folklore.map(f => ({ kaiiName: f.kaiiName, content: f.content, location: f.location }))
+                folklore.map(f => ({ kaiiName: f.kaiiName, content: f.content, location: f.location })),
+                visualInput,
             );
             const warnings: string[] = [];
 
