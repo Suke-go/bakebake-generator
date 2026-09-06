@@ -3,6 +3,7 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { useApp } from '@/lib/context';
 import '@/app/globals.css';
 
 const THEME_OPTIONS = [
@@ -35,10 +36,16 @@ const SYSTEM_OPTIONS = [
 
 function ExitSurveyForm() {
     const router = useRouter();
+    const { resetState, setLocale } = useApp();
     const searchParams = useSearchParams();
     const id = searchParams.get('id');
     const isEnglish = searchParams.get('lang') === 'en';
     const localizedPath = React.useCallback((path: string) => `${path}${isEnglish ? `${path.includes('?') ? '&' : '?'}lang=en` : ''}`, [isEnglish]);
+    const returnToStart = React.useCallback(() => {
+        resetState();
+        setLocale(isEnglish ? 'en' : 'ja');
+        router.push(localizedPath('/generator'));
+    }, [isEnglish, localizedPath, resetState, router, setLocale]);
 
     const [triggerSent, setTriggerSent] = useState(false);
 
@@ -179,10 +186,10 @@ function ExitSurveyForm() {
         idleTimerRef.current = setTimeout(() => {
             setShowIdlePrompt(true);
             resetTimerRef.current = setTimeout(() => {
-                router.push(localizedPath('/generator'));
+                returnToStart();
             }, 10000);
         }, 30000);
-    }, [clearIdleTimers, router, localizedPath]);
+    }, [clearIdleTimers, returnToStart]);
 
     useEffect(() => {
         if (!isComplete) return;
@@ -266,7 +273,7 @@ function ExitSurveyForm() {
                         gap: '0.8rem',
                     }}>
                         <button
-                            onClick={() => router.push(localizedPath('/generator'))}
+                            onClick={returnToStart}
                             className="interactive-button"
                             style={{ padding: '1rem 2rem' }}
                         >

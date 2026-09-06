@@ -304,7 +304,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const resetState = useCallback(() => {
-    setState(initialState);
+    // Reset a participant's work while keeping the language they chose for
+    // the shared exhibition terminal.
+    setState(prev => ({ ...initialState, locale: prev.locale }));
     try { sessionStorage.removeItem(SESSION_STORAGE_KEY); } catch { /* ignore */ }
   }, []);
 

@@ -265,6 +265,11 @@ function FogGenerationCanvas({ apiDoneRef }: { apiDoneRef: React.RefObject<boole
 
 export default function Phase3Reveal() {
     const { state, goToPhase, setNarrative, setGeneratedImage, setImageFeedback, completeImageGeneration, setTicketId, resetState } = useApp();
+    const resetToReception = useCallback(() => {
+        const suffix = state.locale === 'en' ? '?lang=en' : '';
+        window.history.replaceState(null, '', `/generator${suffix}`);
+        resetState();
+    }, [resetState, state.locale]);
     const isEnglish = state.locale === 'en';
     const copy = isEnglish ? {
         generating: 'Bringing the presence into an image...', imageError: 'We could not generate the image.', remake: 'Try again', back: 'Back to appearance', saved: 'Your record was saved.', imageAlt: 'Yokai', story: 'A short story for this yokai', saveStory: 'Save story', saveError: 'We could not save the text', kept: 'What fits this image? (optional)', changed: 'What differs from your experience? (optional)', keptPlaceholder: 'For example: it remains, a misty shape', changedPlaceholder: 'For example: it does not chase me; it is more annoying than scary', remakeWithFeedback: (remaining: number) => `Remake with these notes (${remaining} left)`, limit: 'The image remake limit has been reached', survey: 'Continue to the survey', thanks: 'Thank you, whether or not you continue to the survey.', redraw: 'Edit or remake', chooseConcept: 'Choose a concept again', home: 'Return to the start', idle: 'There has been no activity. Returning to the start soon…',
@@ -590,10 +595,10 @@ export default function Phase3Reveal() {
         idleTimerRef.current = setTimeout(() => {
             setShowIdlePrompt(true);
             resetTimerRef.current = setTimeout(() => {
-                resetState();
+                resetToReception();
             }, 10000);
         }, 30000);
-    }, [clearIdleTimers, resetState]);
+    }, [clearIdleTimers, resetToReception]);
 
     useEffect(() => {
         if (!showActions) return;
@@ -818,7 +823,7 @@ export default function Phase3Reveal() {
                             <button className="button" onClick={() => {
                                 if (isTransitioning) return;
                                 setIsTransitioning(true);
-                                resetState();
+                                resetToReception();
                             }} disabled={isTransitioning}>
                                 {copy.home}
                             </button>

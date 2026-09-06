@@ -156,17 +156,43 @@ function GeneratorContent() {
   const searchParams = useSearchParams();
   const [showIdleWarning, setShowIdleWarning] = useState(false);
   const [researchLogFailed, setResearchLogFailed] = useState(false);
+  const autoStartedTicketRef = useRef<string | null>(null);
+  const resetToReception = useCallback(() => {
+    const suffix = state.locale === 'en' ? '?lang=en' : '';
+    window.history.replaceState(null, '', `/generator${suffix}`);
+    resetState();
+  }, [resetState, state.locale]);
 
   useEffect(() => {
     const requestedLocale = searchParams.get('lang');
     if (requestedLocale === 'en' || requestedLocale === 'ja') setLocale(requestedLocale);
+  }, [searchParams, setLocale]);
+
+  useEffect(() => {
+    const requestedLocale = searchParams.get('lang');
+    const localeFromUrl = requestedLocale === 'en' || requestedLocale === 'ja' ? requestedLocale : null;
     const ticketId = searchParams.get('id');
     if (ticketId && ticketId.length >= 10) {
+      // A reset returns to Phase 0 in this mounted generator. Do not reopen
+      // the same ticket merely because its original QR query remains in URL.
+      if (autoStartedTicketRef.current === ticketId) return;
+      autoStartedTicketRef.current = ticketId;
+      if (state.ticketId !== ticketId) {
+        // A different QR always starts a new participant session; otherwise
+        // a persisted prior work could be attributed to the new ticket.
+        const locale = localeFromUrl ?? state.locale;
+        resetState();
+        setLocale(locale);
+        setTicketId(ticketId);
+        importResearchTokenFromHash(ticketId);
+        goToPhase(1);
+        return;
+      }
       setTicketId(ticketId);
       importResearchTokenFromHash(ticketId);
       if (state.currentPhase === 0) goToPhase(1);
     }
-  }, [searchParams, setLocale, setTicketId, goToPhase, state.currentPhase]);
+  }, [searchParams, resetState, setLocale, setTicketId, goToPhase, state.currentPhase, state.locale, state.ticketId]);
 
   useEffect(() => subscribeResearchLogErrors(() => setResearchLogFailed(true)), []);
 
@@ -214,7 +240,7 @@ function GeneratorContent() {
       setShowIdleWarning(false);
       warningTimer = setTimeout(() => {
         setShowIdleWarning(true);
-        resetTimer = setTimeout(() => resetState(), WARNING_BEFORE_MS);
+        resetTimer = setTimeout(resetToReception, WARNING_BEFORE_MS);
       }, IDLE_TIMEOUT_MS - WARNING_BEFORE_MS);
     };
 
@@ -236,7 +262,7 @@ function GeneratorContent() {
       window.removeEventListener('pointerdown', handleActivity);
       window.removeEventListener('keydown', handleActivity);
     };
-  }, [state.currentPhase, resetState]);
+  }, [state.currentPhase, resetToReception]);
 
   // #6: 戻るボタンのハンドラー
   const handleBack = useCallback(() => {
@@ -245,8 +271,8 @@ function GeneratorContent() {
   }, [state.currentPhase, goToPhase, backOverrideRef]);
 
   const handleReset = useCallback(() => {
-    resetState();
-  }, [resetState]);
+    resetToReception();
+  }, [resetToReception]);
 
   return (
     <div data-yokai-zone="generator-main">
