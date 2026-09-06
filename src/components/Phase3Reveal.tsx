@@ -8,7 +8,7 @@ import ProgressDots from './ProgressDots';
 import { supabase } from '@/lib/supabase';
 import SpookyText from './SpookyText';
 import ExperienceComparison from './ExperienceComparison';
-import { logResearchEvent, sha256Hex } from '@/lib/research-log';
+import { getResearchToken, logResearchEvent, sha256Hex } from '@/lib/research-log';
 import { RESEARCH_PROMPT_VERSION } from '@/lib/research-versions';
 
 const compressImage = (dataUrl: string, maxSize = 512, quality = 0.6): Promise<string> => {
@@ -272,9 +272,9 @@ export default function Phase3Reveal() {
     }, [resetState, state.locale]);
     const isEnglish = state.locale === 'en';
     const copy = isEnglish ? {
-        generating: 'Bringing the presence into an image...', imageError: 'We could not generate the image.', remake: 'Try again', back: 'Back to appearance', saved: 'Your record was saved.', imageAlt: 'Yokai', story: 'A short story for this yokai', saveStory: 'Save story', saveError: 'We could not save the text', kept: 'What fits this image? (optional)', changed: 'What differs from your experience? (optional)', keptPlaceholder: 'For example: it remains, a misty shape', changedPlaceholder: 'For example: it does not chase me; it is more annoying than scary', remakeWithFeedback: (remaining: number) => `Remake with these notes (${remaining} left)`, limit: 'The image remake limit has been reached', survey: 'Continue to the survey', thanks: 'Thank you, whether or not you continue to the survey.', redraw: 'Edit or remake', chooseConcept: 'Choose a concept again', home: 'Return to the start', idle: 'There has been no activity. Returning to the start soon…',
+        generating: 'Bringing the presence into an image...', imageError: 'We could not generate the image.', remake: 'Try again', back: 'Back to appearance', saved: 'Your record was saved.', feedbackSaved: 'Your notes were saved.', feedbackLocal: 'Your notes are kept for this session.', saveNotes: 'Save these notes', continueWithoutSaving: 'Continue without saving notes', imageAlt: 'Yokai', story: 'A short story for this yokai', saveStory: 'Save story', saveError: 'We could not save the text', kept: 'What fits this image? (optional)', changed: 'What differs from your experience? (optional)', keptPlaceholder: 'For example: it remains, a misty shape', changedPlaceholder: 'For example: it does not chase me; it is more annoying than scary', remakeWithFeedback: (remaining: number) => `Remake with these notes (${remaining} left)`, limit: 'The image remake limit has been reached', survey: 'Continue to the survey', thanks: 'Thank you, whether or not you continue to the survey.', redraw: 'Edit or remake', chooseConcept: 'Choose a concept again', home: 'Return to the start', idle: 'There has been no activity. Returning to the start soon…',
     } : {
-        generating: '気配を像に写しています...', imageError: '画像の生成処理に失敗しました。', remake: '再生成', back: '画風選択へ戻る', saved: '記録が完了しました。', imageAlt: '妖怪', story: 'この妖怪の短い物語', saveStory: '文章を保存する', saveError: '文章を保存できませんでした', kept: 'この画像で合っているところ（任意）', changed: 'あなたの経験と違うところ（任意）', keptPlaceholder: '例：ずっといる感じ、霧の姿', changedPlaceholder: '例：追いかけてはこない。怖いより鬱陶しい', remakeWithFeedback: (remaining: number) => `この内容を反映して作り直す（残り ${remaining} 回）`, limit: '画像の作り直し上限に達しました', survey: 'アンケートへ進む', thanks: 'アンケートに回答されない方もありがとうございました。', redraw: '再描画', chooseConcept: '概念から選び直す', home: '初期画面へ戻る', idle: '操作がありません。まもなく初期画面に戻ります…',
+        generating: '気配を像に写しています...', imageError: '画像の生成処理に失敗しました。', remake: '再生成', back: '画風選択へ戻る', saved: '記録が完了しました。', feedbackSaved: 'この内容を保存しました。', saveNotes: '合うところ・違うところを保存する', continueWithoutSaving: '保存せずアンケートへ進む', imageAlt: '妖怪', story: 'この妖怪の短い物語', saveStory: '文章を保存する', saveError: '文章を保存できませんでした', kept: 'この画像で合っているところ（任意）', changed: 'あなたの経験と違うところ（任意）', keptPlaceholder: '例：ずっといる感じ、霧の姿', changedPlaceholder: '例：追いかけてはこない。怖いより鬱陶しい', remakeWithFeedback: (remaining: number) => `この内容を反映して作り直す（残り ${remaining} 回）`, limit: '画像の作り直し上限に達しました', survey: 'アンケートへ進む', thanks: 'アンケートに回答されない方もありがとうございました。', redraw: '再描画', chooseConcept: '概念から選び直す', home: '初期画面へ戻る', idle: '操作がありません。まもなく初期画面に戻ります…',
     };
     const [showImage, setShowImage] = useState(false);
     const [showName, setShowName] = useState(false);
@@ -297,11 +297,37 @@ export default function Phase3Reveal() {
 
     // Save State
     const [saveSuccess, setSaveSuccess] = useState(false);
+    const [feedbackSaved, setFeedbackSaved] = useState(false);
+    const [feedbackLocal, setFeedbackLocal] = useState(false);
+    const [feedbackSaveError, setFeedbackSaveError] = useState(false);
     const [saveError, setSaveError] = useState('');
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [kept, setKept] = useState(state.imageKept);
     const [changed, setChanged] = useState(state.imageChanged);
     const [narrativeDraft, setNarrativeDraft] = useState(state.narrative);
+
+    const saveImageNotes = useCallback(async () => {
+        const nextKept = kept.trim();
+        const nextChanged = changed.trim();
+        setImageFeedback(nextKept, nextChanged);
+        setFeedbackSaveError(false);
+        if (!getResearchToken(state.ticketId)) {
+            setFeedbackLocal(true);
+            return true;
+        }
+        setFeedbackLocal(false);
+        const saved = await logResearchEvent(state.ticketId, {
+            eventType: 'image_feedback_saved',
+            payload: {
+                generationVersion: state.completedImageGenerationVersion || state.imageGenerationVersion,
+                kept: nextKept,
+                changed: nextChanged,
+            },
+        });
+        setFeedbackSaved(saved);
+        setFeedbackSaveError(!saved);
+        return saved;
+    }, [changed, kept, setImageFeedback, state.completedImageGenerationVersion, state.imageGenerationVersion, state.ticketId]);
 
     // Auto-reset idle timer
     const [showIdlePrompt, setShowIdlePrompt] = useState(false);
@@ -760,6 +786,21 @@ export default function Phase3Reveal() {
                                 {copy.saved}
                             </p>
                         )}
+                        {feedbackSaved && (
+                            <p style={{ color: 'var(--text-dim)', fontSize: 14, marginBottom: 8 }}>
+                                {copy.feedbackSaved}
+                            </p>
+                        )}
+                        {feedbackLocal && (
+                            <p style={{ color: 'var(--text-dim)', fontSize: 14, marginBottom: 8 }}>
+                                {copy.feedbackLocal}
+                            </p>
+                        )}
+                        {feedbackSaveError && (
+                            <p style={{ color: '#ff6b6b', fontSize: 12, marginBottom: 8 }}>
+                                {copy.saveError}
+                            </p>
+                        )}
                         {saveError && (
                             <p style={{ color: '#ff6b6b', fontSize: 12, marginBottom: 8 }}>
                                 {saveError}
@@ -780,11 +821,12 @@ export default function Phase3Reveal() {
                                 }
                             }}>{copy.saveStory}</button>
                             <label className="label">{copy.kept}</label>
-                            <textarea className="text-input" value={kept} onChange={e => setKept(e.target.value)} style={{ minHeight: 64, resize: 'vertical' }} placeholder={copy.keptPlaceholder} />
+                            <textarea className="text-input" value={kept} onChange={e => { setKept(e.target.value); setFeedbackSaved(false); setFeedbackLocal(false); setFeedbackSaveError(false); }} style={{ minHeight: 64, resize: 'vertical' }} placeholder={copy.keptPlaceholder} />
                             <label className="label">{copy.changed}</label>
-                            <textarea className="text-input" value={changed} onChange={e => setChanged(e.target.value)} style={{ minHeight: 64, resize: 'vertical' }} placeholder={copy.changedPlaceholder} />
-                            <button className="button" disabled={state.imageGenerationCount >= 3} onClick={() => {
-                                setImageFeedback(kept.trim(), changed.trim());
+                            <textarea className="text-input" value={changed} onChange={e => { setChanged(e.target.value); setFeedbackSaved(false); setFeedbackLocal(false); setFeedbackSaveError(false); }} style={{ minHeight: 64, resize: 'vertical' }} placeholder={copy.changedPlaceholder} />
+                            <button className="button" onClick={() => void saveImageNotes()}>{copy.saveNotes}</button>
+                            <button className="button" disabled={state.imageGenerationCount >= 3} onClick={async () => {
+                                await saveImageNotes();
                                 goToPhase(3);
                             }}>
                                 {state.imageGenerationCount < 3 ? copy.remakeWithFeedback(3 - state.imageGenerationCount) : copy.limit}
@@ -792,6 +834,11 @@ export default function Phase3Reveal() {
                         </div>
                         <a
                             href={`/survey/exit?id=${state.ticketId}${state.locale === 'en' ? '&lang=en' : ''}`}
+                            onClick={async event => {
+                                event.preventDefault();
+                                const href = event.currentTarget.href;
+                                if (await saveImageNotes()) window.location.assign(href);
+                            }}
                             className="button button-primary"
                             style={{
                                 display: 'inline-block',
@@ -804,11 +851,17 @@ export default function Phase3Reveal() {
                         >
                             {copy.survey}
                         </a>
+                        {feedbackSaveError && (
+                            <a href={`/survey/exit?id=${state.ticketId}${state.locale === 'en' ? '&lang=en' : ''}`} className="button" style={{ textDecoration: 'none', textAlign: 'center' }}>
+                                {copy.continueWithoutSaving}
+                            </a>
+                        )}
                         <p className="voice" style={{ fontSize: 12, opacity: 0.45, marginTop: 4 }}>
                             {copy.thanks}
                         </p>
                         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
-                            <button className="button" onClick={() => {
+                            <button className="button" onClick={async () => {
+                                await saveImageNotes();
                                 goToPhase(3);
                             }}>
                                 {copy.redraw}

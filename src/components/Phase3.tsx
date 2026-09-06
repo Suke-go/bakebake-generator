@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import ProgressDots from './ProgressDots';
 import ExperienceComparison from './ExperienceComparison';
 import { logResearchEvent } from '@/lib/research-log';
+import { composeVisualGenerationInput } from '@/lib/visual-feedback';
 
 const ART_STYLES: { id: ArtStyle; name: string; desc: string }[] = [
     { id: 'sumi', name: '水墨画', desc: '余白とにじみのある、静かな墨の表現' },
@@ -16,13 +17,13 @@ const ART_STYLES: { id: ArtStyle; name: string; desc: string }[] = [
 ];
 
 export default function Phase3() {
-    const { state, goToPhase, setVisualInput, setArtStyle, reviseSelectedConcept, undoConceptRevision, requestImageGeneration, backOverrideRef } = useApp();
+    const { state, goToPhase, setVisualInput, setVisualNote, setImageFeedback, setArtStyle, reviseSelectedConcept, undoConceptRevision, requestImageGeneration, backOverrideRef } = useApp();
     const [step, setStep] = useState<'review' | 'style' | 'visual'>('review');
     const [name, setName] = useState(state.selectedConcept?.name ?? '');
     const [description, setDescription] = useState(state.selectedConcept?.description ?? '');
     const [kept, setKept] = useState(state.imageKept);
     const [changed, setChanged] = useState(state.imageChanged);
-    const [visual, setVisual] = useState(state.visualInput);
+    const [visual, setVisual] = useState(state.visualNote ?? state.visualInput);
     const isEnglish = state.locale === 'en';
     const artStyles = isEnglish ? [
         { id: 'sumi' as const, name: 'Ink wash', desc: 'Quiet ink with space and soft bleeding edges' },
@@ -65,7 +66,8 @@ export default function Phase3() {
                 },
             });
         }
-    }, [changed, description, kept, name, reviseSelectedConcept, state.conceptRevisions, state.selectedConcept, state.ticketId]);
+        setImageFeedback(kept.trim(), changed.trim());
+    }, [changed, description, kept, name, reviseSelectedConcept, setImageFeedback, state.conceptRevisions, state.selectedConcept, state.ticketId]);
 
     const chooseStyle = (style: ArtStyle) => {
         saveReview();
@@ -75,7 +77,9 @@ export default function Phase3() {
 
     const generate = () => {
         saveReview();
-        setVisualInput([visual.trim(), kept.trim() ? `残す: ${kept.trim()}` : '', changed.trim() ? `変える: ${changed.trim()}` : ''].filter(Boolean).join('\n'));
+        const freeVisual = visual.trim();
+        setVisualNote(freeVisual);
+        setVisualInput(composeVisualGenerationInput(freeVisual, kept, changed));
         if (requestImageGeneration()) goToPhase(3.5);
     };
 

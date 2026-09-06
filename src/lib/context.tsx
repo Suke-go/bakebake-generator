@@ -63,6 +63,7 @@ export interface AppState {
   concepts: YokaiConcept[];
   selectedConcept: YokaiConcept | null;
   // Phase 3
+  visualNote: string | null;
   visualInput: string;
   generatedImageUrl: string | null;
   yokaiName: string;
@@ -89,6 +90,7 @@ interface AppContextType {
   setConcepts: (concepts: YokaiConcept[]) => void;
   selectConcept: (concept: YokaiConcept) => void;
   setVisualInput: (input: string) => void;
+  setVisualNote: (input: string) => void;
   setGeneratedImage: (url: string) => void;
   setYokaiName: (name: string) => void;
   setNarrative: (narrative: string) => void;
@@ -116,6 +118,7 @@ const initialState: AppState = {
   folkloreResults: [],
   concepts: [],
   selectedConcept: null,
+  visualNote: null,
   visualInput: '',
   generatedImageUrl: null,
   yokaiName: '',
@@ -232,6 +235,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const setVisualInput = useCallback((input: string) => {
     setState(prev => ({ ...prev, visualInput: input }));
   }, []);
+  const setVisualNote = useCallback((input: string) => {
+    setState(prev => ({ ...prev, visualNote: input }));
+  }, []);
 
   const setGeneratedImage = useCallback((url: string) => {
     setState(prev => ({ ...prev, generatedImageUrl: url }));
@@ -324,6 +330,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setConcepts,
     selectConcept,
     setVisualInput,
+    setVisualNote,
     setGeneratedImage,
     setYokaiName,
     setNarrative,
@@ -349,6 +356,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setConcepts,
     selectConcept,
     setVisualInput,
+    setVisualNote,
     setGeneratedImage,
     setYokaiName,
     setNarrative,
