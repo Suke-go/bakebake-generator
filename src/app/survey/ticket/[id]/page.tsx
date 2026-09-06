@@ -11,7 +11,7 @@ import '@/app/globals.css';
  * StyledQR — qr-code-styling によるcanvas QR
  * 墨色ドット・和紙背景
  */
-function StyledQR({ value, size = 260 }: { value: string; size?: number }) {
+function StyledQR({ value, size = 320 }: { value: string; size?: number }) {
     const containerRef = useRef<HTMLDivElement>(null);
     const qrRef = useRef<{ update: (options: { data: string }) => void } | null>(null);
 
@@ -20,9 +20,18 @@ function StyledQR({ value, size = 260 }: { value: string; size?: number }) {
 
         import('qr-code-styling').then((mod) => {
             const QRCodeStyling = mod.default;
+            const fitCanvas = () => {
+                const canvas = containerRef.current?.querySelector('canvas');
+                if (canvas) {
+                    canvas.style.width = '100%';
+                    canvas.style.height = 'auto';
+                    canvas.style.display = 'block';
+                }
+            };
 
             if (qrRef.current) {
                 qrRef.current.update({ data: value });
+                fitCanvas();
                 return;
             }
 
@@ -31,10 +40,10 @@ function StyledQR({ value, size = 260 }: { value: string; size?: number }) {
                 height: size,
                 type: 'canvas',
                 data: value,
-                margin: 12,                 // 広めのquiet zone — スキャン精度向上
+                margin: 24,                 // 広めのquiet zone — スキャン精度向上
                 dotsOptions: {
                     color: '#0a0000',       // ほぼ真黒に微かな赤み — 美観維持+高コントラスト
-                    type: 'extra-rounded',  // 柔らかい丸みを保ちつつデコード認識向上
+                    type: 'square',  // 柔らかい丸みを保ちつつデコード認識向上
                 },
                 cornersSquareOptions: {
                     color: '#000000',       // ファインダーパターンは真黒 — 認識の要
@@ -48,17 +57,18 @@ function StyledQR({ value, size = 260 }: { value: string; size?: number }) {
                     color: '#ffffff',       // 白背景 — 最大コントラスト確保
                 },
                 qrOptions: {
-                    errorCorrectionLevel: 'H',
+                    errorCorrectionLevel: 'M',
                 },
             });
 
             qrRef.current = qr;
             containerRef.current!.innerHTML = '';
             qr.append(containerRef.current!);
+            fitCanvas();
         });
     }, [value, size]);
 
-    return <div ref={containerRef} style={{ lineHeight: 0 }} />;
+    return <div ref={containerRef} style={{ lineHeight: 0, width: '100%', maxWidth: `${size}px` }} />;
 }
 
 function SurveyTicketContent({ params }: { params: Promise<{ id: string }> }) {
@@ -148,6 +158,7 @@ function SurveyTicketContent({ params }: { params: Promise<{ id: string }> }) {
             justifyContent: scannedYokai ? 'flex-start' : 'center',
             backgroundColor: '#0a0a0a',
             overflowY: 'auto',
+            overflowX: 'hidden',
             WebkitOverflowScrolling: 'touch',   // iOS momentum scroll
             paddingTop: scannedYokai ? '2rem' : 0,
             paddingBottom: scannedYokai ? '2rem' : 0,
@@ -170,7 +181,7 @@ function SurveyTicketContent({ params }: { params: Promise<{ id: string }> }) {
                 // 間: generous vertical spacing
                 gap: '2.5rem',
                 // 霊符画像の比率に合わせたPadding
-                padding: '4rem 2rem 3rem',
+                padding: '4rem 1rem 3rem',
                 // 背景画像にlabel.pngを指定
                 backgroundImage: 'url(/label.png)',
                 backgroundSize: '100% 100%',
@@ -178,7 +189,8 @@ function SurveyTicketContent({ params }: { params: Promise<{ id: string }> }) {
                 backgroundPosition: 'center',
                 borderRadius: '4px',
                 maxWidth: '340px',
-                width: '85vw',
+                width: 'min(340px, calc(100vw - 32px))',
+                boxSizing: 'border-box',
                 minHeight: '600px', // 霊符らしく縦長を維持
                 // 霊符らしく少し影をつける
                 boxShadow: `
@@ -284,6 +296,8 @@ function SurveyTicketContent({ params }: { params: Promise<{ id: string }> }) {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
+                            width: '100%',
+                            minWidth: 0,
                             marginTop: 'auto',
                         }}>
                             {/* GLSL blood glow — 大きく光らせる */}
@@ -297,9 +311,12 @@ function SurveyTicketContent({ params }: { params: Promise<{ id: string }> }) {
                                 overflow: 'hidden',
                                 boxShadow: '0 0 24px rgba(160, 20, 10, 0.5)',
                                 background: '#ffffff',
-                                padding: '8px',        // 白padding層でquiet zone確保
+                                padding: '8px',
+                                width: '100%',
+                                maxWidth: '320px',        // 白padding層でquiet zone確保
+                                boxSizing: 'border-box',
                             }}>
-                                <StyledQR value={generatorUrl} size={260} />
+                                <StyledQR value={generatorUrl} size={320} />
                             </div>
                         </div>
 
