@@ -24,6 +24,7 @@ export interface ConceptResponse {
         folkloreRef: string;
         summary: string;
     }>;
+    usedModel?: string;
 }
 
 export interface ImageResponse {

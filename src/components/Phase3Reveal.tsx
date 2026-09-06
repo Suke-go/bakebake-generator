@@ -8,8 +8,10 @@ import ProgressDots from './ProgressDots';
 import { supabase } from '@/lib/supabase';
 import SpookyText from './SpookyText';
 import ExperienceComparison from './ExperienceComparison';
+import { logResearchEvent, sha256Hex } from '@/lib/research-log';
+import { RESEARCH_PROMPT_VERSION } from '@/lib/research-versions';
 
-const compressImage = (dataUrl: string, maxSize = 512): Promise<string> => {
+const compressImage = (dataUrl: string, maxSize = 512, quality = 0.6): Promise<string> => {
     return new Promise((resolve, reject) => {
         const img = new Image();
         img.onload = () => {
@@ -34,7 +36,7 @@ const compressImage = (dataUrl: string, maxSize = 512): Promise<string> => {
 
             ctx.filter = 'grayscale(100%)';
             ctx.drawImage(img, 0, 0, w, h);
-            resolve(canvas.toDataURL('image/jpeg', 0.6));
+            resolve(canvas.toDataURL('image/jpeg', quality));
         };
         img.onerror = reject;
         img.src = dataUrl;
@@ -448,6 +450,26 @@ export default function Phase3Reveal() {
                     const compressedB64 = await compressImage(
                         `data:${data.imageMimeType};base64,${data.imageBase64}`
                     );
+                    const researchImageSnapshot = await compressImage(
+                        `data:${data.imageMimeType};base64,${data.imageBase64}`,
+                        256,
+                        0.4,
+                    );
+                    void (async () => {
+                        const imageBase64Sha256 = await sha256Hex(data.imageBase64);
+                        await logResearchEvent(state.ticketId, {
+                            eventType: 'image_generation_completed',
+                            payload: {
+                                generationVersion: state.imageGenerationVersion,
+                                succeeded: true, model: data.usedModel ?? '', promptVersion: RESEARCH_PROMPT_VERSION,
+                                narrative: data.narrative ?? '', imageBase64Sha256,
+                                imageSnapshot: researchImageSnapshot,
+                                imageSnapshotMimeType: 'image/jpeg',
+                                imageReference: { surveyId: state.ticketId ?? '', generationVersion: state.imageGenerationVersion, storage: 'research_events.imageSnapshot' },
+                                warnings: data.warnings ?? [],
+                            },
+                        });
+                    })();
                     const yokaiPayload = {
                         yokai_name: state.selectedConcept!.name,
                         yokai_desc: data.narrative,
@@ -490,6 +512,15 @@ export default function Phase3Reveal() {
                 }
             } else {
                 console.warn('[Phase3Reveal] No image data, skipping DB save');
+                void logResearchEvent(state.ticketId, {
+                    eventType: 'image_generation_completed',
+                    payload: {
+                        generationVersion: state.imageGenerationVersion, succeeded: false,
+                        model: data.usedModel ?? '', promptVersion: RESEARCH_PROMPT_VERSION,
+                        narrative: data.narrative ?? '', imageBase64Sha256: '', imageSnapshot: '',
+                        warnings: data.warnings ?? [],
+                    },
+                });
             }
         } catch (err) {
             if (!mountedRef.current || requestId !== reqRef.current) {
@@ -502,6 +533,10 @@ export default function Phase3Reveal() {
             }
 
             console.error('Generate image error:', err);
+            void logResearchEvent(state.ticketId, {
+                eventType: 'image_generation_failed',
+                payload: { generationVersion: state.imageGenerationVersion, promptVersion: RESEARCH_PROMPT_VERSION, error: err instanceof Error ? err.message : 'unknown' },
+            });
             setError(err instanceof Error ? err.message : '画像生成に失敗しました。');
             apiDoneRef.current = true;
             setApiDone(true);
@@ -732,6 +767,7 @@ export default function Phase3Reveal() {
                             <button className="button" disabled={!narrativeDraft.trim()} onClick={async () => {
                                 const nextNarrative = narrativeDraft.trim();
                                 setNarrative(nextNarrative);
+                                void logResearchEvent(state.ticketId, { eventType: 'narrative_edited', payload: { narrative: nextNarrative, generationVersion: state.imageGenerationVersion } });
                                 if (state.ticketId) {
                                     const { error: updateError } = await supabase.from('surveys').update({ yokai_name: state.yokaiName, yokai_desc: nextNarrative }).eq('id', state.ticketId);
                                     if (updateError) setSaveError(`${copy.saveError}: ${updateError.message}`);

@@ -1,6 +1,7 @@
 'use client';
 
 import { useApp } from '@/lib/context';
+import { logResearchEvent } from '@/lib/research-log';
 
 export default function ExperienceComparison() {
     const { state } = useApp();
@@ -26,7 +27,7 @@ export default function ExperienceComparison() {
         <div><p className="label" style={{ marginBottom: 5 }}>{labels.experience}</p><p style={{ margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.7, color: 'var(--text-dim)', fontFamily: 'var(--font-main)' }}>{experience || labels.noExperience}</p></div>
         {supplements.length > 0 && <details><summary style={{ cursor: 'pointer', color: 'var(--text-dim)' }}>{labels.supplements}</summary><dl style={{ margin: '8px 0 0', display: 'grid', gap: 5, fontSize: 13 }}>{supplements.map(([label, value]) => <div key={label} style={{ display: 'grid', gridTemplateColumns: '9em 1fr', gap: 8 }}><dt style={{ color: 'var(--text-ghost)' }}>{label}</dt><dd style={{ margin: 0, color: 'var(--text-dim)', whiteSpace: 'pre-wrap' }}>{value}</dd></div>)}</dl></details>}
         <div><p className="label" style={{ marginBottom: 3 }}>{labels.yokai}</p><p style={{ margin: 0, color: 'var(--text-dim)', lineHeight: 1.6 }}>{state.selectedConcept?.name || labels.undecided}{state.selectedConcept?.description ? ` — ${state.selectedConcept.description}` : ''}</p></div>
-        {folklore.length > 0 && <details><summary style={{ cursor: 'pointer', color: 'var(--text-dim)' }}>{labels.folklore}</summary><p style={{ fontSize: 12, color: 'var(--text-ghost)', lineHeight: 1.65, margin: '8px 0' }}>{labels.reference}</p><div style={{ display: 'grid', gap: 10 }}>{folklore.map(item => {
+        {folklore.length > 0 && <details onToggle={(event) => { if (event.currentTarget.open) void logResearchEvent(state.ticketId, { eventType: 'folklore_references_opened', payload: { locale: state.locale, folkloreIds: folklore.map(item => item.id) } }); }}><summary style={{ cursor: 'pointer', color: 'var(--text-dim)' }}>{labels.folklore}</summary><p style={{ fontSize: 12, color: 'var(--text-ghost)', lineHeight: 1.65, margin: '8px 0' }}>{labels.reference}</p><div style={{ display: 'grid', gap: 10 }}>{folklore.map(item => {
             const isFallback = item.source === 'fallback';
             return <article key={item.id} style={{ borderLeft: '2px solid rgba(255,255,255,0.2)', paddingLeft: 10 }}><p style={{ margin: 0, color: 'var(--text-bright)' }}>{item.kaiiName}</p>{isEnglish && item.englishSummary && <><p style={{ margin: '5px 0 2px', color: 'var(--text-ghost)', fontSize: 11 }}>{labels.translation}</p><p style={{ margin: '0 0 3px', color: 'var(--text-dim)', fontSize: 13, lineHeight: 1.65 }}>{item.englishSummary}</p></>}<p lang="ja" style={{ margin: '3px 0', color: 'var(--text-dim)', fontSize: 13, lineHeight: 1.65 }}>{item.content}</p>{isEnglish && <p style={{ margin: '2px 0', color: 'var(--text-ghost)', fontSize: 11 }}>{labels.original}</p>}<p style={{ margin: 0, color: 'var(--text-ghost)', fontSize: 11 }}>{isFallback ? labels.fallback : `${labels.source}: ${item.source || labels.archive}`}{item.location ? ` ／ ${item.location}` : ''}</p></article>;
         })}</div></details>}

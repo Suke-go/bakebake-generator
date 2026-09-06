@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '@/lib/context';
 import ProgressDots from './ProgressDots';
+import { logResearchEvent } from '@/lib/research-log';
+import { RESEARCH_QUESTIONNAIRE_VERSION } from '@/lib/research-versions';
 
 type Answers = Record<string, string>;
 type StepId = 'experience' | 'context' | 'salientFeature' | 'duration' | 'explanation';
@@ -54,6 +56,7 @@ export default function Phase1Prime() {
     const [answers, setAnswers] = useState<Answers>(() => state.answers);
     const [visible, setVisible] = useState(false);
     const [isTransitioning, setIsTransitioning] = useState(false);
+    const initialExperienceLoggedRef = useRef(false);
     const scrollRef = useRef<HTMLDivElement>(null);
     const hasExplanation = valueIsYes(textValue(answers, 'hasExplanation'));
     const updateAnswer = useCallback((key: string, value: string) => setAnswers(previous => key === 'hasExplanation' && !valueIsYes(value) ? { ...previous, hasExplanation: value, explanation: '' } : { ...previous, [key]: value }), []);
@@ -62,8 +65,31 @@ export default function Phase1Prime() {
     useEffect(() => { backOverrideRef.current = currentStep > 0 ? () => { goBackStep(); return true; } : null; return () => { backOverrideRef.current = null; }; }, [backOverrideRef, currentStep, goBackStep]);
     useEffect(() => { const timer = window.setTimeout(() => setVisible(true), 140); return () => clearTimeout(timer); }, [currentStep]);
     useEffect(() => { scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' }); }, [currentStep]);
-    const finish = useCallback(() => { const experience = textValue(answers, 'experience').trim(); if (!experience) return; saveAnswersToContext({ ...answers, experience }); setHandle({ id: 'free', text: experience, shortText: experience.slice(0, 24) }); goToPhase(2); }, [answers, goToPhase, saveAnswersToContext, setHandle]);
-    const advance = useCallback(() => { if (isTransitioning || (steps[currentStep].id === 'experience' && !textValue(answers, 'experience').trim())) return; setVisible(false); setIsTransitioning(true); window.setTimeout(() => { if (currentStep === steps.length - 1) finish(); else { setCurrentStep(index => index + 1); setIsTransitioning(false); } }, 220); }, [answers, currentStep, finish, isTransitioning, steps]);
+    const finish = useCallback(() => {
+        const experience = textValue(answers, 'experience').trim();
+        if (!experience) return;
+        const submittedAnswers = { ...answers, experience };
+        saveAnswersToContext(submittedAnswers);
+        void logResearchEvent(state.ticketId, {
+            eventType: 'questionnaire_submitted',
+            payload: { questionnaireVersion: RESEARCH_QUESTIONNAIRE_VERSION, locale: state.locale, answers: submittedAnswers },
+        });
+        setHandle({ id: 'free', text: experience, shortText: experience.slice(0, 24) });
+        goToPhase(2);
+    }, [answers, goToPhase, saveAnswersToContext, setHandle, state.locale, state.ticketId]);
+    const advance = useCallback(() => {
+        if (isTransitioning || (steps[currentStep].id === 'experience' && !textValue(answers, 'experience').trim())) return;
+        if (steps[currentStep].id === 'experience') {
+            const originalExperience = textValue(answers, 'experience').trim();
+            void logResearchEvent(state.ticketId, {
+                eventType: initialExperienceLoggedRef.current ? 'experience_revised' : 'experience_first_recorded',
+                payload: { questionnaireVersion: RESEARCH_QUESTIONNAIRE_VERSION, locale: state.locale, experience: originalExperience },
+            });
+            initialExperienceLoggedRef.current = true;
+        }
+        setVisible(false); setIsTransitioning(true);
+        window.setTimeout(() => { if (currentStep === steps.length - 1) finish(); else { setCurrentStep(index => index + 1); setIsTransitioning(false); } }, 220);
+    }, [answers, currentStep, finish, isTransitioning, state.locale, state.ticketId, steps]);
     const step = steps[currentStep];
     const canAdvance = step.optional || Boolean(textValue(answers, 'experience').trim());
     const history = steps.slice(0, currentStep).map((previousStep, index) => {

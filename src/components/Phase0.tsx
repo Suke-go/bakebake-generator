@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useApp } from '@/lib/context';
 import { Html5QrcodeScanner, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import { storeResearchToken } from '@/lib/research-log';
 
 /**
  * Phase 0: タイトル表示 + QR常時スキャン
@@ -64,6 +65,8 @@ export default function Phase0() {
                             const scannedUrl = new URL(trimmed, window.location.origin);
                             ticketId = scannedUrl.searchParams.get('id') || trimmed;
                             if (scannedUrl.searchParams.get('lang') === 'en') setLocale('en');
+                            const researchToken = new URLSearchParams(scannedUrl.hash.slice(1)).get('rt');
+                            if (researchToken && ticketId !== trimmed) storeResearchToken(ticketId, researchToken);
                         }
                     } catch { /* QR may contain a bare ticket id */ }
                     if (ticketId.length < 10) {

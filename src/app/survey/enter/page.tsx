@@ -3,6 +3,8 @@
 import React, { Suspense, useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { storeResearchToken } from '@/lib/research-log';
+import { RESEARCH_CONSENT_VERSION } from '@/lib/research-versions';
 import '@/app/globals.css';
 
 const PREFECTURES = [
@@ -34,6 +36,10 @@ function ConsentScreen({ onAccept, onDecline, isDeclining, isEnglish }: { onAcce
         {
             title: isEnglish ? 'How your answers are handled' : '回答の取扱い',
             body: isEnglish ? 'Answers are collected anonymously. We do not collect information that identifies you. The data is used only for research, experience evaluation, and improvement.' : '回答は匿名で収集され、個人を特定する情報は取得しません。収集したデータは統計的に処理し、研究・体験評価・改善目的以外には使用しません。'
+        },
+        {
+            title: isEnglish ? 'Experience record' : '体験中の記録',
+            body: isEnglish ? 'If you agree, we record what you write, the yokai and folklore references shown to you, and the edits you make. These records are available only to the research team and are not publicly displayed.' : '同意いただいた場合、入力した体験、表示された妖怪・伝承、体験中に行った修正を記録します。これらは研究チームのみが扱い、公開表示には使用しません。'
         },
         {
             title: isEnglish ? 'Time required' : '所要時間',
@@ -200,33 +206,56 @@ function SurveyEnterContent() {
         setIsSubmitting(true);
 
         try {
-            const { data, error: dbError } = await supabase
-                .from('surveys')
-                .insert([
-                    {
-                        visitor_type: visitorType,
-                        pre_origin: origin,
-                        pre_familiarity: familiarity,
-                        pre_image: preImage.trim(),
-                        pre_age: age,
-                        pre_gender: gender || null,
-                        pre_yokai_perception: yokaiPerception,
-                        pre_ai_experience: aiExperience
-                    }
-                ])
-                .select();
+            const entryPayload = {
+                visitorType,
+                origin,
+                familiarity,
+                preImage: preImage.trim(),
+                age,
+                gender: gender || null,
+                yokaiPerception,
+                aiExperience,
+                locale: isEnglish ? 'en' : 'ja',
+                consentAccepted: true,
+                consentVersion: RESEARCH_CONSENT_VERSION,
+            };
+            let newId = '';
+            let researchToken = '';
+            try {
+                const response = await fetch('/api/research-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(entryPayload),
+                });
+                if (response.ok) {
+                    const result = await response.json() as { id?: string; token?: string };
+                    newId = result.id || '';
+                    researchToken = result.token || '';
+                }
+            } catch (researchError) {
+                console.warn('Research logging could not be initialized:', researchError);
+            }
 
-            if (dbError) throw dbError;
+            if (!newId) {
+                const { data, error: dbError } = await supabase
+                    .from('surveys')
+                    .insert([{
+                        visitor_type: visitorType, pre_origin: origin, pre_familiarity: familiarity,
+                        pre_image: preImage.trim(), pre_age: age, pre_gender: gender || null,
+                        pre_yokai_perception: yokaiPerception, pre_ai_experience: aiExperience,
+                    }])
+                    .select();
+                if (dbError) throw dbError;
+                newId = data?.[0]?.id || '';
+            }
 
-            if (data && data.length > 0) {
-                const newId = data[0].id;
+            if (newId) {
+                if (researchToken) storeResearchToken(newId, researchToken, true);
                 // スマホのローカルストレージにIDを保存（誤って閉じた時の復帰用）
                 localStorage.setItem('yokai_ticket_id', newId);
                 // Navigate to the ticket page
                 router.push(ticketPath(newId));
-            } else {
-                throw new Error("Failed to create record");
-            }
+            } else throw new Error("Failed to create record");
         } catch (err: unknown) {
             console.error(err);
             setError(isEnglish ? 'A network error occurred. Please try again.' : '通信エラーが発生しました。もう一度お試しください。');

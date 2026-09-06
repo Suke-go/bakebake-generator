@@ -9,6 +9,8 @@ import Phase1Prime from '@/components/Phase1Prime';
 import Phase2 from '@/components/Phase2';
 import Phase3 from '@/components/Phase3';
 import Phase3Reveal from '@/components/Phase3Reveal';
+import ResearchLogger from '@/components/ResearchLogger';
+import { importResearchTokenFromHash, subscribeResearchLogErrors } from '@/lib/research-log';
 
 const IDLE_TIMEOUT_MS = 3 * 60 * 1000; // 3分
 
@@ -153,6 +155,7 @@ function GeneratorContent() {
   const { state, goToPhase, resetState, setLocale, setTicketId, backOverrideRef } = useApp();
   const searchParams = useSearchParams();
   const [showIdleWarning, setShowIdleWarning] = useState(false);
+  const [researchLogFailed, setResearchLogFailed] = useState(false);
 
   useEffect(() => {
     const requestedLocale = searchParams.get('lang');
@@ -160,9 +163,12 @@ function GeneratorContent() {
     const ticketId = searchParams.get('id');
     if (ticketId && ticketId.length >= 10) {
       setTicketId(ticketId);
+      importResearchTokenFromHash(ticketId);
       if (state.currentPhase === 0) goToPhase(1);
     }
   }, [searchParams, setLocale, setTicketId, goToPhase, state.currentPhase]);
+
+  useEffect(() => subscribeResearchLogErrors(() => setResearchLogFailed(true)), []);
 
   // #4: overflow hidden を generator ルートだけに適用
   useEffect(() => {
@@ -249,8 +255,12 @@ function GeneratorContent() {
         onBack={handleBack}
         onReset={handleReset}
       />
+      <ResearchLogger />
       {state.currentPhase !== 0 && state.currentPhase !== 1 && <LanguageToggle locale={state.locale} onChange={setLocale} />}
       <PhaseTransition phaseKey={state.currentPhase} />
+      {researchLogFailed && <p style={{ position: 'fixed', bottom: 18, left: '50%', transform: 'translateX(-50%)', zIndex: 200, color: 'var(--text-ghost)', fontSize: 11, textAlign: 'center' }}>
+        {state.locale === 'en' ? 'Your research record could not be saved. You can continue the experience.' : '研究用の記録を保存できませんでした。体験は続けられます。'}
+      </p>}
       {showIdleWarning && (
         <div style={{
           position: 'fixed',

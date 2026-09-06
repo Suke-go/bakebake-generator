@@ -3,6 +3,8 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useApp, YokaiConcept } from '@/lib/context';
 import { searchFolklore, generateConcepts } from '@/lib/api-client';
+import { logResearchEvent } from '@/lib/research-log';
+import { RESEARCH_PROMPT_VERSION } from '@/lib/research-versions';
 import ProgressDots from './ProgressDots';
 import SpookyText from './SpookyText';
 // Use flex properties to create the organic scattered effect from 29f9879 without absolute vertical overlap
@@ -166,8 +168,23 @@ export default function Phase2() {
                 setFolkloreResults(folkloreWithSummaries);
                 setConceptData(conceptResult.concepts as YokaiConcept[]);
                 setConcepts(conceptResult.concepts as YokaiConcept[]);
+                void logResearchEvent(state.ticketId, {
+                    eventType: 'concept_generation_completed',
+                    payload: {
+                        locale: state.locale,
+                        promptVersion: RESEARCH_PROMPT_VERSION,
+                        model: conceptResult.usedModel ?? '',
+                        input: { experience: state.answers.experience ?? '', answers: state.answers },
+                        archiveSnapshot: folkloreWithSummaries.map(({ id, kaiiName, content, location, source, englishSummary }) => ({ id, kaiiName, content, location, source: source ?? '', englishSummary: englishSummary ?? '' })),
+                        concepts: conceptResult.concepts.map(({ source, name, reading, description, label, folkloreRef, namingType }) => ({ source, name, reading, description, label, folkloreRef: folkloreRef ?? '', namingType: namingType ?? '' })),
+                    },
+                });
             } catch (conceptErr) {
                 console.warn('Phase 2 concept error, fallback applied:', conceptErr);
+                void logResearchEvent(state.ticketId, {
+                    eventType: 'concept_generation_failed',
+                    payload: { locale: state.locale, promptVersion: RESEARCH_PROMPT_VERSION, error: conceptErr instanceof Error ? conceptErr.message : 'unknown' },
+                });
                 const conceptFallback = [
                     ...localFallbackConcepts,
                     {
@@ -301,9 +318,18 @@ export default function Phase2() {
 
     const handleSelect = (idx: number) => {
         if (selectedIdx !== null) return;
+        const concept = conceptData[idx];
+        if (!concept) return;
+        void logResearchEvent(state.ticketId, {
+            eventType: 'concept_selected',
+            payload: {
+                locale: state.locale, promptVersion: RESEARCH_PROMPT_VERSION,
+                concept: { source: concept.source, name: concept.name, reading: concept.reading, description: concept.description, label: concept.label, namingType: concept.namingType ?? '', folkloreRef: concept.folkloreRef?.id ?? '' },
+            },
+        });
         setSelectedIdx(idx);
         setShowCustomInput(false);
-        selectConcept(conceptData[idx]);
+        selectConcept(concept);
         setTimeout(() => goToPhase(3), 1000);
     };
 
@@ -319,6 +345,10 @@ export default function Phase2() {
             description: copy.customDescription,
             label: '自分で名付けた',
         };
+        void logResearchEvent(state.ticketId, {
+            eventType: 'concept_selected',
+            payload: { locale: state.locale, promptVersion: RESEARCH_PROMPT_VERSION, concept: { source: custom.source, name: custom.name, reading: custom.reading, description: custom.description, label: custom.label, namingType: '', folkloreRef: '' } },
+        });
         setSelectedIdx(-1);
         setShowCustomInput(false);
         selectConcept(custom);

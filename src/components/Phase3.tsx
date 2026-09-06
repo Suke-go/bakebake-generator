@@ -5,6 +5,7 @@ import { ArtStyle, useApp } from '@/lib/context';
 import { supabase } from '@/lib/supabase';
 import ProgressDots from './ProgressDots';
 import ExperienceComparison from './ExperienceComparison';
+import { logResearchEvent } from '@/lib/research-log';
 
 const ART_STYLES: { id: ArtStyle; name: string; desc: string }[] = [
     { id: 'sumi', name: '水墨画', desc: '余白とにじみのある、静かな墨の表現' },
@@ -55,8 +56,16 @@ export default function Phase3() {
             changed.trim() !== (last?.changed ?? '');
         if (hasChanged) {
             reviseSelectedConcept({ name: nextName, description: nextDescription, kept: kept.trim(), changed: changed.trim() });
+            void logResearchEvent(state.ticketId, {
+                eventType: 'concept_revised',
+                payload: {
+                    name: nextName, description: nextDescription,
+                    previousName: state.selectedConcept?.name ?? '', previousDescription: state.selectedConcept?.description ?? '',
+                    kept: kept.trim(), changed: changed.trim(),
+                },
+            });
         }
-    }, [changed, description, kept, name, reviseSelectedConcept, state.conceptRevisions, state.selectedConcept]);
+    }, [changed, description, kept, name, reviseSelectedConcept, state.conceptRevisions, state.selectedConcept, state.ticketId]);
 
     const chooseStyle = (style: ArtStyle) => {
         saveReview();
@@ -74,6 +83,10 @@ export default function Phase3() {
         const previous = state.conceptRevisions.at(-1);
         if (!previous) return;
         undoConceptRevision();
+        void logResearchEvent(state.ticketId, {
+            eventType: 'concept_revision_undone',
+            payload: { restoredName: previous.previousName, restoredDescription: previous.previousDescription },
+        });
         setName(previous.previousName);
         setDescription(previous.previousDescription);
         setKept(previous.kept);

@@ -4,6 +4,7 @@ import React, { Suspense, useEffect, useState, use, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import QRGlow from '@/components/QRFlameAura';
+import { getResearchToken } from '@/lib/research-log';
 import '@/app/globals.css';
 
 /**
@@ -65,11 +66,15 @@ function SurveyTicketContent({ params }: { params: Promise<{ id: string }> }) {
     const searchParams = useSearchParams();
     const isEnglish = searchParams.get('lang') === 'en';
     const [origin, setOrigin] = useState('');
+    const [researchToken, setResearchToken] = useState<string | null>(null);
     const generatorPath = `/generator?id=${encodeURIComponent(id)}${isEnglish ? '&lang=en' : ''}`;
-    const generatorUrl = origin ? `${origin}${generatorPath}` : generatorPath;
+    const generatorUrl = `${origin ? `${origin}${generatorPath}` : generatorPath}${researchToken ? `#rt=${encodeURIComponent(researchToken)}` : ''}`;
     const [scannedYokai, setScannedYokai] = useState<{ name: string; b64: string; desc: string } | null>(null);
 
-    useEffect(() => { setOrigin(window.location.origin); }, []);
+    useEffect(() => {
+        setOrigin(window.location.origin);
+        setResearchToken(getResearchToken(id));
+    }, [id]);
 
     // Wake Lock
     useEffect(() => {

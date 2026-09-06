@@ -117,6 +117,7 @@ export async function POST(req: Request) {
         const prompt = buildConceptPrompt(handle, conceptAnswers, conceptInput, locale);
         let responseText = '';
         let geminiFailed = true;
+        let usedModel = '';
 
         const geminiApiKeys = [process.env.GEMINI_API_KEY, process.env.GEMINI_SUB_API_KEY].filter(Boolean) as string[];
 
@@ -151,6 +152,7 @@ export async function POST(req: Request) {
                 );
                 responseText = result.text || '';
                 geminiFailed = false;
+                usedModel = 'gemini-2.0-flash';
                 nextRequestAllowedAt = 0; // Reset global rate limit if this key succeeded
                 break;
             } catch (error) {
@@ -171,6 +173,7 @@ export async function POST(req: Request) {
                     ],
                 });
                 responseText = openaiResponse.choices[0]?.message?.content || '';
+                if (responseText) usedModel = 'gpt-4o-mini';
             } catch (error) {
                 console.warn('generate-concepts: OpenAI fallback failed:', toErrorMessage(error));
             }
@@ -238,6 +241,7 @@ export async function POST(req: Request) {
         }
 
         if (llmCandidates.length === 0) {
+            usedModel = usedModel || 'fallback';
             llmCandidates = [{
                 source: 'llm' as const,
                 name: '気配',
@@ -251,6 +255,7 @@ export async function POST(req: Request) {
         return NextResponse.json(
             {
                 concepts: [...dbConcepts, ...llmCandidates],
+                usedModel,
                 ...(folkloreSummaries.length > 0 ? { folkloreSummaries } : {}),
             },
             {
