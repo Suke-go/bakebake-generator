@@ -186,6 +186,7 @@ footer{border-top:1px solid var(--hair);padding:48px 0 64px;font-size:13px;color
 /* activities list as links */
 .act a{display:contents}
 .act:hover b{color:var(--red)}
+.card figure img.event-logo,.act figure img.event-logo{object-fit:contain;padding:20px;background:#fff;transform:none}
 
 /* detail pages */
 .detail .back{display:inline-block;font-family:var(--num);font-size:13px;letter-spacing:.06em;color:var(--dim);margin-bottom:18px}
@@ -196,6 +197,8 @@ footer{border-top:1px solid var(--hair);padding:48px 0 64px;font-size:13px;color
 .detail h1 small{display:block;font-family:var(--font);font-size:16px;color:var(--dim);margin-top:8px}
 .detail figure.lead{max-width:var(--text);margin-bottom:28px}
 .detail figure.lead img{border:1px solid var(--hair);background:#fff}
+.detail figure.lead img.event-logo{width:100%;max-width:720px;padding:clamp(20px,4vw,48px)}
+.detail figure.activity-photo{margin-top:28px}
 .detail .video{max-width:var(--text);margin-bottom:28px}
 .detail .video iframe{width:100%;aspect-ratio:16/9;border:1px solid var(--hair);display:block;background:#000}
 .detail .txt{max-width:var(--text);font-size:15px}
