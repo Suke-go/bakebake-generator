@@ -56,7 +56,10 @@ E["groups"] = [("Members", "", [
 # ------------------------------------------------------------ works (year, image, tags, title en, title ja, body)
 J["works"] = [
     ("2025–2026", "interface.png", ["Generative Apparatus"], "Yōkai-Generating Apparatus", "妖怪生成装置",
-     "来場者が「いつ・どこで・何を感じ・どんな気分が残ったか」を自由記述で語る。装置は記述を埋め込み、伝承データベースから近い項目を検索し、その文脈で名前と語りの候補を三つ生成する。来場者が選び、直し、あるいは自分で名をつけたあと、水墨・絵巻・木版・劇画的線描・現代デジタルのいずれかの画法で図像を生成し、80mm 幅の感熱紙に印字する。感熱紙は屋内でも数か月で退色する。画像生成は当初 Stable Diffusion の追加学習モデルを用い、第二段階で Gemini（Nano Banana）へ移行した。妖怪を描写するために必要な情報は妖怪学の文献から抽出して UI に反映している。",
+     "夜道で感じた気配や、なぜか心に残る出来事。妖怪生成装置は、あなたの不思議な体験をもとに、名前と物語、姿を持つ妖怪をつくる仕組みです。言葉にしにくかった感覚を、誰かに見せたり語ったりできる形にしていきます。\n\n"
+     "まず、何が起きたか、そのときどう感じたかを入力します。装置は昔から伝わる妖怪の話から似たものを探し、あなたの体験と組み合わせて名前や物語を提案します。候補を選ぶことも、自分で名付けることもできます。\n\n"
+     "続いて、外見や画風を選んで妖怪の姿を描きます。水墨画・絵巻・浮世絵・漫画・電脳という五つの表現から、自分の感覚に合うものを選べます。展示会場では、できあがった妖怪を感熱紙のお札に印刷して持ち帰る体験も用意しています。\n\n"
+     "この制作では、人々が不思議な出来事を語り、名付け、描いてきた営みに着目しています。自分の中にあった曖昧な感覚が、一体の妖怪になる。その過程を、現代の技術で体験してもらうことを目指しています。",
      ("receipts.jpg", "体験によって生成された妖怪の札"), None),
     ("2025–2026", "geo_record.png", ["Archive Analysis", "Map"], "Yōkai Map / Geospatial Support", "妖怪マップ / 地理的支持の表現",
      "伝承データベースの 33,378 件について、行政的な支持範囲、地名候補、地名ではない場所の記述、地理的近接、人間の状態を表す語、派生的な境界、表示用アンカー、出所を分けて保持する。代表点を出来事の位置として扱わず、県と市町村のポリゴンを支持範囲として持つ。市町村支持を割り当てた 1,231 件では、県支持と比べて支持面積が中央値で 97.5% 縮小する。地形や水系と重ねた妖怪マップの基盤となる。",
@@ -70,7 +73,9 @@ J["works"] = [
 ]
 E["works"] = [
     ("2025–2026", "interface.png", ["Generative Apparatus"], "Yōkai-Generating Apparatus", "妖怪生成装置",
-     "A visitor describes an experience in free text under four prompts: when, where, what was sensed, and what impression remained. The apparatus embeds the description, retrieves the closest entries from the folklore database, and generates three candidate names and short narratives in that context. After the visitor selects, edits, or supplies a name, an image is generated in one of five registers (ink wash, illustrated scroll, woodblock print, narrative ink-line drawing, contemporary digital) and printed on 80 mm thermal paper, which fades indoors within months. Image generation initially used a fine-tuned Stable Diffusion model and moved to Gemini (Nano Banana) in the second stage. The information needed to describe a yōkai was extracted from the yōkai-studies literature and built into the interface.",
+     "A strange presence on a dark road, or a moment you cannot quite explain: this apparatus turns your experience into a yōkai with a name, story, and image that you can share.\n\n"
+     "Describe what happened and how you felt. The apparatus finds related folklore and suggests names and stories. Choose a suggestion or name the yōkai yourself, then select its appearance and an artistic style. At exhibitions, the result can also become a printed paper talisman to take home.\n\n"
+     "The project explores how people give form to mysterious experiences through storytelling, naming, and drawing. It invites you to take part in that process using today's technology.",
      ("receipts.jpg", "Receipts generated from visitors' experiences"), None),
     ("2025–2026", "geo_record.png", ["Archive Analysis", "Map"], "Yōkai Map / Geospatial Support", "妖怪マップ / 地理的支持の表現",
      "For 33,378 records in the database, administrative support areas, candidate toponyms, non-toponymic place descriptions, geographic proximity, human-condition terms, derived interfaces, display anchors, and provenance are kept as separate fields. A representative point is never treated as an event location; prefecture and municipality polygons are held as support areas. For the 1,231 records assigned municipality support, the support area shrinks by a median of 97.5% relative to prefecture support. This is the basis for the yōkai map overlaid on terrain and water systems.",
@@ -127,8 +132,8 @@ PUBS = [
 J["pubs"] = E["pubs"] = PUBS
 
 # ------------------------------------------------------------ articles
-J["articles"] = [("note", "2025", "妖怪生成装置の実装要件", "本プロジェクトで得られた技術領域の知見を技術記事として体系化し、note で公開した。", "https://note.com/galileonics/n/nb37f8924070f")]
-E["articles"] = [("note", "2025", "Implementation requirements of the yōkai-generating apparatus (Japanese)", "Technical findings from the project, written up as an article on note.", "https://note.com/galileonics/n/nb37f8924070f")]
+J["articles"] = [("note", "2026/02/22", "～妖怪EXPO2026に参加しました～", "妖怪生成装置の制作背景と、体験を名前・物語・姿にする仕組みを紹介しています。", "https://note.com/galileonics/n/nb37f8924070f")]
+E["articles"] = [("note", "2026/02/22", "Exhibiting at YOKAI EXPO 2026 (Japanese)", "The ideas and design behind the yōkai-generating apparatus.", "https://note.com/galileonics/n/nb37f8924070f")]
 
 # ------------------------------------------------------------ about page text
 J["about_sections"] = [
@@ -227,6 +232,11 @@ def card(root, assets, label, date, image, title, href):
     return f'<a class="card" href="{root}{href}"><figure>{im}</figure><span class="lab">{label}</span><time>{date}</time><b>{title}</b></a>'
 
 
+def apparatus_trial(lang):
+    label = '妖怪生成装置を体験する' if lang == 'ja' else 'Try the yōkai-generating apparatus'
+    return f'<p><a class="btn" href="https://bakemon.net/" target="_blank" rel="noopener">{label}（bakemon.net）</a></p>'
+
+
 def work_title(lang, w):
     return w[4] if lang == "ja" else w[3]
 
@@ -259,6 +269,7 @@ def page_index(lang):
     <p class="full">{t['full']}</p>
     <p>{t['whats']}</p>
     <a class="btn" href="about.html">{t['more']}</a>
+    {apparatus_trial(lang)}
   </div>
 </section>
 
@@ -343,6 +354,11 @@ def page_work_detail(lang, i):
         media += f'<div class="video"><iframe src="https://www.youtube-nocookie.com/embed/{video[0]}" title="{video[1]}" loading="lazy" allowfullscreen></iframe><figcaption>{video[1]}</figcaption></div>'
     st = f'<figure class="strip">{img(assets, strip[0])}<figcaption>{strip[1]}</figcaption></figure>' if strip else ""
     tg = "".join(f'<span class="tag">{x}</span>' for x in tags)
+    paragraphs = ''.join(f'<p>{paragraph}</p>' for paragraph in text.split('\n\n'))
+    links = ''
+    if WORK_SLUGS[i] == 'apparatus':
+        note_label = '制作の背景と仕組みをnoteで読む' if lang == 'ja' else 'Read about the ideas and design on note (Japanese)'
+        links = f'<p><a class="u" href="https://note.com/galileonics/n/nb37f8924070f" target="_blank" rel="noopener">{note_label}</a></p>' + apparatus_trial(lang)
     body = f"""
 <section class="page detail">
   <div class="wrap">
@@ -350,12 +366,13 @@ def page_work_detail(lang, i):
     <div class="tags">{tg}<time>{year}</time></div>
     <h1>{ten}<small>{tja}</small></h1>
     {media}
-    <div class="txt"><p>{text}</p></div>
+    <div class="txt">{paragraphs}{links}</div>
     {st}
   </div>
 </section>
 """
-    return shell(lang, f"works/{WORK_SLUGS[i]}.html", body, root, title=ten)
+    return shell(lang, f"works/{WORK_SLUGS[i]}.html", body, root, title=ten,
+                 description=text.split('\n\n')[0] if WORK_SLUGS[i] == 'apparatus' else None)
 
 
 def page_activities(lang):
@@ -382,6 +399,7 @@ def page_act_detail(lang, i):
     media = f'<figure class="lead">{img(assets, image)}</figure>' if image else ""
     l = f'<p><a class="u" href="{link[0]}" target="_blank" rel="noopener">{link[1]}</a></p>' if link else ""
     paragraphs = ''.join(f'<p>{paragraph}</p>' for paragraph in text.split('\n\n'))
+    trial = apparatus_trial(lang) if ACT_SLUGS[i] == 'siggraph-asia-2026' else ''
     body = f"""
 <section class="page detail">
   <div class="wrap">
@@ -389,7 +407,7 @@ def page_act_detail(lang, i):
     <div class="tags"><span class="lab">{label}</span>{activity_time(date)}</div>
     <h1>{title}</h1>
     {media}
-    <div class="txt">{paragraphs}{l}</div>
+    <div class="txt">{paragraphs}{l}{trial}</div>
   </div>
 </section>
 """

@@ -199,5 +199,6 @@ footer{border-top:1px solid var(--hair);padding:48px 0 64px;font-size:13px;color
 .detail .video{max-width:var(--text);margin-bottom:28px}
 .detail .video iframe{width:100%;aspect-ratio:16/9;border:1px solid var(--hair);display:block;background:#000}
 .detail .txt{max-width:var(--text);font-size:15px}
+.detail .txt p+p{margin-top:16px}
 .detail figure.strip{max-width:var(--text);margin-top:28px}
 .detail figure.strip img{aspect-ratio:6/1;object-fit:cover;width:100%}
