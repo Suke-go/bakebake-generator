@@ -1,8 +1,8 @@
 /* === ALTER EGO inspired design system === */
 /* Typography hierarchy only. Text floating in void. */
-/* Font: Shippori Mincho B1 for everything. Gothic only for tiny labels. */
+/* Typography: Kaisei Tokumin across the interface. */
 
-@import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;500;600&family=Noto+Sans+JP:wght@300;400&family=Yuji+Syuku&family=Hina+Mincho&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Kaisei+Tokumin:wght@400;500;700;800&display=swap');
 
 :root {
   --bg-void: hsl(230, 20%, 4%);
@@ -17,10 +17,10 @@
   --accent-glow: hsla(12, 45%, 52%, 0.12);
   --accent-shadow: hsla(12, 45%, 52%, 0.25);
 
-  --font-main: 'Shippori Mincho B1', serif;
-  --font-label: 'Noto Sans JP', sans-serif;
-  --font-yokai: 'Yuji Syuku', 'Shippori Mincho B1', serif;
-  --font-folklore: 'Hina Mincho', 'Shippori Mincho B1', serif;
+  --font-main: 'Kaisei Tokumin', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+  --font-label: var(--font-main);
+  --font-yokai: var(--font-main);
+  --font-folklore: var(--font-main);
 
   --radius: 3px;
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);

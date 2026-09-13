@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 export default function LandingPage() {
     return (
         <div style={{
@@ -10,7 +12,7 @@ export default function LandingPage() {
             alignItems: 'center',
             padding: '2rem',
             overflowY: 'auto',
-            fontFamily: '"Noto Serif JP", serif',
+            fontFamily: 'var(--font-main)',
         }}>
             <div style={{
                 maxWidth: '800px',
@@ -23,6 +25,7 @@ export default function LandingPage() {
             }}>
                 {/* Hero */}
                 <section style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '2rem' }}>
+                    <Image src="/bakebake-logo.png" alt="BAKEBAKE XR" width={192} height={192} priority style={{ alignSelf: 'center', objectFit: 'contain' }} />
                     <h1 style={{
                         fontSize: '2.5rem',
                         fontWeight: 'normal',
@@ -101,7 +104,7 @@ export default function LandingPage() {
                             display: 'inline-block',
                             padding: '1.2rem 3rem',
                             fontSize: '1.1rem',
-                            fontFamily: '"Noto Serif JP", serif',
+                            fontFamily: 'var(--font-main)',
                             letterSpacing: '0.15em',
                             color: '#fff',
                             background: 'rgba(255, 255, 255, 0.08)',

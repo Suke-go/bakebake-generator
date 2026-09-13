@@ -214,7 +214,7 @@ function SurveyTicketContent({ params }: { params: Promise<{ id: string }> }) {
                     }}>
                         {/* Thank you message */}
                         <p style={{
-                            fontFamily: '"Noto Serif JP", serif',
+                            fontFamily: 'var(--font-main)',
                             fontSize: '0.85rem',
                             letterSpacing: '0.15em',
                             color: '#ede8d8', // 白・生成り文字
@@ -239,7 +239,7 @@ function SurveyTicketContent({ params }: { params: Promise<{ id: string }> }) {
 
                         {/* Yokai name */}
                         <p style={{
-                            fontFamily: '"Noto Serif JP", serif',
+                            fontFamily: 'var(--font-main)',
                             fontSize: '1.3rem',
                             color: '#ffffff',
                             margin: 0,
@@ -252,7 +252,7 @@ function SurveyTicketContent({ params }: { params: Promise<{ id: string }> }) {
                         {/* Narrative */}
                         {scannedYokai.desc && (
                             <p style={{
-                                fontFamily: '"Noto Serif JP", serif',
+                                fontFamily: 'var(--font-main)',
                                 fontSize: '0.8rem',
                                 lineHeight: 1.8,
                                 color: 'rgba(237, 232, 216, 0.9)', // 少し白を抑えた生成り
@@ -270,7 +270,7 @@ function SurveyTicketContent({ params }: { params: Promise<{ id: string }> }) {
                                 href={scannedYokai.b64}
                                 download={`${scannedYokai.name || 'yokai'}.jpg`}
                                 style={{
-                                    fontFamily: '"Noto Serif JP", serif',
+                                    fontFamily: 'var(--font-main)',
                                     fontSize: '0.8rem',
                                     padding: '0.7rem 2rem',
                                     textDecoration: 'none',
@@ -322,7 +322,7 @@ function SurveyTicketContent({ params }: { params: Promise<{ id: string }> }) {
 
                         {/* 画面輝度ガイダンス */}
                         <p style={{
-                            fontFamily: '"Noto Serif JP", serif',
+                            fontFamily: 'var(--font-main)',
                             fontSize: '0.65rem',
                             letterSpacing: '0.1em',
                             color: 'rgba(255, 255, 255, 0.4)',
@@ -335,7 +335,7 @@ function SurveyTicketContent({ params }: { params: Promise<{ id: string }> }) {
 
                         {/* 指示テキスト — 最小限のpill型黒背景 + 白文字 */}
                         <p style={{
-                            fontFamily: '"Noto Serif JP", serif',
+                            fontFamily: 'var(--font-main)',
                             fontSize: '0.85rem',
                             letterSpacing: '0.15em',
                             lineHeight: 1.8,

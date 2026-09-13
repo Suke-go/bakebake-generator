@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useApp } from '@/lib/context';
 import { Html5QrcodeScanner, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import { storeResearchToken } from '@/lib/research-log';
+import Image from 'next/image';
 
 /**
  * Phase 0: タイトル表示 + QR常時スキャン
@@ -117,6 +118,7 @@ export default function Phase0() {
                 <button type="button" className="button" aria-pressed={isEnglish} onClick={(event) => { event.stopPropagation(); setLocale('en'); }}>English</button>
             </div>
             {/* タイトル */}
+            <Image src="/bakebake-logo.png" alt="BAKEBAKE XR" width={144} height={144} priority style={{ objectFit: 'contain', marginBottom: 16, opacity: stage < 5 ? 1 : 0, transition: 'opacity 0.6s ease' }} />
             <p
                 style={{
                     fontFamily: 'var(--font-main)',

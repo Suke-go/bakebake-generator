@@ -6,9 +6,9 @@
   --soft:#F3F1EC;
   --blue:#2446B8;
   --red:#E84A35;
-  --font:"Zen Kaku Gothic New","Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic",Helvetica,Arial,sans-serif;
-  --disp:"Zen Antique","Hiragino Mincho ProN","Yu Mincho",serif;
-  --num:"Archivo Narrow","Arial Narrow",Arial,sans-serif;
+  --font:"Kaisei Tokumin","Hiragino Mincho ProN","Yu Mincho",serif;
+  --disp:var(--font);
+  --num:var(--font);
   --max:1240px;
   --text:960px;   /* 本文・見出し・図版の共通幅 */
   --g:clamp(20px,3.5vw,56px);
@@ -40,22 +40,18 @@ img.bw{filter:grayscale(1) contrast(1.12) brightness(.92) sepia(.12)}
 /* ---------- header ---------- */
 .top{position:sticky;top:0;left:0;right:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--hair)}
 .top.over{position:absolute;background:transparent;border:0;color:#fff}
-.bar{display:flex;align-items:center;justify-content:space-between;height:84px}
+.bar{display:flex;align-items:center;justify-content:space-between;height:100px}
 .brand{display:flex;align-items:center;gap:14px;font-size:21px;font-weight:500;letter-spacing:.02em;white-space:nowrap}
-.mark{width:32px;height:32px;position:relative;flex:none}
-.mark::before,.mark::after{content:"";position:absolute;width:24px;height:24px;mix-blend-mode:multiply;transition:transform .6s cubic-bezier(.2,.7,.2,1)}
-.mark::before{left:0;top:4px;background:var(--blue)}
-.mark::after{left:8px;top:0;background:var(--red)}
-.brand:hover .mark::before{transform:translate(4px,-2px)}
-.brand:hover .mark::after{transform:translate(-4px,2px)}
-.top.over .mark::before,.top.over .mark::after{mix-blend-mode:normal;opacity:.9}
+.mark{width:80px;height:80px;object-fit:contain;flex:none}
 .top nav{display:flex;align-items:center;gap:32px;font-size:17px}
 .top nav a.on{border-bottom:2px solid var(--blue);padding-bottom:2px}
 .top nav a:hover{color:var(--red)}
 .langs{display:flex;gap:14px;margin-left:6px;padding-left:22px;border-left:1px solid currentColor;font-size:15px}
 .langs a:not(.cur){opacity:.45}
-@media(max-width:1000px){.top nav{gap:18px;font-size:14px}.brand{font-size:18px}}
-@media(max-width:760px){.bar{height:auto;flex-direction:column;align-items:flex-start;gap:6px;padding:14px 0}.top nav{flex-wrap:wrap;gap:10px 16px;font-size:14px}.langs{margin-left:auto}.top.over{position:relative;background:var(--ink)}}
+@media(max-width:1200px){.top nav{gap:18px;font-size:14px}.brand{font-size:18px}}
+@media(max-width:1200px){.bar{height:auto;flex-direction:column;align-items:flex-start;gap:6px;padding:14px 0}.top nav{flex-wrap:wrap;gap:10px 16px;font-size:14px}.langs{margin-left:auto}.top.over{position:relative;background:var(--ink)}}
+
+@media(max-width:520px){.brand{font-size:16px;gap:8px}}
 
 /* ---------- hero ---------- */
 /* 地: 展示の写真を古い白黒写真の調子にして敷く */
@@ -168,7 +164,7 @@ footer{border-top:1px solid var(--hair);padding:48px 0 64px;font-size:13px;color
 /* profile link: icon next to the name, URL appears on hover */
 .plink{position:relative;display:inline-block;vertical-align:middle;margin-left:8px;color:var(--dim);line-height:0}
 .plink:hover{color:var(--red)}
-.plink span{position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);white-space:nowrap;font-family:var(--num);font-size:12px;letter-spacing:.04em;line-height:1;background:var(--ink);color:#fff;padding:6px 9px;opacity:0;pointer-events:none;transition:opacity .2s}
+.plink span{position:absolute;right:0;bottom:calc(100% + 8px);white-space:nowrap;font-family:var(--num);font-size:12px;letter-spacing:.04em;line-height:1;background:var(--ink);color:#fff;padding:6px 9px;opacity:0;pointer-events:none;transition:opacity .2s}
 .plink:hover span,.plink:focus-visible span{opacity:1}
 
 /* works list */
