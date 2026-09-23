@@ -197,6 +197,9 @@ footer{border-top:1px solid var(--hair);padding:48px 0 64px;font-size:13px;color
 .detail figure.lead img{border:1px solid var(--hair);background:#fff}
 .detail figure.lead img.event-logo{width:100%;max-width:720px;padding:clamp(20px,4vw,48px)}
 .detail figure.activity-photo{margin-top:28px}
+.jsda-gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;max-width:var(--text);margin-bottom:28px}
+.jsda-gallery img{width:100%;height:auto;border:1px solid var(--hair)}
+@media(max-width:640px){.jsda-gallery{grid-template-columns:1fr}}
 .detail .video{max-width:var(--text);margin-bottom:28px}
 .detail .video iframe{width:100%;aspect-ratio:16/9;border:1px solid var(--hair);display:block;background:#000}
 .detail .txt{max-width:var(--text);font-size:15px}

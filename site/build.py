@@ -95,7 +95,7 @@ J["acts"] = [
     ('Event', '2026/09/02', 'foss4g-2026-presentation-1.jpg', 'FOSS4G 2026にて発表しました', '2026年9月2日、地図や位置情報を扱うオープンソース技術の国際会議「FOSS4G 2026」にて、妖怪伝承を地図で読み解く研究を発表しました。国際日本文化研究センターの「怪異・妖怪伝承データベース」に収録された33,378件を対象に、物語がどのような場所と結びついているのかを調べる取り組みです。\n\n昔の妖怪の話には、地名だけでなく「川辺」「峠」「村はずれ」のような場所の描写が登場します。住所がわからなくても、そこがどんな場所だったかを知る手がかりになります。今回の研究では、文章からこうした言葉をコンピューターで取り出し、地図上の川や海、行政区域の情報と照らし合わせました。\n\n地図に載せるときに大切にしたのは、場所がどこまでわかっているかを伝えることです。県までしかわからない話は県の範囲で、市町村を絞り込める話はその範囲で扱い、文章に書かれた手がかりも一緒に残します。地図上の目印を、そのまま出来事が起きた正確な地点と受け取らないための工夫です。\n\n調べた伝承のうち、地名を含むものは約28％でしたが、場所の様子を表す言葉は約75％に見られました。また、河童の話には水辺に関する言葉、幽霊の話には死や弔いに関する言葉が結びつく傾向がありました。これは、伝承の中で何がどのような場所とともに語られているかを示す結果です。\n\n身近な土地にどんな物語が残り、人々が川や道、暮らしの境目をどう捉えてきたのか。場所の曖昧さも含めて伝承を整理することで、地域の文化を地図から読み解くための手がかりを示しました。\n\n発表題目：<span lang="en">Geographic Visualization of the Kaii-Yokai Folklore Database Using Open-Source GIS and NLP</span>', ('https://talks.osgeo.org/foss4g-2026/talk/LGWHNG/', '発表概要（FOSS4G 2026公式サイト・英語）')),
     ("Exhibition", "2026/02 – 2026/05", "venue.jpg", "妖怪EXPO 2026（小豆島）に出展",
      "改良した妖怪生成装置を出展。妖怪研究の第一人者である小松和彦氏に体験いただき、専門的な知見に基づく評価を得た。以降も各地で展示を継続し、79 セッションから 66 体の妖怪が生成された。", None),
-    ("Event", "2026/01", None, "デジタルアーカイブ学会 第10回研究大会、第4回DH若手の会で発表",
+    ("Event", "2026/01", "jsda-10th-2026-photo.jpg", "デジタルアーカイブ学会 第10回研究大会、第4回DH若手の会で発表",
      "一橋講堂にて、妖怪マップと妖怪生成装置の設計成果を発表。", ("https://www.jstage.jst.go.jp/article/jsda/9/s2/9_s226/_article/-char/ja", "発表原稿（J-STAGE）")),
     ("Workshop", "2025", None, "湘南白百合学園中学・高等学校 特別授業での展示",
      "研究成果の社会還元として、特別授業における展示を実施。", None),
@@ -110,7 +110,7 @@ E["acts"] = [
     ('Event', '2026/09/02', 'foss4g-2026-presentation-1.jpg', 'Presented at FOSS4G 2026', 'On September 2, 2026, we presented our research at FOSS4G 2026, an international conference on open-source mapping and geospatial technology. We explored how stories connect with places using 33,378 records from the Kaii-Yokai Folklore Database maintained by the International Research Center for Japanese Studies.\n\nOld stories about yōkai, the mysterious beings of Japanese folklore, often mention a riverbank, mountain pass, or village edge. These descriptions offer clues about a setting even without an address. We used software to extract such clues from the stories and compare them with map information about rivers, coastlines, and administrative areas.\n\nOur approach keeps track of how precisely a place is known. A story located only within a prefecture remains associated with that area; one with clearer evidence can be narrowed down to a municipality. The words in the story are preserved alongside this information, so a marker on the map is not mistaken for the exact site of an event.\n\nAbout 28% of the records contain place names, while about 75% contain words describing places. Kappa stories tend to use water-related language, and ghost stories tend to use words about death and mourning. These findings describe how places appear in the stories.\n\nKeeping these clues and uncertainties visible helps us explore local culture through maps: what stories people told about their surroundings, and how they understood familiar places.\n\nTalk title: Geographic Visualization of the Kaii-Yokai Folklore Database Using Open-Source GIS and NLP', ('https://talks.osgeo.org/foss4g-2026/talk/LGWHNG/', 'Read the abstract on the FOSS4G 2026 website')),
     ("Exhibition", "2026/02 – 2026/05", "venue.jpg", "Exhibited at YOKAI EXPO 2026, Shodoshima",
      "The revised apparatus was exhibited. Kazuhiko Komatsu, the leading scholar of yōkai studies, tried it and gave an evaluation based on his expertise. Exhibitions continued at further venues; 79 sessions produced 66 yōkai.", None),
-    ("Event", "2026/01", None, "Presentations at the Japan Society for Digital Archive 10th Annual Meeting and the 4th DH Young Researchers' Meeting",
+    ("Event", "2026/01", "jsda-10th-2026-photo.jpg", "Presentations at the Japan Society for Digital Archive 10th Annual Meeting and the 4th DH Young Researchers' Meeting",
      "Presentation of the yōkai map and apparatus design at Hitotsubashi Hall.", ("https://www.jstage.jst.go.jp/article/jsda/9/s2/9_s226/_article/-char/ja", "Proceedings (J-STAGE)")),
     ("Workshop", "2025", None, "Exhibition in a special class at Shonan Shirayuri Gakuen Junior and Senior High School",
      "Exhibition as part of a special class.", None),
@@ -412,6 +412,15 @@ def page_act_detail(lang, i):
                     'Explaining how folklore records are organized into geographic information')
         media = f'<figure class="lead">{img(assets, image, captions[0])}<figcaption>{captions[0]}</figcaption></figure>'
         photo = f'<figure class="lead activity-photo">{img(assets, "foss4g-2026-presentation-2.jpg", captions[1])}<figcaption>{captions[1]}</figcaption></figure>'
+    if ACT_SLUGS[i] == 'jsda-2026':
+        captions = ('研究ポスターの前で撮影した発表の様子', '発表ポスターとプロジェクトメンバー') if lang == 'ja' else (
+            'Project member with the research poster', 'Research poster and project member')
+        media = (
+            '<div class="jsda-gallery">'
+            f'<figure>{img(assets, "jsda-10th-2026-photo.jpg", captions[0])}<figcaption>{captions[0]}</figcaption></figure>'
+            f'<figure>{img(assets, "dh-young-researchers-2026-photo.jpg", captions[1])}<figcaption>{captions[1]}</figcaption></figure>'
+            '</div>'
+        )
     l = f'<p><a class="u" href="{link[0]}" target="_blank" rel="noopener">{link[1]}</a></p>' if link else ""
     paragraphs = ''.join(f'<p>{paragraph}</p>' for paragraph in text.split('\n\n'))
     trial = apparatus_trial(lang) if ACT_SLUGS[i] == 'siggraph-asia-2026' else ''
