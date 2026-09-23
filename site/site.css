@@ -183,6 +183,8 @@ footer{border-top:1px solid var(--hair);padding:48px 0 64px;font-size:13px;color
 .act a{display:contents}
 .act:hover b{color:var(--red)}
 .card figure img.event-logo,.act figure img.event-logo{object-fit:contain;padding:20px;background:#fff;transform:none}
+.card figure img.event-banner,.act figure img.event-banner{object-fit:contain;background:#171408;transform:none}
+.detail figure.lead img.event-banner{width:100%;height:auto}
 
 /* detail pages */
 .detail .back{display:inline-block;font-family:var(--num);font-size:13px;letter-spacing:.06em;color:var(--dim);margin-bottom:18px}
