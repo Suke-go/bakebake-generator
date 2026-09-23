@@ -1,0 +1,15 @@
+{
+  "version": "nichibun-summary-e5-v1",
+  "corpusSha256": "b75769fe6aef4338e9ba807f3372cd6551b299f7cf59ba19049b2e21748f4f1c",
+  "count": 33378,
+  "dimensions": 384,
+  "recordsSha256": "0626a67d084d2afd0c07256fe9976dd7181ab728b99a6702bffff08fadd36272",
+  "vectorsSha256": "7c95c6c8f68da07aeaa032b60a413dada11d2cba38b12b8edb6c1e0017b202a6",
+  "model": "intfloat/multilingual-e5-small",
+  "modelRevision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
+  "documentField": "summary",
+  "documentPrefix": "passage: ",
+  "documentDtype": "float32",
+  "normalized": true,
+  "source": "国際日本文化研究センター 怪異・妖怪伝承データベース（保存要約）"
+}

@@ -1,0 +1,3 @@
+{
+  "buildCommand": "node scripts/unpack-experience-model.mjs && npm run build"
+}

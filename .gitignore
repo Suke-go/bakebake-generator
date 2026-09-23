@@ -101,3 +101,5 @@ lualatex*.fls
 .texcache/
 .texmf-var/
 .tmp/
+
+/data/experience-search-model-cache/**/onnx/model_quantized.onnx
