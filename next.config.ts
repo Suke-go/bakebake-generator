@@ -10,9 +10,9 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ['@huggingface/transformers', 'onnxruntime-node'],
   outputFileTracingIncludes: {
     '/api/public-experiment': [
-      './data/experience-search/records.json',
+      './data/experience-search/records.json.gz',
       './data/experience-search/manifest.json',
-      './data/experience-search/document-vectors.f32',
+      './data/experience-search/document-vectors.f32.gz',
       './data/experience-search-model-cache/Xenova/multilingual-e5-small/761b726dd34fb83930e26aab4e9ac3899aa1fa78/config.json',
       './data/experience-search-model-cache/Xenova/multilingual-e5-small/761b726dd34fb83930e26aab4e9ac3899aa1fa78/tokenizer.json',
       './data/experience-search-model-cache/Xenova/multilingual-e5-small/761b726dd34fb83930e26aab4e9ac3899aa1fa78/tokenizer_config.json',

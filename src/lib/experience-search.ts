@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
+import { gunzipSync } from 'node:zlib';
 import type { ExperienceSearchRequest, ExperienceSearchResponse, ExperienceVariant } from './experience-search-types';
 
 const MODEL = 'Xenova/multilingual-e5-small';
@@ -24,7 +25,8 @@ export class ExperienceSearchUnavailable extends Error { }
 export async function loadExperienceCorpus(): Promise<Corpus> {
     if (!corpusPromise) corpusPromise = (async () => {
         const dir = path.join(process.cwd(), 'data', 'experience-search');
-        const [raw, meta] = await Promise.all([fs.readFile(path.join(dir, 'records.json')), fs.readFile(path.join(dir, 'manifest.json'), 'utf8')]);
+        const [compressed, meta] = await Promise.all([fs.readFile(path.join(dir, 'records.json.gz')), fs.readFile(path.join(dir, 'manifest.json'), 'utf8')]);
+        const raw = gunzipSync(compressed);
         const manifest: ExperienceSearchManifest = JSON.parse(meta);
         if (createHash('sha256').update(raw).digest('hex') !== manifest.recordsSha256) throw new Error('Record checksum mismatch');
         const records: RecordEntry[] = JSON.parse(raw.toString('utf8'));
@@ -34,9 +36,10 @@ export async function loadExperienceCorpus(): Promise<Corpus> {
     return corpusPromise;
 }
 
-async function loadVectors(manifest: ExperienceSearchManifest): Promise<Float32Array> {
+export async function loadExperienceVectors(manifest: ExperienceSearchManifest): Promise<Float32Array> {
     if (!vectorPromise) vectorPromise = (async () => {
-        const binary = await fs.readFile(path.join(process.cwd(), 'data', 'experience-search', 'document-vectors.f32'));
+        const compressed = await fs.readFile(path.join(process.cwd(), 'data', 'experience-search', 'document-vectors.f32.gz'));
+        const binary = gunzipSync(compressed);
         if (binary.byteLength !== manifest.count * DIM * 4 || createHash('sha256').update(binary).digest('hex') !== manifest.vectorsSha256) {
             throw new Error('E5 index mismatch');
         }
@@ -160,7 +163,7 @@ export async function inspectExperienceSinglePath(experience: string, engine: 'e
     const { records, manifest } = await loadExperienceCorpus();
     let scores: Float64Array;
     if (engine === 'e5') {
-        const [encoded, vectors] = await Promise.all([encodeExperienceBatch([experience]), loadVectors(manifest)]);
+        const [encoded, vectors] = await Promise.all([encodeExperienceBatch([experience]), loadExperienceVectors(manifest)]);
         scores = cosineScores(encoded.vectors[0], vectors, records.length);
     } else scores = lexicalScores(experience, records);
     return {
@@ -201,7 +204,7 @@ export async function searchExperiences(request: ExperienceSearchRequest): Promi
     let matrices: Float64Array[];
     let tokenCounts: number[] | undefined;
     if (engine === 'e5') {
-        const [encoded, vectors] = await Promise.all([encodeExperienceBatch(paths), loadVectors(manifest)]);
+        const [encoded, vectors] = await Promise.all([encodeExperienceBatch(paths), loadExperienceVectors(manifest)]);
         tokenCounts = encoded.tokenCounts;
         matrices = encoded.vectors.map(q => cosineScores(q, vectors, records.length));
     } else matrices = paths.map(p => lexicalScores(p, records));

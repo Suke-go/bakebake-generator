@@ -6,13 +6,12 @@
  * All computation is local. The only encoder dependency is the existing offline
  * E5 encoder in experience-search.ts; no paid API or remote transport is used.
  */
-import fs from 'node:fs/promises';
-import path from 'node:path';
 import { createHash } from 'node:crypto';
 import {
   encodeExperienceQueries,
   experienceTokens,
   loadExperienceCorpus,
+  loadExperienceVectors,
   QUERY_MODEL_REVISION,
 } from '@/lib/experience-search';
 import type { ExperienceSearchManifest, RecordEntry } from '@/lib/experience-search';
@@ -246,14 +245,7 @@ async function productionCorpus(): Promise<PublicExperimentCorpus> {
     if (loaded.records.length !== EXPECTED_CORPUS_COUNT || loaded.manifest.dimensions !== 384) {
       throw new Error('unexpected public E5 corpus version');
     }
-    const binary = await fs.readFile(path.join(process.cwd(), 'data', 'experience-search', 'document-vectors.f32'));
-    if (sha256(binary) !== loaded.manifest.vectorsSha256 ||
-        binary.byteLength !== loaded.records.length * loaded.manifest.dimensions * 4) {
-      throw new Error('E5 vector file failed manifest verification');
-    }
-    const copy = new Uint8Array(binary.byteLength);
-    copy.set(binary);
-    return { ...loaded, vectors: new Float32Array(copy.buffer) };
+    return { ...loaded, vectors: await loadExperienceVectors(loaded.manifest) };
   })().catch(error => { productionCorpusPromise = undefined; throw error; });
   return productionCorpusPromise;
 }
