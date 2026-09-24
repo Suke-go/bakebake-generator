@@ -7,18 +7,26 @@ import styles from './ContactStudy.module.css';
 type Rec = { id: string; name: string; region: string; summary: string; statement?: string };
 type Acc = { index: 0 | 1; text: string; withStatements: boolean; done: boolean; records: Rec[] };
 type View = { phase: string; accounts?: Acc[]; error?: string };
-type Answer = { grade?: 0 | 1 | 2 | 3 | 'na'; where?: string; attribution?: 'yes' | 'no'; statementValid?: 'valid' | 'partial' | 'invalid' };
+type Level = 0 | 1 | 2 | 3 | 'na';
+type Answer = { match?: Level; useful?: Level; where?: string; attribution?: 'yes' | 'no'; statementValid?: 'valid' | 'partial' | 'invalid' };
 
 async function call(body: Record<string, unknown>): Promise<View & { token?: string }> {
     const r = await fetch('/api/contact-study', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     return r.json();
 }
 
-const GRADES: { v: 0 | 1 | 2 | 3 | 'na'; label: string }[] = [
-    { v: 0, label: '0 つながりを感じない' },
-    { v: 1, label: '1 少しつながる' },
-    { v: 2, label: '2 はっきりつながる' },
-    { v: 3, label: '3 自分の体験を考える手がかりになる' },
+const MATCH: { v: Level; label: string }[] = [
+    { v: 0, label: '0 対応していない' },
+    { v: 1, label: '1 少し対応している' },
+    { v: 2, label: '2 はっきり対応している' },
+    { v: 3, label: '3 ほとんど同じ状況だ' },
+    { v: 'na', label: '判断できない' },
+];
+const USEFUL: { v: Level; label: string }[] = [
+    { v: 0, label: '0 役に立たない' },
+    { v: 1, label: '1 少し役に立つ' },
+    { v: 2, label: '2 役に立つ' },
+    { v: 3, label: '3 とても役に立つ' },
     { v: 'na', label: '判断できない' },
 ];
 
@@ -67,8 +75,9 @@ export default function ContactStudyClient() {
         const ratings: Record<string, Answer> = {};
         for (const r of acc.records) {
             const a = answers[`${acc.index}:${r.id}`] ?? {};
-            if (a.grade === undefined) { setMsg('すべての記録に、つながりの程度を選んでください。'); return; }
-            if ((a.grade === 2 || a.grade === 3) && !a.where?.trim()) { setMsg('2 か 3 を選んだ記録には、どこでつながったかを書いてください。'); return; }
+            if (a.match === undefined || a.useful === undefined) { setMsg('すべての記録に、対応の程度と役に立つ程度を選んでください。'); return; }
+            if ((a.match === 2 || a.match === 3) && !a.where?.trim()) { setMsg('対応で 2 か 3 を選んだ記録には、どこが対応しているかを書いてください。'); return; }
+            if (!a.attribution) { setMsg('記録の説明を自分の体験の原因だと思うかにも答えてください。'); return; }
             if (acc.withStatements && !a.statementValid) { setMsg('説明文が妥当かどうかも選んでください。'); return; }
             ratings[r.id] = a;
         }
@@ -90,7 +99,7 @@ export default function ContactStudyClient() {
                 {view.phase === 'consent' && (
                     <section className={styles.section}>
                         <p>この研究では、あなたの最近の体験と、日本各地に伝わる怪異・妖怪の記録（国際日本文化研究センターのデータベース）とのつながりを確かめます。</p>
-                        <p>1回目に、最近の体験を2つ書いていただきます（10分ほど）。数日後、同じリンクから、体験ごとに12件ほどの記録を読んで評価していただきます（40分ほど）。</p>
+                        <p>1回目に、最近の体験を2つ書いていただきます（10分ほど）。数日後、同じリンクから、体験ごとに15件ほどの記録を読んで評価していただきます（合わせて45分ほど）。</p>
                         <p>書いた体験は、研究のために言語モデルで処理します。実名、地名、勤め先など、あなたや他の人が特定される情報は書かないでください。回答はいつでもやめられます。やめた場合、それまでの回答は使いません。</p>
                         <p>謝礼はありません。書いた体験の文章そのものは公開しません。評価の結果は、個人が分からない形で研究論文にまとめます。</p>
                         <label className={styles.check}><input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} /> 18歳以上で、上の内容を理解し、協力に同意します</label>
@@ -156,14 +165,18 @@ export default function ContactStudyClient() {
                                         <p className={styles.meta}>{n + 1}／{acc.records.length}　{r.name}{r.region ? `（${r.region}）` : ''}</p>
                                         <p className={styles.summary}>{r.summary}</p>
                                         {acc.withStatements && <p className={styles.statement}><span className={styles.statementLabel}>どこが対応しているか：</span>{r.statement}</p>}
-                                        <p className={styles.q}>この記録は、あなたの体験とつながりますか。</p>
-                                        <div className={styles.options}>{GRADES.map((g) => (
-                                            <label key={String(g.v)}><input type="radio" name={`g-${key}`} checked={a.grade === g.v} onChange={() => set(key, { grade: g.v })} /> {g.label}</label>
+                                        <p className={styles.q}>記録の中の状況は、あなたの体験の状況と対応していますか。</p>
+                                        <div className={styles.options}>{MATCH.map((g) => (
+                                            <label key={String(g.v)}><input type="radio" name={`m-${key}`} checked={a.match === g.v} onChange={() => set(key, { match: g.v })} /> {g.label}</label>
                                         ))}</div>
-                                        {(a.grade === 2 || a.grade === 3) && (
-                                            <><p className={styles.q}>どこでつながりましたか（一文で）。</p>
+                                        {(a.match === 2 || a.match === 3) && (
+                                            <><p className={styles.q}>どこが対応していますか（一文で）。</p>
                                                 <input className={styles.input} value={a.where ?? ''} onChange={(e) => set(key, { where: e.target.value })} /></>
                                         )}
+                                        <p className={styles.q}>この記録は、あなたが自分の体験について考える役に立ちますか。</p>
+                                        <div className={styles.options}>{USEFUL.map((g) => (
+                                            <label key={String(g.v)}><input type="radio" name={`u-${key}`} checked={a.useful === g.v} onChange={() => set(key, { useful: g.v })} /> {g.label}</label>
+                                        ))}</div>
                                         <p className={styles.q}>この記録を読んで、あなたの体験の原因も、記録にある説明（狐・霊・祟りなど）だと思いますか。</p>
                                         <div className={styles.options}>
                                             <label><input type="radio" name={`a-${key}`} checked={a.attribution === 'yes'} onChange={() => set(key, { attribution: 'yes' })} /> はい</label>

@@ -1,11 +1,12 @@
-export const CONTACT_STUDY_VERSION = 'contact-study-v1';
+export const CONTACT_STUDY_VERSION = 'contact-study-v1'; // rating: match + useful (0-3 or na), attribution required
 export const ACCOUNT_MIN = 60;
 export const ACCOUNT_MAX = 600;
 
 export type Grade = 0 | 1 | 2 | 3 | 'na';
 export type StudyRecord = { id: string; name: string; region: string; summary: string; statement?: string };
 export type Rating = {
-    grade: Grade;
+    match: Grade;
+    useful: Grade;
     where?: string;
     attribution: 'yes' | 'no' | null;
     statementValid?: 'valid' | 'partial' | 'invalid' | null;
@@ -48,17 +49,19 @@ export function parseRatings(v: unknown, recordIds: string[], withStatements: bo
     for (const id of recordIds) {
         const r = src[id] as Record<string, unknown> | undefined;
         if (!r || typeof r !== 'object') return null;
-        const g = r.grade;
-        if (!(g === 0 || g === 1 || g === 2 || g === 3 || g === 'na')) return null;
+        const g = r.match; const u = r.useful;
+        const level = (x: unknown): x is Grade => x === 0 || x === 1 || x === 2 || x === 3 || x === 'na';
+        if (!level(g) || !level(u)) return null;
         const where = typeof r.where === 'string' ? r.where.trim().slice(0, 300) : '';
         if ((g === 2 || g === 3) && where.length === 0) return null;
-        const attribution = r.attribution === 'yes' || r.attribution === 'no' ? r.attribution : null;
+        if (!(r.attribution === 'yes' || r.attribution === 'no')) return null;
+        const attribution = r.attribution;
         let statementValid: Rating['statementValid'] = null;
         if (withStatements) {
             if (!(r.statementValid === 'valid' || r.statementValid === 'partial' || r.statementValid === 'invalid')) return null;
             statementValid = r.statementValid;
         }
-        out[id] = { grade: g, where, attribution, statementValid };
+        out[id] = { match: g, useful: u, where, attribution, statementValid };
     }
     return out;
 }
