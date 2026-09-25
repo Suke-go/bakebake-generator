@@ -136,7 +136,7 @@ export default function ContactStudyClient() {
                         <p>最近あった出来事で、気になっていること、困っていること、うまく説明できないことを書いてください。何があったか、どう感じたか、今どうなっているかを、それぞれ100〜400字ほどで。</p>
                         {[0, 1].map((i) => (
                             <div key={i} className={styles.field}>
-                                <p className={styles.label}>{i === 0 ? '1つめ：人との関わり（家族・職場・友人・近所・SNS など）についての出来事' : '2つめ：どんな出来事でもかまいません'}</p>
+                                <p className={styles.label}>{i === 0 ? '1つめ：人が相手の出来事（家族・職場・友人・近所・SNS など）' : '2つめ：人が相手ではない出来事（体や気持ちの変化、やめられないこと、場所や自然、物、失ったもの、説明のつかない出来事など）'}</p>
                                 <textarea className={styles.textarea} rows={7} value={texts[i]} onChange={(e) => setTexts((t) => t.map((x, j) => (j === i ? e.target.value : x)))} />
                                 <p className={styles.count}>{texts[i].trim().length} 字</p>
                             </div>
