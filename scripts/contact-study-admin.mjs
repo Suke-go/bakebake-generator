@@ -10,7 +10,7 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { createClient } from '@supabase/supabase-js';
 
 const TABLE = 'contact_study_sessions';
-const N_MIN = 6, N_MAX = 16;
+const N_MIN = 6, N_MAX = 20;
 
 function loadEnv() {
     for (const f of ['.env.local', '.env.production.local']) {
