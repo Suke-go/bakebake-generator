@@ -2,7 +2,7 @@ import { randomBytes, randomInt, randomUUID } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { getResearchSupabase, hashResearchToken } from '@/lib/research-server';
 import {
-    CONTACT_STUDY_VERSION, parseAccounts, parseProfile, parseRatings, type StudyState,
+    CONTACT_STUDY_VERSION, parseAccounts, parseEmail, parseProfile, parseRatings, type StudyState,
 } from '@/lib/contact-study';
 
 export const runtime = 'nodejs';
@@ -17,7 +17,8 @@ async function load(token: unknown) {
     if (typeof token !== 'string' || !/^[0-9a-f]{48}$/.test(token)) return null;
     const db = getResearchSupabase();
     if (!db) return null;
-    const { data } = await db.from(TABLE).select('id, phase, state').eq('token_hash', hashResearchToken(token)).maybeSingle();
+    const h = hashResearchToken(token);
+    const { data } = await db.from(TABLE).select('id, phase, state').or(`token_hash.eq.${h},alt_token_hash.eq.${h}`).maybeSingle();
     return data as { id: string; phase: string; state: StudyState } | null;
 }
 
@@ -73,10 +74,12 @@ export async function POST(request: Request) {
         if (!accounts) return reply({ error: 'invalid_accounts' }, 400);
         const profile = parseProfile(body.profile);
         if (!profile) return reply({ error: 'invalid_profile' }, 400);
+        const email = parseEmail(body.email);
+        if (!email) return reply({ error: 'invalid_email' }, 400);
         state.profile = profile;
         state.accounts = accounts.map((t) => ({ text: t }));
         state.events.push({ type: 'accounts', at: now });
-        const { error } = await db.from(TABLE).update({ phase: 'waiting', state, updated_at: now }).eq('id', row.id);
+        const { error } = await db.from(TABLE).update({ phase: 'waiting', state, contact_email: email, updated_at: now }).eq('id', row.id);
         if (error) return reply({ error: 'store_failed' }, 500);
         return reply({ phase: 'waiting' });
     }

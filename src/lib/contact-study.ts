@@ -75,3 +75,11 @@ export function parseProfile(v: unknown): Profile | null {
     if (!(p.folkloreTraining === 'yes' || p.folkloreTraining === 'no')) return null;
     return { age: p.age as Profile['age'], gender: p.gender as Profile['gender'], familiarity: p.familiarity, folkloreTraining: p.folkloreTraining };
 }
+
+// Email for the second-session invitation only. Stored in its own column, never in state or exports.
+export function parseEmail(v: unknown): string | null {
+    if (typeof v !== 'string') return null;
+    const e = v.trim().toLowerCase();
+    if (e.length > 200 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) return null;
+    return e;
+}

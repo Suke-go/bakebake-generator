@@ -30,6 +30,8 @@ const USEFUL: { v: Level; label: string }[] = [
     { v: 'na', label: '判断できない' },
 ];
 
+const STORE_KEY = 'contact-study-token';
+
 export default function ContactStudyClient() {
     const router = useRouter();
     const params = useSearchParams();
@@ -41,16 +43,29 @@ export default function ContactStudyClient() {
     const [texts, setTexts] = useState(['', '']);
     const [profile, setProfile] = useState<{ age: string; gender: string; familiarity: number | null; folkloreTraining: string }>({ age: '', gender: '', familiarity: null, folkloreTraining: '' });
     const [answers, setAnswers] = useState<Record<string, Answer>>({});
+    const [email, setEmail] = useState('');
+    const fresh = params.get('new') === '1';
     const view: View | null = token ? loaded : { phase: 'consent' };
 
     useEffect(() => {
         if (!token) return;
         let alive = true;
         call({ type: 'load', token }).then((v) => {
-            if (alive) setView(v.error ? { phase: 'error', error: v.error } : v);
+            if (!alive) return;
+            setView(v.error ? { phase: 'error', error: v.error } : v);
+            if (!v.error) { try { localStorage.setItem(STORE_KEY, token); } catch { /* storage unavailable */ } }
         });
         return () => { alive = false; };
     }, [token]);
+
+    // Same browser: reopening /study/contact returns to the participant's own page (no need to keep the link).
+    useEffect(() => {
+        if (token || fresh) return;
+        try {
+            const saved = localStorage.getItem(STORE_KEY);
+            if (saved && /^[0-9a-f]{48}$/.test(saved)) router.replace(`/study/contact?t=${saved}`);
+        } catch { /* storage unavailable */ }
+    }, [token, fresh, router]);
 
     const link = typeof window !== 'undefined' && token ? `${window.location.origin}/study/contact?t=${token}` : '';
 
@@ -58,16 +73,21 @@ export default function ContactStudyClient() {
         setBusy(true);
         const v = await call({ type: 'start', consent: true });
         setBusy(false);
-        if (v.token) router.replace(`/study/contact?t=${v.token}`);
+        if (v.token) {
+            try { localStorage.setItem(STORE_KEY, v.token); } catch { /* storage unavailable */ }
+            router.replace(`/study/contact?t=${v.token}`);
+        }
         else setMsg('開始できませんでした。時間をおいてもう一度お試しください。');
     }
 
     async function submitAccounts() {
         if (!profile.age || !profile.gender || profile.familiarity === null || !profile.folkloreTraining) { setMsg('あなたについての質問に、すべて答えてください。'); return; }
+        if (!email.trim()) { setMsg('2回目のご案内を送るメールアドレスを入力してください。'); return; }
         setBusy(true); setMsg('');
-        const v = await call({ type: 'accounts', token, accounts: texts, profile });
+        const v = await call({ type: 'accounts', token, accounts: texts, profile, email });
         setBusy(false);
         if (v.error === 'invalid_profile') setMsg('あなたについての質問に、すべて答えてください。');
+        else if (v.error === 'invalid_email') setMsg('メールアドレスを確かめてください。');
         else if (v.error) setMsg('それぞれ60字以上600字以内で書いてください。'); else setView(v);
     }
 
@@ -99,9 +119,10 @@ export default function ContactStudyClient() {
                 {view.phase === 'consent' && (
                     <section className={styles.section}>
                         <p>この研究では、あなたの最近の体験と、日本各地に伝わる怪異・妖怪の記録（国際日本文化研究センターのデータベース）とのつながりを確かめます。</p>
-                        <p>1回目に、最近の体験を2つ書いていただきます（10分ほど）。数日後、同じリンクから、体験ごとに15件ほどの記録を読んで評価していただきます（合わせて45分ほど）。</p>
+                        <p>1回目に、最近の体験を2つ書いていただきます（10分ほど）。10月5日の夕方以降に、メールでお送りするリンクから、体験ごとに7件ほどの記録を読んで評価していただきます（20分ほど）。2回目の締切は10月6日の午前11時です。</p>
                         <p>書いた体験は、研究のために言語モデルで処理します。実名、地名、勤め先など、あなたや他の人が特定される情報は書かないでください。回答はいつでもやめられます。やめた場合、それまでの回答は使いません。</p>
                         <p>謝礼はありません。書いた体験の文章そのものは公開しません。評価の結果は、個人が分からない形で研究論文にまとめます。</p>
+                        <p>2回目の準備ができたら、ご案内をメールでお送りします。メールアドレスはそのためだけに使い、体験や回答とは別に保管し、研究が終わったら消去します。</p>
                         <label className={styles.check}><input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} /> 18歳以上で、上の内容を理解し、協力に同意します</label>
                         <button className={styles.button} disabled={!consent || busy} onClick={start}>はじめる</button>
                         {msg && <p className={styles.error}>{msg}</p>}
@@ -109,7 +130,7 @@ export default function ContactStudyClient() {
                 )}
 
                 {token && view.phase !== 'consent' && view.phase !== 'error' && view.phase !== 'complete' && (
-                    <p className={styles.note}>このページのリンクを必ず保存してください。2回目もこのリンクから入ります：<br /><span className={styles.link}>{link}</span></p>
+                    <p className={styles.note}>2回目の準備ができたら、登録したメールアドレスにリンクをお送りします。同じブラウザなら、このページ（bakemon.net/study/contact）を開くだけでも続きに戻れます。念のため、このリンクも保存しておいてください：<br /><span className={styles.link}>{link}</span><br />この端末で別の方が新しく始めるときは <a className={styles.link} href="/study/contact?new=1">こちら</a>。</p>
                 )}
 
                 {view.phase === 'accounts' && (
@@ -133,6 +154,10 @@ export default function ContactStudyClient() {
                                 <label key={v}><input type="radio" name="p-folk" checked={profile.folkloreTraining === v} onChange={() => setProfile((p) => ({ ...p, folkloreTraining: v }))} /> {l}</label>
                             ))}</div>
                         </div>
+                        <div className={styles.field}>
+                            <p className={styles.q}>メールアドレス（2回目のご案内を送るためだけに使います）</p>
+                            <input className={styles.input} type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                        </div>
                         <p>最近あった出来事で、気になっていること、困っていること、うまく説明できないことを書いてください。何があったか、どう感じたか、今どうなっているかを、それぞれ100〜400字ほどで。</p>
                         {[0, 1].map((i) => (
                             <div key={i} className={styles.field}>
@@ -147,7 +172,7 @@ export default function ContactStudyClient() {
                 )}
 
                 {view.phase === 'waiting' && (
-                    <section className={styles.section}><p>ありがとうございました。2〜3日後に、このページのリンクをもう一度開いてください。記録の準備ができていれば、2回目に進めます。まだ準備中のときは、この画面が表示されます。</p></section>
+                    <section className={styles.section}><p>ありがとうございました。10月5日の夕方以降に、2回目のご案内をメールでお送りします。記録の準備ができる前にこのページを開いた場合は、この画面が表示されます。</p></section>
                 )}
 
                 {view.phase === 'review' && view.accounts && (() => {
