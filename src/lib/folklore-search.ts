@@ -30,6 +30,8 @@ export interface SearchResult {
     location: string;
     similarity: number;
     source: string;
+    sourceUrl?: string;
+    sameSummaryIds?: string[];
 }
 
 /**
