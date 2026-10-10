@@ -206,6 +206,44 @@ export function buildConceptPrompt(
 }
 
 /**
+ * Event / appraisal statement generation prompt.
+ *
+ * Mirrors the CHIIR 2027 paper's "Reading the account into event and
+ * appraisal" step: a language model reads the concatenated account and
+ * proposes one event statement (agent, action, outcome; no psychological
+ * interpretation) and two to four appraisal candidates (a possible sense
+ * the writer made of it), each grounded in a quoted span of the account's
+ * own words. The caller must verify each span appears verbatim before
+ * presenting a candidate to the participant — this prompt only asks the
+ * model to provide one.
+ */
+export function buildEventAppraisalPrompt(handle: HandleInfo, answers: UserAnswers, locale: 'ja' | 'en' = 'ja'): string {
+    const context = buildSearchQuery(handle, answers);
+    if (locale === 'en') {
+        return [
+            'You read a participant\'s account of a recent, hard-to-explain experience and produce two kinds of statement for retrieval, not for display as-is.',
+            'Return exactly one JSON object: {"event": {"text": string}, "appraisals": [{"text": string, "sourceSpan": string, "basis": "grounded"|"interpretation"}, ...]}.',
+            '`event.text` states the bare event in plain terms: who or what acted, what happened, what the outcome was. No psychological interpretation, no naming of a cause.',
+            '`appraisals` has between 2 and 4 candidates, each a possible sense the writer might have made of the event at the time (e.g. a feeling of being watched, an unexplained unease, a sense of being singled out).',
+            'Each appraisal\'s `sourceSpan` must be copied verbatim (exact substring) from the participant account below. `basis` is "grounded" if the appraisal restates something the writer explicitly said, "interpretation" if it is a plausible reading beyond the writer\'s literal words.',
+            'Do not look up or reference any folklore record. Write only from the account itself.',
+            '', 'Participant account:', context,
+            '', 'Output example:', '{"event":{"text":"..."},"appraisals":[{"text":"...","sourceSpan":"...","basis":"grounded"}]}',
+        ].join('\n');
+    }
+    return [
+        'あなたは、参加者が書いた「最近あった、うまく説明できない体験」の記述を読み、検索に使うための二種類の文を作成します。これは参加者にそのまま見せる文章ではありません。',
+        '出力はJSONオブジェクト一つのみ: {"event": {"text": string}, "appraisals": [{"text": string, "sourceSpan": string, "basis": "grounded"|"interpretation"}, ...]}',
+        '`event.text` は出来事を平易な言葉で記述してください。誰が・何が、どう行動したか、結果はどうだったか。心理的な解釈や超自然的な原因の命名は含めないこと。',
+        '`appraisals` は2〜4件。それぞれ、参加者がその時どう受け止めたか・どう感じたかの可能な解釈（例: 見られている感覚、説明できない不安、自分だけが対象にされた感覚）。',
+        '各appraisalの `sourceSpan` は、下記の参加者の回答から**一字一句そのまま**抜き出してください（検証に使います）。`basis` は、参加者が明示的に述べたことの言い換えなら "grounded"、文字通りではないが妥当な解釈なら "interpretation"。',
+        '伝承データベースは参照しないでください。参加者の記述のみから作成すること。',
+        '', '## 参加者の体験', context,
+        '', '## 出力例', '{"event":{"text":"..."},"appraisals":[{"text":"...","sourceSpan":"...","basis":"grounded"}]}',
+    ].join('\n');
+}
+
+/**
  * 画像生成プロンプトの構築
  *
  * ユーザーの体験回答（answers）から雰囲気・環境・トーンを抽出し、

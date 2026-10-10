@@ -75,7 +75,7 @@ export default function Phase1Prime() {
             payload: { questionnaireVersion: RESEARCH_QUESTIONNAIRE_VERSION, locale: state.locale, answers: submittedAnswers },
         });
         setHandle({ id: 'free', text: experience, shortText: experience.slice(0, 24) });
-        goToPhase(2);
+        goToPhase(1.75);
     }, [answers, goToPhase, saveAnswersToContext, setHandle, state.locale, state.ticketId]);
     const advance = useCallback(() => {
         if (isTransitioning || (steps[currentStep].id === 'experience' && !textValue(answers, 'experience').trim())) return;

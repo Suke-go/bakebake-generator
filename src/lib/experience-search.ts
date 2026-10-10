@@ -132,7 +132,7 @@ function indexLexical(records: RecordEntry[]): LexicalIndex {
     return lexicalIndex;
 }
 
-function lexicalScores(query: string, records: RecordEntry[]): Float64Array {
+export function lexicalScores(query: string, records: RecordEntry[]): Float64Array {
     const index = indexLexical(records);
     const scores = new Float64Array(records.length);
     for (const t of experienceTokens(query)) {
@@ -153,7 +153,7 @@ function cosineScores(query: number[], vectors: Float32Array, count: number): Fl
     return scores;
 }
 
-function sorted(scores: Float64Array, records: RecordEntry[], positiveOnly: boolean): number[] {
+export function sorted(scores: Float64Array, records: RecordEntry[], positiveOnly: boolean): number[] {
     return records.map((_, i) => i).filter(i => Number.isFinite(scores[i]) && (!positiveOnly || scores[i] > 0))
         .sort((a, b) => scores[b] - scores[a] || records[a].id.localeCompare(records[b].id));
 }

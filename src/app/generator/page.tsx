@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import Phase0 from '@/components/Phase0';
 import Phase1 from '@/components/Phase1';
 import Phase1Prime from '@/components/Phase1Prime';
+import Phase1Appraisal from '@/components/Phase1Appraisal';
 import Phase2 from '@/components/Phase2';
 import Phase3 from '@/components/Phase3';
 import Phase3Reveal from '@/components/Phase3Reveal';
@@ -49,6 +50,7 @@ function PhaseTransition({ phaseKey }: { phaseKey: number }) {
       case 0: return <Phase0 />;
       case 1: return <Phase1 />;
       case 1.5: return <Phase1Prime />;
+      case 1.75: return <Phase1Appraisal />;
       case 2: return <Phase2 />;
       case 3: return <Phase3 />;
       case 3.5: return <Phase3Reveal />;
@@ -145,7 +147,8 @@ function getPreviousPhase(current: number): number {
   if (current <= 0) return 0;
   if (current <= 1) return 0;
   if (current <= 1.5) return 1;
-  if (current <= 2) return 1.5;
+  if (current <= 1.75) return 1.5;
+  if (current <= 2) return 1.75;
   if (current <= 3) return 2;
   if (current <= 3.5) return 3;
   return 0;

@@ -66,15 +66,6 @@ export async function POST(req: Request) {
             );
         }
 
-        const geminiApiKey = process.env.GEMINI_API_KEY;
-        const openaiApiKey = process.env.OPENAI_API_KEY;
-        if (!geminiApiKey && !openaiApiKey) {
-            return NextResponse.json(
-                { error: 'API Keys not configured' },
-                { status: 500 }
-            );
-        }
-
         const conceptInput = Array.isArray(folklore) ? folklore.slice(0, 3) : [];
         const dbConcepts = conceptInput.slice(0, 2).map((f: {
             kaiiName: string;
@@ -88,6 +79,40 @@ export async function POST(req: Request) {
             label: 'database',
             folkloreRef: f.id,
         }));
+
+        const locale = requestedLocale === 'en' ? 'en' : 'ja';
+        if (process.env.PAID_GENERATION_ENABLED !== 'true') {
+            return NextResponse.json({
+                concepts: [
+                    ...dbConcepts,
+                    {
+                        source: 'llm' as const,
+                        name: locale === 'en' ? 'An unnamed presence' : '名もなき気配',
+                        reading: '',
+                        description: locale === 'en'
+                            ? 'Read the retrieved records, then give this presence a name in your own words.'
+                            : '検索された伝承を読み、あなた自身の言葉で名前を付けられます。',
+                        label: 'paid-api-paused',
+                        namingType: 'manual',
+                    },
+                ],
+                usedModel: 'paid-api-paused',
+            }, {
+                headers: {
+                    'x-paid-api-calls': '0',
+                    'x-generate-concepts-duration-ms': `${Date.now() - startedAt}`,
+                },
+            });
+        }
+
+        const geminiApiKey = process.env.GEMINI_API_KEY;
+        const openaiApiKey = process.env.OPENAI_API_KEY;
+        if (!geminiApiKey && !openaiApiKey) {
+            return NextResponse.json(
+                { error: 'API Keys not configured' },
+                { status: 500 }
+            );
+        }
 
         if (Date.now() < nextRequestAllowedAt) {
             return NextResponse.json(
@@ -113,7 +138,6 @@ export async function POST(req: Request) {
         }
 
         const conceptAnswers = answers as Record<string, string>;
-        const locale = requestedLocale === 'en' ? 'en' : 'ja';
         const prompt = buildConceptPrompt(handle, conceptAnswers, conceptInput, locale);
         let responseText = '';
         let geminiFailed = true;
@@ -127,7 +151,7 @@ export async function POST(req: Request) {
                 const result = await withExponentialBackoff(
                     async () => {
                         const generated = await genAI.models.generateContent({
-                            model: 'gemini-2.0-flash',
+                            model: 'gemini-3.8-flash',
                             contents: prompt,
                             config: {
                                 responseMimeType: 'application/json',
@@ -152,7 +176,7 @@ export async function POST(req: Request) {
                 );
                 responseText = result.text || '';
                 geminiFailed = false;
-                usedModel = 'gemini-2.0-flash';
+                usedModel = 'gemini-3.8-flash';
                 nextRequestAllowedAt = 0; // Reset global rate limit if this key succeeded
                 break;
             } catch (error) {

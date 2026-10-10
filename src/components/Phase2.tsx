@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useApp, YokaiConcept } from '@/lib/context';
 import { searchFolklore, generateConcepts } from '@/lib/api-client';
+import type { SearchResult } from '@/lib/folklore-search';
 import { logResearchEvent } from '@/lib/research-log';
 import { RESEARCH_PROMPT_VERSION } from '@/lib/research-versions';
 import ProgressDots from './ProgressDots';
@@ -25,9 +26,9 @@ export default function Phase2() {
     const { state, goToPhase, setFolkloreResults, setConcepts, selectConcept } = useApp();
     const isEnglish = state.locale === 'en';
     const copy = isEnglish ? {
-        loading: 'Searching folklore records...', wait: 'Please wait a few seconds', error: 'We could not search the records.', retrying: 'Retrying...', retry: 'Try again', searched: 'We searched the folklore archive using your experience.', related: 'We found related folklore records.', generating: 'Creating name ideas...', relatedLabel: 'Related Japanese folklore', source: 'Source', conceptsReady: 'We created some name ideas.', concepts: 'Name ideas', nameYourself: 'Name it yourself', customPrompt: 'Enter the name that feels right to you', customPlaceholder: 'For example: Shadow Crosser', useName: 'Use this name', customDescription: 'A yokai you named yourself',
+        loading: 'Searching folklore records...', wait: 'Please wait a few seconds', error: 'We could not search the records.', retrying: 'Retrying...', retry: 'Try again', searched: 'We searched the folklore archive using your experience.', related: 'These are candidates for exploring possible points of connection.', generating: 'Creating name ideas...', relatedLabel: 'Folklore candidates to consider', source: 'Source', conceptsReady: 'We created some name ideas.', concepts: 'Name ideas', nameYourself: 'Name it yourself', customPrompt: 'Enter the name that feels right to you', customPlaceholder: 'For example: Shadow Crosser', useName: 'Use this name', customDescription: 'A yokai you named yourself',
     } : {
-        loading: '伝承の記録を検索しています...', wait: '数秒お待ちください', error: '記録の検索に失敗しました。', retrying: '再試行中...', retry: '再試行', searched: '体験内容をもとに、伝承データベースを検索しました。', related: '類似する伝承記録を抽出しました。', generating: '名前の候補を生成しています...', relatedLabel: '関連する伝承', source: '出典', conceptsReady: '名前の候補を生成しました。', concepts: '名前の候補', nameYourself: '自分で名付ける', customPrompt: 'あなたが感じた名前を入力してください', customPlaceholder: '例: 影渡り', useName: 'この名前で記録する', customDescription: 'あなた自身が名付けた妖怪',
+        loading: '伝承の記録を検索しています...', wait: '数秒お待ちください', error: '記録の検索に失敗しました。', retrying: '再試行中...', retry: '再試行', searched: '体験内容をもとに、伝承データベースを検索しました。', related: '接点を探すための伝承候補です。', generating: '名前の候補を生成しています...', relatedLabel: '参考にする伝承候補', source: '出典', conceptsReady: '名前の候補を生成しました。', concepts: '名前の候補', nameYourself: '自分で名付ける', customPrompt: 'あなたが感じた名前を入力してください', customPlaceholder: '例: 影渡り', useName: 'この名前で記録する', customDescription: 'あなた自身が名付けた妖怪',
     };
     const [stage, setStage] = useState<'loading' | 'intro' | 'folklore' | 'concepts' | 'error'>('loading');
     const [showLine1, setShowLine1] = useState(false);
@@ -51,6 +52,8 @@ export default function Phase2() {
         location: string;
         similarity: number;
         source?: string;
+        sourceUrl?: string;
+        sameSummaryIds?: string[];
     }>>([]);
     const [conceptData, setConceptData] = useState<YokaiConcept[]>([]);
 
@@ -130,12 +133,34 @@ export default function Phase2() {
         }
 
         try {
-            const searchResult = await searchFolklore(
-                { id: state.selectedHandle.id, text: state.selectedHandle.text },
-                state.answers,
-                controller.signal
-            );
-            const folklore = searchResult.folklore;
+            // Phase1Appraisal already ran the combined event/appraisal retrieval
+            // pipeline and populated folkloreResults; do not re-search with the
+            // plain e5/BM25 path in that case. If that phase was skipped or
+            // failed, folkloreSearchMode stays null and we search here as before.
+            const folklore: SearchResult[] = state.folkloreSearchMode === 'event-appraisal'
+                ? state.folkloreResults.map((entry) => ({ ...entry, source: entry.source ?? '' }))
+                : (await (async () => {
+                    const searchResult = await searchFolklore(
+                        { id: state.selectedHandle!.id, text: state.selectedHandle!.text },
+                        state.answers,
+                        controller.signal
+                    );
+                    void logResearchEvent(state.ticketId, {
+                        eventType: 'folklore_search_completed',
+                        payload: {
+                            searchEngine: searchResult.searchEngine ?? '',
+                            scoreType: searchResult.scoreType ?? '',
+                            modelVersion: searchResult.modelVersion ?? '',
+                            corpusVersion: searchResult.corpusVersion ?? '',
+                            paidApiCalls: searchResult.paidApiCalls ?? 0,
+                            searchQuery: searchResult.searchQuery,
+                            results: searchResult.folklore.map(({ id, similarity, sourceUrl, sameSummaryIds }) => ({
+                                id, score: similarity, sourceUrl: sourceUrl ?? '', sameSummaryIds: sameSummaryIds ?? [id],
+                            })),
+                        },
+                    });
+                    return searchResult.folklore;
+                })());
             const localFallbackConcepts = folklore.slice(0, 3).map((entry) => ({
                 source: 'db' as const,
                 name: entry.kaiiName,
@@ -175,7 +200,7 @@ export default function Phase2() {
                         promptVersion: RESEARCH_PROMPT_VERSION,
                         model: conceptResult.usedModel ?? '',
                         input: { experience: state.answers.experience ?? '', answers: state.answers },
-                        archiveSnapshot: folkloreWithSummaries.map(({ id, kaiiName, content, location, source, englishSummary }) => ({ id, kaiiName, content, location, source: source ?? '', englishSummary: englishSummary ?? '' })),
+                        archiveSnapshot: folkloreWithSummaries.map(({ id, kaiiName, content, location, source, sourceUrl, sameSummaryIds, englishSummary }) => ({ id, kaiiName, content, location, source: source ?? '', sourceUrl: sourceUrl ?? '', sameSummaryIds: sameSummaryIds ?? [id], englishSummary: englishSummary ?? '' })),
                         concepts: conceptResult.concepts.map(({ source, name, reading, description, label, folkloreRef, namingType }) => ({ source, name, reading, description, label, folkloreRef: folkloreRef ?? '', namingType: namingType ?? '' })),
                     },
                 });
@@ -252,6 +277,9 @@ export default function Phase2() {
         state.selectedHandle,
         state.answers,
         state.locale,
+        state.ticketId,
+        state.folkloreSearchMode,
+        state.folkloreResults,
         isEnglish,
         setConcepts,
         setFolkloreResults,
@@ -467,7 +495,10 @@ export default function Phase2() {
                                     />
                                     <p className="folklore-meta">{f.location}</p>
                                     {f.source && (
-                                        <p className="folklore-meta" style={{ opacity: 0.7 }}>{copy.source}: {f.source}</p>
+                                        <p className="folklore-meta" style={{ opacity: 0.7 }}>
+                                            {copy.source}: {f.sourceUrl ? <a href={f.sourceUrl} target="_blank" rel="noreferrer">{f.source}</a> : f.source}
+                                            {(f.sameSummaryIds?.length ?? 1) > 1 ? ` ／ ${f.sameSummaryIds?.length}${isEnglish ? ' records with the same summary' : '資料に同一要約'}` : ''}
+                                        </p>
                                     )}
                                 </div>
                             );

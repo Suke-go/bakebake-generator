@@ -22,7 +22,16 @@ export interface FolkloreResult {
   location: string;
   similarity: number;
   source?: string;
+  sourceUrl?: string;
+  sameSummaryIds?: string[];
   englishSummary?: string;
+}
+
+export interface AppraisalOption {
+  id: string;
+  text: string;
+  sourceSpan: string;
+  basis: 'grounded' | 'interpretation';
 }
 
 export interface YokaiConcept {
@@ -58,6 +67,12 @@ export interface AppState {
   stance: string;
   absenceQuality: AbsenceQuality;
   answers: Record<string, string>;
+  // Phase 1.75 (event / appraisal)
+  eventStatement: string;
+  appraisalCandidates: AppraisalOption[];
+  selectedAppraisalId: string | null;
+  /** 'event-appraisal' once Phase1Appraisal has already populated folkloreResults; Phase2 then skips its own search. */
+  folkloreSearchMode: 'event-appraisal' | null;
   // Phase 2
   folkloreResults: FolkloreResult[];
   concepts: YokaiConcept[];
@@ -86,6 +101,7 @@ interface AppContextType {
   setStance: (stance: string) => void;
   setAbsenceQuality: (quality: AbsenceQuality) => void;
   setAnswers: (answers: Record<string, string>) => void;
+  completeEventAppraisalSearch: (eventText: string, appraisals: AppraisalOption[], selectedAppraisalId: string, folklore: FolkloreResult[]) => void;
   setFolkloreResults: (results: FolkloreResult[]) => void;
   setConcepts: (concepts: YokaiConcept[]) => void;
   selectConcept: (concept: YokaiConcept) => void;
@@ -115,6 +131,10 @@ const initialState: AppState = {
   stance: '',
   absenceQuality: null,
   answers: {},
+  eventStatement: '',
+  appraisalCandidates: [],
+  selectedAppraisalId: null,
+  folkloreSearchMode: null,
   folkloreResults: [],
   concepts: [],
   selectedConcept: null,
@@ -209,6 +229,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const setFolkloreResults = useCallback((results: FolkloreResult[]) => {
     setState(prev => ({ ...prev, folkloreResults: results }));
+  }, []);
+
+  const completeEventAppraisalSearch = useCallback((eventText: string, appraisals: AppraisalOption[], selectedAppraisalId: string, folklore: FolkloreResult[]) => {
+    setState(prev => ({
+      ...prev,
+      eventStatement: eventText,
+      appraisalCandidates: appraisals,
+      selectedAppraisalId,
+      folkloreSearchMode: 'event-appraisal',
+      folkloreResults: folklore,
+    }));
   }, []);
 
   const setConcepts = useCallback((concepts: YokaiConcept[]) => {
@@ -326,6 +357,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setStance,
     setAbsenceQuality,
     setAnswers,
+    completeEventAppraisalSearch,
     setFolkloreResults,
     setConcepts,
     selectConcept,
@@ -352,6 +384,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setStance,
     setAbsenceQuality,
     setAnswers,
+    completeEventAppraisalSearch,
     setFolkloreResults,
     setConcepts,
     selectConcept,

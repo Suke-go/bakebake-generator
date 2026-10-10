@@ -7,6 +7,11 @@ import type { SearchResult } from './folklore-search';
 export interface FolkloreSearchResponse {
     folklore: SearchResult[];
     searchQuery: string;
+    searchEngine?: 'local-qwen' | 'local-e5';
+    scoreType?: 'cosine';
+    modelVersion?: string;
+    corpusVersion?: string;
+    paidApiCalls?: 0;
 }
 
 export interface ConceptResponse {
@@ -35,8 +40,6 @@ export interface ImageResponse {
     warnings?: string[];
 }
 
-const NERF_OLD_MEMORY_SEARCH = process.env.NEXT_PUBLIC_DISABLE_OLD_MEMORY_SEARCH === 'true';
-
 type SearchCacheEntry = {
     value: FolkloreSearchResponse;
     expiresAt: number;
@@ -57,31 +60,6 @@ const conceptClientCache = new Map<string, { value: ConceptResponse; expiresAt: 
 const conceptClientInFlight = new Map<string, Promise<ConceptResponse>>();
 const imageClientCache = new Map<string, { value: ImageResponse; expiresAt: number }>();
 const imageClientInFlight = new Map<string, Promise<ImageResponse>>();
-
-function makeFallbackFolklore(
-    handle: { id: string; text: string },
-    answers: Record<string, string>
-): SearchResult[] {
-    const sortedAnswerKeys = Object.keys(answers).sort();
-    const seedBase = `${handle.id}|${sortedAnswerKeys.map((key) => `${key}:${answers[key] ?? ''}`).join('|')}`;
-    const seed = Math.abs(seedBase.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0));
-    const themes = [
-        '古い記憶の残滓',
-        '心象の境界',
-        '夜闇に溶けた記録',
-        '幻の行方',
-        '昨日の嘆き',
-    ];
-
-    return themes.map((theme, index) => ({
-        id: `fallback-${handle.id}-${index}-${(seed + index) % 997}`,
-        kaiiName: `${handle.text} / ${theme}`,
-        content: `旧世代の伝承検索を軽量化モードでスキップし、暫定データで候補を作成しています。(${index + 1})`,
-        location: '簡易参照',
-        similarity: 0.98 - index * 0.08,
-        source: 'fallback',
-    }));
-}
 
 function buildSearchCacheKey(handle: { id: string; text: string }, answers: Record<string, string>): string {
     const normalizedAnswers = Object.keys(answers)
@@ -323,11 +301,6 @@ export async function searchFolklore(
 ): Promise<FolkloreSearchResponse> {
     throwIfAborted(signal);
 
-    if (NERF_OLD_MEMORY_SEARCH) {
-        const fallback = makeFallbackFolklore(handle, answers);
-        return { folklore: fallback, searchQuery: 'legacy-search-disabled' };
-    }
-
     const cacheKey = buildSearchCacheKey(handle, answers);
     const cached = getSearchCache(cacheKey);
     if (cached) {
@@ -433,5 +406,91 @@ export async function generateImage(
     });
     imageClientInFlight.set(cacheKey, trackedRequest);
 
+    return withAbortSignal(trackedRequest, signal);
+}
+
+export interface EventAppraisalResponse {
+    event: { text: string };
+    appraisals: Array<{ id: string; text: string; sourceSpan: string; basis: 'grounded' | 'interpretation'; verified: true }>;
+    usedModel?: string;
+    droppedUnverified?: number;
+}
+
+export interface SearchEventsResponse {
+    ranked: Array<{ id: string; name: string; summary: string; prefecture: string; route: 'event' | 'appraisal' | 'both'; rank: number }>;
+    corpusVersion: string;
+    branchSizes: { event: number; appraisal: number };
+    paidApiCalls: 0;
+}
+
+const eventAppraisalCache = new Map<string, { value: EventAppraisalResponse; expiresAt: number }>();
+const eventAppraisalInFlight = new Map<string, Promise<EventAppraisalResponse>>();
+const searchEventsCache = new Map<string, { value: SearchEventsResponse; expiresAt: number }>();
+const searchEventsInFlight = new Map<string, Promise<SearchEventsResponse>>();
+
+function buildEventAppraisalCacheKey(handle: { id: string; text: string }, answers: Record<string, string>, locale: string): string {
+    return [handle.id, handle.text, ...Object.keys(answers).sort().map((k) => `${k}=${answers[k]}`), locale].join(SEARCH_CACHE_KEY_SEPARATOR);
+}
+
+/**
+ * Reads the account into an event statement and appraisal candidates
+ * (paper §4.1 "Reading the account into event and appraisal").
+ */
+export async function generateEventAppraisal(
+    handle: { id: string; text: string },
+    answers: Record<string, string>,
+    signal?: AbortSignal,
+    locale: 'ja' | 'en' = 'ja',
+): Promise<EventAppraisalResponse> {
+    throwIfAborted(signal);
+    const cacheKey = buildEventAppraisalCacheKey(handle, answers, locale);
+    const cached = eventAppraisalCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) return cached.value;
+
+    const inFlight = eventAppraisalInFlight.get(cacheKey);
+    if (inFlight) return withAbortSignal(inFlight, signal);
+
+    const sharedRequest = requestJsonInternal<EventAppraisalResponse>('/api/generate-event-appraisal', { handle, answers, locale })
+        .then((result) => {
+            eventAppraisalCache.set(cacheKey, { value: result, expiresAt: Date.now() + CONCEPT_CACHE_TTL_MS });
+            return result;
+        });
+    const trackedRequest = sharedRequest.finally(() => {
+        if (eventAppraisalInFlight.get(cacheKey) === trackedRequest) eventAppraisalInFlight.delete(cacheKey);
+    });
+    eventAppraisalInFlight.set(cacheKey, trackedRequest);
+    return withAbortSignal(trackedRequest, signal);
+}
+
+/**
+ * Retrieves folklore records given the event statement and the reader's
+ * chosen appraisal, fused per paper §4.3: BM25+Ruri+RRF per branch, then
+ * the combined condition takes each record's better rank across branches.
+ */
+export async function searchByEventAndAppraisal(
+    handle: { id: string; text: string },
+    answers: Record<string, string>,
+    eventText: string,
+    appraisalText: string,
+    signal?: AbortSignal,
+    limit = 5,
+): Promise<SearchEventsResponse> {
+    throwIfAborted(signal);
+    const cacheKey = [buildEventAppraisalCacheKey(handle, answers, 'ja'), eventText, appraisalText, limit].join(SEARCH_CACHE_KEY_SEPARATOR);
+    const cached = searchEventsCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) return cached.value;
+
+    const inFlight = searchEventsInFlight.get(cacheKey);
+    if (inFlight) return withAbortSignal(inFlight, signal);
+
+    const sharedRequest = requestJsonInternal<SearchEventsResponse>('/api/search-events', { handle, answers, eventText, appraisalText, limit })
+        .then((result) => {
+            searchEventsCache.set(cacheKey, { value: result, expiresAt: Date.now() + SEARCH_CACHE_TTL_MS });
+            return result;
+        });
+    const trackedRequest = sharedRequest.finally(() => {
+        if (searchEventsInFlight.get(cacheKey) === trackedRequest) searchEventsInFlight.delete(cacheKey);
+    });
+    searchEventsInFlight.set(cacheKey, trackedRequest);
     return withAbortSignal(trackedRequest, signal);
 }
