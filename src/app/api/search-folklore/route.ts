@@ -1,103 +1,66 @@
-import { GoogleGenAI } from '@google/genai';
+import { createHash } from 'node:crypto';
 import { NextResponse } from 'next/server';
-import { loadEmbeddings, searchByEmbedding, searchByAspects, initAspectSearch } from '@/lib/folklore-search';
+import { ExperienceSearchUnavailable, loadExperienceCorpus, searchExperiences } from '@/lib/experience-search';
 import { buildSearchQuery } from '@/lib/prompt-builder';
-import { getStatusCode, toErrorMessage, withExponentialBackoff } from '@/lib/genai-utils';
-import type { SearchResult, AspectSearchResult } from '@/lib/folklore-search';
+import type { SearchResult } from '@/lib/folklore-search';
 
-const MAX_RETRY_ATTEMPTS = 3;
-const INITIAL_RETRY_DELAY_MS = 300;
-const RATE_LIMIT_COOLDOWN_MS = 45_000;
+export const runtime = 'nodejs';
+export const maxDuration = 60;
+
 const SEARCH_CACHE_TTL_MS = 60_000;
 const SEARCH_RESULT_CACHE_SIZE = 200;
-const SEARCH_CACHE_KEY_SEPARATOR = '|';
-const SEARCH_RESULT_MAX = 5;
-const NERF_OLD_MEMORY_SEARCH =
-    process.env.NEXT_PUBLIC_DISABLE_OLD_MEMORY_SEARCH === 'true' || process.env.DISABLE_OLD_MEMORY_SEARCH === 'true';
+const CORPUS_COUNT = 33_378;
 
-let searchRateLimitUntil = 0;
-let aspectSearchInitialized = false;
-
-function isRateLimitError(error: unknown): boolean {
-    const status = getStatusCode(error);
-    const message = toErrorMessage(error).toLowerCase();
-    return status === 429 || message.includes('resource exhausted') || message.includes('quota') || message.includes('rate limit');
-}
-
-function buildSearchFallbackSeed(handleId: string, answers: Record<string, string>): number {
-    const sortedAnswers = Object.keys(answers).sort().map((key) => `${key}:${answers[key] ?? ''}`).join(SEARCH_CACHE_KEY_SEPARATOR);
-    const seedSeed = `${handleId}${SEARCH_CACHE_KEY_SEPARATOR}${sortedAnswers}`;
-    return [...seedSeed].reduce((acc, char) => (acc + char.charCodeAt(0)) % 9973, 0);
-}
-
-function buildFallbackFolklore(entries: Array<{
-    id: string;
-    name: string;
-    summary: string;
-    location: string;
-    source: string;
-}>, handleId: string, answers: Record<string, string>): SearchResult[] {
-    if (entries.length === 0) return [];
-    const seed = buildSearchFallbackSeed(handleId, answers);
-    const startIndex = entries.length > 0 ? seed % entries.length : 0;
-    const slice = [...entries, ...entries];
-    const selected = slice.slice(startIndex, startIndex + SEARCH_RESULT_MAX);
-
-    return selected.map((entry, index) => ({
-        id: entry.id,
-        kaiiName: entry.name,
-        content: entry.summary,
-        location: entry.location,
-        similarity: Math.round((1 - index * 0.06) * 1000) / 1000,
-        source: entry.source,
-    }));
-}
-
-type SearchCacheEntry = {
-    value: {
-        folklore: SearchResult[];
-        searchQuery: string;
-    };
-    expiresAt: number;
+type SearchEngine = 'local-qwen' | 'local-e5';
+type SearchResponse = {
+    folklore: SearchResult[];
+    searchQuery: string;
+    searchEngine: SearchEngine;
+    scoreType: 'cosine';
+    modelVersion: string;
+    corpusVersion: string;
+    paidApiCalls: 0;
 };
+type SearchCacheEntry = { value: SearchResponse; expiresAt: number };
 
 const searchCache = new Map<string, SearchCacheEntry>();
-const inFlightSearch = new Map<string, Promise<{ folklore: SearchResult[]; searchQuery: string }>>();
-let cacheAddCount = 0;
+const inFlightSearch = new Map<string, Promise<SearchResponse>>();
+let sourceIndexPromise: ReturnType<typeof buildSourceIndex> | undefined;
 
-function sweepCache() {
-    const now = Date.now();
-    for (const [key, entry] of searchCache.entries()) {
-        if (entry.expiresAt < now) {
-            searchCache.delete(key);
-        }
-    }
+async function buildSourceIndex() {
+    const corpus = await loadExperienceCorpus();
+    return {
+        records: new Map(corpus.records.map((record) => [record.id, record])),
+        manifest: corpus.manifest,
+    };
 }
 
-function buildSearchCacheKey(handleId: string, answers: Record<string, string>): string {
-    const sortedAnswers = Object.keys(answers)
-        .sort()
-        .map((key) => `${key}:${answers[key] ?? ''}`)
-        .join('|');
-    return `${handleId}|${sortedAnswers}`;
+function getSourceIndex() {
+    sourceIndexPromise ??= buildSourceIndex().catch((error) => {
+        sourceIndexPromise = undefined;
+        throw error;
+    });
+    return sourceIndexPromise;
 }
 
-function setSearchCache(key: string, value: { folklore: SearchResult[]; searchQuery: string }) {
+function buildSearchCacheKey(handle: { id: string; text: string }, answers: Record<string, string>): string {
+    const stable = JSON.stringify([
+        handle.id,
+        handle.text,
+        Object.keys(answers).sort().map((key) => [key, answers[key]]),
+    ]);
+    return createHash('sha256').update(stable).digest('hex');
+}
+
+function setSearchCache(key: string, value: SearchResponse) {
     if (searchCache.size >= SEARCH_RESULT_CACHE_SIZE) {
         const oldestKey = searchCache.keys().next().value;
-        if (oldestKey) {
-            searchCache.delete(oldestKey);
-        }
+        if (oldestKey) searchCache.delete(oldestKey);
     }
     searchCache.set(key, { value, expiresAt: Date.now() + SEARCH_CACHE_TTL_MS });
-
-    cacheAddCount++;
-    if (cacheAddCount % 50 === 0) {
-        sweepCache();
-    }
 }
 
-function getSearchCache(key: string): { folklore: SearchResult[]; searchQuery: string } | null {
+function getSearchCache(key: string): SearchResponse | null {
     const entry = searchCache.get(key);
     if (!entry) return null;
     if (entry.expiresAt < Date.now()) {
@@ -107,205 +70,185 @@ function getSearchCache(key: string): { folklore: SearchResult[]; searchQuery: s
     return entry.value;
 }
 
-async function runSearchFallback(
-    searchQuery: string,
-    apiKey: string,
-    handleId: string,
+function sourceUrl(value: unknown): string | undefined {
+    if (value === null || value === undefined || value === '') return undefined;
+    if (typeof value !== 'string') throw new Error('invalid source URL');
+    const url = new URL(value);
+    if (url.protocol !== 'https:') throw new Error('source URL must use HTTPS');
+    return url.toString();
+}
+
+function uniqueSummaries(rows: SearchResult[]): SearchResult[] {
+    const summaries = new Set<string>();
+    const selected: SearchResult[] = [];
+    for (const row of rows) {
+        if (summaries.has(row.content)) continue;
+        summaries.add(row.content);
+        selected.push(row);
+        if (selected.length === 5) break;
+    }
+    return selected;
+}
+
+async function runLocalSearch(
+    handle: { id: string; text: string },
     answers: Record<string, string>,
-    signal: AbortSignal
-) {
-    const genAI = new GoogleGenAI({ apiKey });
-    let queryEmbedding: number[] | null = null;
+): Promise<SearchResponse> {
+    const searchQuery = buildSearchQuery(handle, answers);
+    if (!searchQuery.trim() || searchQuery.length > 2000) throw new RangeError('検索文は1〜2000文字で入力してください。');
+    const { records, manifest } = await getSourceIndex();
+    const sidecar = process.env.LOCAL_QWEN_SEARCH_URL?.trim();
+    let qwenError: unknown;
 
-    try {
-        const embeddingResult = await withExponentialBackoff(
-            async () => {
-                return genAI.models.embedContent({
-                    model: 'gemini-embedding-001',
-                    contents: searchQuery,
-                    config: {
-                        taskType: 'RETRIEVAL_QUERY',
-                        outputDimensionality: 768,
-                    },
-                });
-            },
-            'search-folklore',
-            MAX_RETRY_ATTEMPTS,
-            INITIAL_RETRY_DELAY_MS,
-            (error) => {
-                if (signal.aborted) return true;
-                if (isRateLimitError(error)) {
-                    searchRateLimitUntil = Date.now() + RATE_LIMIT_COOLDOWN_MS;
-                    return true;
-                }
-                return false;
+    if (sidecar) {
+        try {
+            const base = new URL(sidecar);
+            if (base.protocol !== 'http:' || base.hostname !== '127.0.0.1' || base.username || base.password) {
+                throw new Error('LOCAL_QWEN_SEARCH_URL must be a 127.0.0.1 HTTP URL');
             }
-        );
-
-        const values = embeddingResult.embeddings?.[0]?.values;
-        if (!values) {
-            throw new Error('Failed to generate query embedding');
+            const response = await fetch(new URL('/search', base), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: searchQuery, top_k: 10 }),
+                signal: AbortSignal.timeout(5_000),
+                cache: 'no-store',
+            });
+            if (!response.ok) throw new Error(`local Qwen returned ${response.status}`);
+            const payload = await response.json() as {
+                engine?: unknown;
+                corpus_count?: unknown;
+                corpus_sha256?: unknown;
+                paid_api_calls?: unknown;
+                results?: unknown;
+            };
+            if (payload.engine !== 'qwen3-embedding-0.6b-local' || payload.corpus_count !== CORPUS_COUNT ||
+                payload.corpus_sha256 !== manifest.corpusSha256 || payload.paid_api_calls !== 0 ||
+                !Array.isArray(payload.results) || payload.results.length < 1 || payload.results.length > 10) {
+                throw new Error('local Qwen provenance contract failed');
+            }
+            const seenIds = new Set<string>();
+            const mapped = payload.results.map((unknownRow) => {
+                if (!unknownRow || typeof unknownRow !== 'object') throw new Error('invalid local Qwen row');
+                const row = unknownRow as Record<string, unknown>;
+                if (typeof row.id !== 'string' || seenIds.has(row.id) || typeof row.summary !== 'string' ||
+                    typeof row.name !== 'string' || typeof row.prefecture !== 'string' ||
+                    typeof row.score !== 'number' || !Number.isFinite(row.score) || row.score < -1 || row.score > 1) {
+                    throw new Error('invalid local Qwen result fields');
+                }
+                seenIds.add(row.id);
+                const source = records.get(row.id);
+                if (!source || source.summary !== row.summary) throw new Error('local Qwen result is not in the frozen corpus');
+                const sameSummaryIds = row.same_summary_ids;
+                if (!Array.isArray(sameSummaryIds) || sameSummaryIds.some((id) => typeof id !== 'string' || !records.has(id))) {
+                    throw new Error('invalid duplicate provenance');
+                }
+                return {
+                    id: source.id,
+                    kaiiName: source.name,
+                    content: source.summary,
+                    location: source.prefecture,
+                    similarity: row.score,
+                    source: manifest.source,
+                    sourceUrl: sourceUrl(row.source_url),
+                    sameSummaryIds: [...new Set([source.id, ...sameSummaryIds])],
+                } satisfies SearchResult;
+            });
+            return {
+                searchQuery,
+                searchEngine: 'local-qwen',
+                scoreType: 'cosine',
+                modelVersion: 'Qwen3-Embedding-0.6B-Q8_0:frozen-local',
+                corpusVersion: manifest.corpusSha256,
+                paidApiCalls: 0,
+                folklore: uniqueSummaries(mapped),
+            };
+        } catch (error) {
+            qwenError = error;
+            console.warn('search-folklore: local Qwen unavailable:', error);
         }
-        queryEmbedding = values;
-    } catch (error) {
-        console.warn('search-folklore: embedding failed, fallback to local order:', toErrorMessage(error));
     }
 
-    const entries = await loadEmbeddings();
-
-    if (!queryEmbedding) {
-        const fallback = buildFallbackFolklore(entries, handleId, answers);
-        return { folklore: fallback, searchQuery };
+    if (process.env.LOCAL_QWEN_REQUIRED === 'true') {
+        throw new ExperienceSearchUnavailable(`ローカルQwen検索を利用できません。${qwenError ? 'サービス状態を確認してください。' : 'サービスが設定されていません。'}`);
     }
-
-    // アスペクト分離検索を非同期初期化（初回のみ）
-    if (!aspectSearchInitialized) {
-        aspectSearchInitialized = true;
-        await initAspectSearch();
-    }
-
-    // アスペクト分離検索を優先、なければ従来検索にフォールバック
-    const userRegion = answers.location?.trim() || answers.where?.trim() || undefined;
-    const aspectResults = searchByAspects(queryEmbedding, 5, userRegion);
-    if (aspectResults) {
-        return { folklore: aspectResults, searchQuery };
-    }
-
-    const results = searchByEmbedding(queryEmbedding, entries, 5);
-    return { folklore: results, searchQuery };
+    const result = await searchExperiences({
+        experience: searchQuery,
+        variant: 'baseline',
+        engine: 'e5',
+        limit: 10,
+    });
+    return {
+        searchQuery,
+        searchEngine: 'local-e5',
+        scoreType: 'cosine',
+        modelVersion: `${result.model.id}:${result.model.version}`,
+        corpusVersion: manifest.corpusSha256,
+        paidApiCalls: 0,
+        folklore: uniqueSummaries(result.candidates.map((candidate) => ({
+            id: candidate.id,
+            kaiiName: candidate.name,
+            content: candidate.summary,
+            location: candidate.prefecture,
+            similarity: candidate.score,
+            source: candidate.source,
+            sourceUrl: candidate.sourceUrl ?? undefined,
+            sameSummaryIds: [candidate.id],
+        }))),
+    };
 }
 
 export async function POST(req: Request) {
+    const startedAt = Date.now();
+    let body: unknown;
     try {
-        const startedAt = Date.now();
-        let cacheState = 'miss';
-        let bodyText: string;
-        try {
-            bodyText = await req.text();
-        } catch {
-            return NextResponse.json(
-                { error: 'Invalid request body' },
-                { status: 400 }
-            );
-        }
+        const bodyText = await req.text();
+        if (!bodyText.trim() || bodyText.length > 12_000) throw new Error('invalid body');
+        body = JSON.parse(bodyText);
+    } catch {
+        return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    }
 
-        if (!bodyText.trim()) {
-            return NextResponse.json(
-                { error: 'Request body is empty' },
-                { status: 400 }
-            );
-        }
+    const { handle, answers } = body as {
+        handle?: { id?: unknown; text?: unknown };
+        answers?: unknown;
+    };
+    if (!handle || typeof handle.id !== 'string' || !handle.id.trim() || typeof handle.text !== 'string' ||
+        !handle.text.trim() || !answers || typeof answers !== 'object' || Array.isArray(answers)) {
+        return NextResponse.json({ error: 'handle and answers are required' }, { status: 400 });
+    }
+    const answerEntries = Object.entries(answers as Record<string, unknown>);
+    if (answerEntries.some(([key, value]) => !key || typeof value !== 'string')) {
+        return NextResponse.json({ error: 'answer values must be strings' }, { status: 400 });
+    }
+    const normalized = Object.fromEntries(answerEntries) as Record<string, string>;
+    const normalizedHandle = { id: handle.id, text: handle.text };
+    const cacheKey = buildSearchCacheKey(normalizedHandle, normalized);
+    const cached = getSearchCache(cacheKey);
+    if (cached) {
+        return NextResponse.json(cached, {
+            headers: { 'x-search-cache': 'hit', 'x-search-engine': cached.searchEngine,
+                'x-search-duration-ms': `${Date.now() - startedAt}` },
+        });
+    }
 
-        let body: unknown;
-        try {
-            body = JSON.parse(bodyText);
-        } catch {
-            return NextResponse.json(
-                { error: 'Request body must be valid JSON' },
-                { status: 400 }
-            );
-        }
-
-        const { handle, answers } = body as {
-            handle?: {
-                id: string;
-                text: string;
-            };
-            answers?: unknown;
-        };
-
-        const validHandle = handle && typeof handle.id === 'string' && typeof handle.text === 'string';
-        const validAnswers = typeof answers === 'object' && answers !== null;
-        if (!validHandle || !validAnswers) {
-            return NextResponse.json(
-                { error: 'handle and answers are required' },
-                { status: 400 }
-            );
-        }
-
-        const apiKey = process.env.GEMINI_API_KEY;
-        if (!apiKey) {
-            return NextResponse.json(
-                { error: 'GEMINI_API_KEY not configured' },
-                { status: 500 }
-            );
-        }
-
-        const answersNormalized = answers as Record<string, string>;
-        const searchQuery = buildSearchQuery(handle, answersNormalized);
-        const cacheKey = buildSearchCacheKey(handle.id, answersNormalized);
-
-        if (NERF_OLD_MEMORY_SEARCH || Date.now() < searchRateLimitUntil) {
-            const entries = await loadEmbeddings();
-            return NextResponse.json(
-                {
-                    folklore: buildFallbackFolklore(entries, handle.id, answersNormalized),
-                    searchQuery: 'legacy-search-disabled',
-                },
-                {
-                    headers: {
-                        'x-search-cache': NERF_OLD_MEMORY_SEARCH ? 'legacy-disabled' : 'rate-limit-fallback',
-                        'x-search-duration-ms': `${Date.now() - startedAt}`,
-                        ...(Date.now() < searchRateLimitUntil ? { 'x-search-rate-limit': 'cooldown' } : {}),
-                    },
-                }
-            );
-        }
-
-        const cached = getSearchCache(cacheKey);
-        if (cached) {
-            cacheState = 'hit';
-            return NextResponse.json(
-                cached,
-                {
-                    headers: {
-                        'x-search-cache': cacheState,
-                        'x-search-duration-ms': `${Date.now() - startedAt}`,
-                    },
-                }
-            );
-        }
-
-        const inFlight = inFlightSearch.get(cacheKey);
-        if (inFlight) {
-            cacheState = 'in-flight';
-            const result = await inFlight;
-            return NextResponse.json(
-                result,
-                {
-                    headers: {
-                        'x-search-cache': cacheState,
-                        'x-search-duration-ms': `${Date.now() - startedAt}`,
-                    },
-                }
-            );
-        }
-
-        const promise = runSearchFallback(searchQuery, apiKey, handle.id, answersNormalized, req.signal);
-        inFlightSearch.set(cacheKey, promise);
-
-        try {
-            const result = await promise;
-            setSearchCache(cacheKey, result);
-            return NextResponse.json(
-                result,
-                {
-                    headers: {
-                        'x-search-cache': cacheState,
-                        'x-search-duration-ms': `${Date.now() - startedAt}`,
-                    },
-                }
-            );
-        } finally {
-            if (inFlightSearch.get(cacheKey) === promise) {
-                inFlightSearch.delete(cacheKey);
-            }
-        }
+    const existing = inFlightSearch.get(cacheKey);
+    const promise = existing ?? runLocalSearch(normalizedHandle, normalized);
+    if (!existing) inFlightSearch.set(cacheKey, promise);
+    try {
+        const result = await promise;
+        setSearchCache(cacheKey, result);
+        return NextResponse.json(result, {
+            headers: { 'x-search-cache': existing ? 'in-flight' : 'miss', 'x-search-engine': result.searchEngine,
+                'x-search-duration-ms': `${Date.now() - startedAt}` },
+        });
     } catch (error) {
-        console.error('search-folklore error:', error);
-        return NextResponse.json(
-            { error: 'Internal server error' },
-            { status: 500 }
-        );
+        console.error('search-folklore local search error:', error);
+        if (error instanceof RangeError) return NextResponse.json({ error: error.message }, { status: 400 });
+        const message = error instanceof ExperienceSearchUnavailable
+            ? error.message
+            : '検索に失敗しました。もう一度お試しください。';
+        return NextResponse.json({ error: message }, { status: 503 });
+    } finally {
+        if (!existing && inFlightSearch.get(cacheKey) === promise) inFlightSearch.delete(cacheKey);
     }
 }
