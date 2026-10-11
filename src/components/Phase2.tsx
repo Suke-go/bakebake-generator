@@ -62,6 +62,11 @@ export default function Phase2() {
     const abortRef = useRef<AbortController | null>(null);
     const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const requestSeqRef = useRef(0);
+    // Read once on mount. fetchData itself writes folkloreResults, so depending on it
+    // would re-create fetchData mid-request and the effect cleanup would abort it.
+    const preSearchedRef = useRef(
+        state.folkloreSearchMode === 'event-appraisal' ? state.folkloreResults : null,
+    );
 
     const abortCurrentRequest = useCallback((reason: string) => {
         const controller = abortRef.current;
@@ -137,8 +142,9 @@ export default function Phase2() {
             // pipeline and populated folkloreResults; do not re-search with the
             // plain e5/BM25 path in that case. If that phase was skipped or
             // failed, folkloreSearchMode stays null and we search here as before.
-            const folklore: SearchResult[] = state.folkloreSearchMode === 'event-appraisal'
-                ? state.folkloreResults.map((entry) => ({ ...entry, source: entry.source ?? '' }))
+            const preSearched = preSearchedRef.current;
+            const folklore: SearchResult[] = preSearched
+                ? preSearched.map((entry) => ({ ...entry, source: entry.source ?? '' }))
                 : (await (async () => {
                     const searchResult = await searchFolklore(
                         { id: state.selectedHandle!.id, text: state.selectedHandle!.text },
@@ -278,8 +284,6 @@ export default function Phase2() {
         state.answers,
         state.locale,
         state.ticketId,
-        state.folkloreSearchMode,
-        state.folkloreResults,
         isEnglish,
         setConcepts,
         setFolkloreResults,
