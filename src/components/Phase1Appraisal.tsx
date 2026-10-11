@@ -12,6 +12,7 @@ const COPY = {
         eventLabel: '起きたこと',
         appraisalIntro: 'あなたは、これをどう受け止めましたか？近いものを選んでください。',
         searching: '選んだ受け止め方で、伝承データベースを検索しています...',
+        slowSearch: '最初の検索は準備に1分ほどかかることがあります。このままお待ちください。',
         skip: '選ばずに進む',
         failed: '受け止め方の候補を作れませんでした。通信が切れたか、混み合っている可能性があります。',
         retry: 'もう一度試す',
@@ -23,6 +24,7 @@ const COPY = {
         eventLabel: 'What happened',
         appraisalIntro: 'How did you make sense of this at the time? Choose the one closest to how you felt.',
         searching: 'Searching the archive using what you chose...',
+        slowSearch: 'The first search can take about a minute to start. Please keep this page open.',
         skip: 'Skip this step',
         failed: 'We could not prepare the choices. The connection may have dropped or the service may be busy.',
         retry: 'Try again',
@@ -45,6 +47,7 @@ export default function Phase1Appraisal() {
     const copy = isEnglish ? COPY.en : COPY.ja;
     const [status, setStatus] = useState<'reading' | 'choosing' | 'searching' | 'skipped' | 'failed'>('reading');
     const [attempt, setAttempt] = useState(0);
+    const [slow, setSlow] = useState(false);
     const [eventText, setEventText] = useState('');
     const [appraisals, setAppraisals] = useState<Array<{ id: string; text: string; sourceSpan: string; basis: 'grounded' | 'interpretation' }>>([]);
     const mountedRef = useRef(false);
@@ -57,6 +60,8 @@ export default function Phase1Appraisal() {
     useEffect(() => {
         mountedRef.current = true;
         backOverrideRef.current = null;
+        // Start the reranker's cold start now, while the participant reads the choices.
+        void fetch('/api/rerank-warm', { method: 'POST' }).catch(() => {});
         if (!state.selectedHandle) {
             proceedWithoutAppraisal();
             return;
@@ -102,6 +107,8 @@ export default function Phase1Appraisal() {
     const handleChoose = useCallback(async (appraisal: { id: string; text: string; sourceSpan: string; basis: 'grounded' | 'interpretation' }) => {
         if (!state.selectedHandle || status !== 'choosing') return;
         setStatus('searching');
+        setSlow(false);
+        const slowTimer = setTimeout(() => setSlow(true), 12_000);
         const controller = new AbortController();
         abortRef.current = controller;
         void logResearchEvent(state.ticketId, {
@@ -136,6 +143,8 @@ export default function Phase1Appraisal() {
             if (!mountedRef.current) return;
             console.warn('Phase1Appraisal: search failed, falling back to direct search:', error);
             proceedWithoutAppraisal();
+        } finally {
+            clearTimeout(slowTimer);
         }
     }, [state.selectedHandle, state.answers, state.locale, state.ticketId, status, eventText, appraisals, completeEventAppraisalSearch, goToPhase, proceedWithoutAppraisal]);
 
@@ -163,6 +172,7 @@ export default function Phase1Appraisal() {
         return (
             <div className="phase" style={{ justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
                 <p className="voice" style={{ animation: 'breathe 3s ease-in-out infinite' }}>{copy.searching}</p>
+                {slow && <p className="voice" style={{ marginTop: 16, opacity: 0.7, fontSize: '0.9em' }}>{copy.slowSearch}</p>}
             </div>
         );
     }

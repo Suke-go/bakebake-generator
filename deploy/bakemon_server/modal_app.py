@@ -44,7 +44,10 @@ image = (
 )
 
 
+# One search sends four rerank calls at once. Letting a container take several
+# inputs means they share one cold start instead of each waiting for its own.
 @app.cls(image=image, gpu="T4", scaledown_window=120, min_containers=0)
+@modal.concurrent(max_inputs=8)
 class Reranker:
     @modal.enter()
     def load(self):
@@ -86,6 +89,7 @@ class RerankIn(BaseModel):
 
 
 @app.function(image=image)
+@modal.concurrent(max_inputs=16)
 @modal.fastapi_endpoint(method="POST")
 def rerank(payload: RerankIn):
     """
