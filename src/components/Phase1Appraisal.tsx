@@ -13,6 +13,8 @@ const COPY = {
         appraisalIntro: 'あなたは、これをどう受け止めましたか？近いものを選んでください。',
         searching: '選んだ受け止め方で、伝承データベースを検索しています...',
         skip: '選ばずに進む',
+        failed: '受け止め方の候補を作れませんでした。通信が切れたか、混み合っている可能性があります。',
+        retry: 'もう一度試す',
         grounded: 'あなたの言葉から',
         interpretation: '解釈',
     },
@@ -22,6 +24,8 @@ const COPY = {
         appraisalIntro: 'How did you make sense of this at the time? Choose the one closest to how you felt.',
         searching: 'Searching the archive using what you chose...',
         skip: 'Skip this step',
+        failed: 'We could not prepare the choices. The connection may have dropped or the service may be busy.',
+        retry: 'Try again',
         grounded: 'From your own words',
         interpretation: 'A possible reading',
     },
@@ -31,15 +35,16 @@ const COPY = {
  * Reads the account into an event statement and appraisal candidates, lets
  * the participant pick the appraisal closest to their own sense-making, then
  * retrieves folklore records via the paper's combined (event+appraisal)
- * pipeline. If generation is unavailable (paid API paused, or both
- * providers fail), this phase skips straight to Phase 2, which falls back
- * to its own direct search — the participant never gets stuck here.
+ * pipeline. If generation fails or returns no candidates, the participant
+ * sees why and can retry or continue to Phase 2, which falls back to its own
+ * direct search. Only a paused paid API skips silently, since retrying cannot help.
  */
 export default function Phase1Appraisal() {
     const { state, goToPhase, completeEventAppraisalSearch, backOverrideRef } = useApp();
     const isEnglish = state.locale === 'en';
     const copy = isEnglish ? COPY.en : COPY.ja;
-    const [status, setStatus] = useState<'reading' | 'choosing' | 'searching' | 'skipped'>('reading');
+    const [status, setStatus] = useState<'reading' | 'choosing' | 'searching' | 'skipped' | 'failed'>('reading');
+    const [attempt, setAttempt] = useState(0);
     const [eventText, setEventText] = useState('');
     const [appraisals, setAppraisals] = useState<Array<{ id: string; text: string; sourceSpan: string; basis: 'grounded' | 'interpretation' }>>([]);
     const mountedRef = useRef(false);
@@ -56,6 +61,7 @@ export default function Phase1Appraisal() {
             proceedWithoutAppraisal();
             return;
         }
+        setStatus('reading');
         const controller = new AbortController();
         abortRef.current = controller;
         (async () => {
@@ -68,8 +74,13 @@ export default function Phase1Appraisal() {
                 );
                 if (!mountedRef.current || controller.signal.aborted) return;
                 if (!result.event.text || result.appraisals.length === 0) {
-                    setStatus('skipped');
-                    proceedWithoutAppraisal();
+                    if (result.usedModel === 'paid-api-paused') {
+                        setStatus('skipped');
+                        proceedWithoutAppraisal();
+                    } else {
+                        console.warn('Phase1Appraisal: no candidates returned:', result.usedModel);
+                        setStatus('failed');
+                    }
                     return;
                 }
                 setEventText(result.event.text);
@@ -77,9 +88,8 @@ export default function Phase1Appraisal() {
                 setStatus('choosing');
             } catch (error) {
                 if (!mountedRef.current || controller.signal.aborted) return;
-                console.warn('Phase1Appraisal: generation failed, skipping to direct search:', error);
-                setStatus('skipped');
-                proceedWithoutAppraisal();
+                console.warn('Phase1Appraisal: generation failed:', error);
+                setStatus('failed');
             }
         })();
         return () => {
@@ -87,7 +97,7 @@ export default function Phase1Appraisal() {
             controller.abort();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [attempt]);
 
     const handleChoose = useCallback(async (appraisal: { id: string; text: string; sourceSpan: string; basis: 'grounded' | 'interpretation' }) => {
         if (!state.selectedHandle || status !== 'choosing') return;
@@ -133,6 +143,18 @@ export default function Phase1Appraisal() {
         return (
             <div className="phase" style={{ justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
                 <p className="voice" style={{ animation: 'breathe 3s ease-in-out infinite' }}>{copy.reading}</p>
+            </div>
+        );
+    }
+
+    if (status === 'failed') {
+        return (
+            <div className="phase" style={{ justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
+                <p className="voice" style={{ marginBottom: 24 }}>{copy.failed}</p>
+                <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+                    <button type="button" className="button button-primary" onClick={() => setAttempt((n) => n + 1)}>{copy.retry}</button>
+                    <button type="button" className="button" onClick={proceedWithoutAppraisal}>{copy.skip}</button>
+                </div>
             </div>
         );
     }

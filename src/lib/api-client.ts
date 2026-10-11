@@ -452,7 +452,10 @@ export async function generateEventAppraisal(
 
     const sharedRequest = requestJsonInternal<EventAppraisalResponse>('/api/generate-event-appraisal', { handle, answers, locale })
         .then((result) => {
-            eventAppraisalCache.set(cacheKey, { value: result, expiresAt: Date.now() + CONCEPT_CACHE_TTL_MS });
+            // An empty result (rate-limit cooldown, provider failure) must not be cached, or a retry would replay it.
+            if (result.event.text && result.appraisals.length > 0) {
+                eventAppraisalCache.set(cacheKey, { value: result, expiresAt: Date.now() + CONCEPT_CACHE_TTL_MS });
+            }
             return result;
         });
     const trackedRequest = sharedRequest.finally(() => {
