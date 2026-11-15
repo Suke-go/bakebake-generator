@@ -155,6 +155,15 @@ def main():
     families = sorted(({"records": len(set(g)), "prefectures": len({pref[i] for i in set(g)}),
                         "kinds": sorted({member[rows[i]].split("|")[0] for i in set(g)})[:6],
                         "example": sentence(records[rows[sorted(set(g))[0]]])} for g in groups.values()), key=lambda f: (-f["prefectures"], -f["records"]))
+    # every family in full, for the table and the map of the paper
+    full = []
+    for g in groups.values():
+        ids = sorted(set(g))
+        full.append({"prefectures": sorted({pref[i] for i in ids}), "records": [{"id": records[rows[i]]["id"], "name": records[rows[i]]["name"], "prefecture": pref[i],
+                     "summary": records[rows[i]]["summary"]} for i in ids]})
+    full.sort(key=lambda f: (-len(f["prefectures"]), -len(f["records"])))
+    (ROOT / "paper/hyakki/families_full.json").write_text(json.dumps(full, ensure_ascii=False), encoding="utf-8")
+    (ROOT / "paper/hyakki/twin_pair_prefectures.json").write_text(json.dumps([[pref[a], pref[b], round(sc, 3)] for a, b, sc in pairs], ensure_ascii=False), encoding="utf-8")
     out = {"threshold": THRESHOLD, "recordsCompared": int(len(rows)), "pairs": len(pairs), "recordsWithTwin": len({i for a, b, _ in pairs for i in (a, b)}),
            "unitsCompared": len(playable), "unitsWithTwin": len(twins), "families": len(families),
            "familiesIn3OrMorePrefectures": sum(f["prefectures"] >= 3 for f in families), "largest": families[:25]}

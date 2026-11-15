@@ -399,6 +399,26 @@ export default function Hyakki({ onFinish }: { onFinish?: (log: PlayLog) => void
         }
     }, []);
 
+    // A session can be reopened at the calling scene from its five ids (?five=a,b,c,d,e&at=lat,lon), which is how
+    // the figures of the paper are reproduced. The ids are those the game itself hands out.
+    useEffect(() => {
+        const query = new URLSearchParams(window.location.search);
+        const ids = (query.get('five') ?? '').split(',').filter(Boolean);
+        if (ids.length !== TEAM) return;
+        void run(async alive => {
+            const cards = await Promise.all(ids.map(id => post<{ card: Card }>({ action: 'meet', id })));
+            const res = await post<{ lights: Light[] }>({ action: 'summon', chosen: ids });
+            if (!alive()) return;
+            const five = cards.map(c => c.card);
+            const [lat, lon] = (query.get('at') ?? '').split(',').map(Number);
+            setPin(Number.isFinite(lat) && Number.isFinite(lon) ? { lat, lon } : { lat: five[0].lat, lon: five[0].lon });
+            setChosen(five);
+            setLights(res.lights);
+            setCalled([]);
+            setScreen(8);
+        });
+    }, [run]);
+
     const chooseRegion = (key: RegionKey) => { if (!study.current.t0) study.current.t0 = Date.now(); setRegion(key); setPin(null); setScreen(2); };
 
     const findBuddies = () => {
