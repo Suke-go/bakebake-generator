@@ -103,3 +103,6 @@ lualatex*.fls
 .tmp/
 
 /data/experience-search-model-cache/**/onnx/model_quantized.onnx
+
+# hyakki: the full-size source pictures stay local (thumbs and silhouettes are versioned)
+/data/hyakki/images/
