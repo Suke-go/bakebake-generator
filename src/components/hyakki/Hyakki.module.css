@@ -1,0 +1,171 @@
+/* Tokens. A night that leans violet: deep indigo ground, wisteria paper, one lamp-gold accent for the main action.
+   Type sizes (fine, small, body, head; the hint has its own) and four spacing steps; nothing below uses a value outside this list. The panel never scrolls:
+   every screen is sized to fit within 40% of the viewport height at 400x700 and at 1920x860. */
+.page {
+  --ground: #14121f; --bar: #0f0d18; --panel: #1c1930; --well: #2a2644; --rule: #3f3a5c; --edge: #7a6fa8;
+  --paper: #ece6f6; --paper-rule: #c3b8dc; --paper-ink: #241f36; --paper-mute: #5a4f7c;
+  --text: #f1eef8; --text-mute: #c4bedb; --text-off: #9d96b8; --gold: #f2cf85; --gold-ink: #2a2110; --warn: #e0685c;
+  --cloud-line: #4a3f6b; --cloud-paper: #f3eefb;
+  --fs-fine: 12px; --fs-small: 13px; --fs-body: 14px; --fs-head: 17px; --fs-hint: 17px;
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px;
+  --r: 4px; --r-panel: 8px; --tap: 44px; --shadow: 0 6px 24px #0009;
+  display: flex; flex-direction: column; height: 100dvh; background: var(--ground); color: var(--text); font-family: var(--font-main); font-size: 15px; overflow: hidden;
+}
+@media (min-width: 1500px) { .page { font-size: 16px; --fs-body: 15px; --fs-head: 18px; --fs-hint: 18px; } }
+.stage { position: relative; flex: 1 1 auto; min-height: 0; }
+.map { position: absolute; inset: 0; }
+.mapLoading { display: grid; place-items: center; height: 100%; color: var(--text-mute); font-size: var(--fs-body); letter-spacing: 0.08em; animation: breathe 2.4s ease-in-out infinite; }
+
+/* The way out is always there but quiet: plain text, full-size touch target. */
+.back { position: absolute; z-index: 5; top: var(--s1); left: var(--s1); display: inline-flex; align-items: center; min-height: var(--tap); padding: 0 var(--s3); border-radius: var(--r); color: var(--text-off); font-size: var(--fs-small); text-decoration: none; text-shadow: 0 1px 3px #000; animation: fade 0.5s ease both; }
+.back:hover { color: var(--text); }
+
+/* Screen 0: the title stands upright like the heading of a scroll, then the night clears to the map. */
+.intro { position: absolute; z-index: 20; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; border: 0; padding: var(--s4); color: var(--gold); font: inherit; cursor: pointer; background: radial-gradient(circle at 50% 42%, #272143, #0b0916 72%); }
+.introFall { animation: nightfall 1.9s ease forwards; }
+.title { writing-mode: vertical-rl; font-size: clamp(40px, 9vmin, 68px); line-height: 1.5; letter-spacing: 0.18em; font-weight: 700; animation: settle 0.7s ease both; }
+.title rt { font-size: 0.2em; letter-spacing: 0.3em; color: var(--text-mute); font-weight: 400; }
+.introSub { font-size: var(--fs-head); letter-spacing: 0.08em; color: var(--text-mute); animation: settle 0.7s 0.25s ease both; }
+@keyframes nightfall { 0%, 60% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes settle { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes breathe { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+
+.panel { position: absolute; z-index: 10; left: 0; right: 0; bottom: var(--s2); margin-inline: auto; width: min(720px, calc(100% - 16px)); display: flex; flex-direction: column; gap: var(--s2); padding: var(--s2) var(--s3); border: 1px solid var(--rule); border-radius: var(--r-panel); background: #1c1930f2; box-shadow: var(--shadow); outline: none; }
+.panel.wide { width: min(960px, calc(100% - 16px)); }
+/* Screen 5: the cloud is the frame, so the panel itself is not drawn. */
+.panel.bare { width: min(476px, calc(100% - 8px)); padding: 0; border-color: transparent; background: none; box-shadow: none; }
+.panel > * { animation: rise 0.3s ease both; }
+.panel button, .panel a { font: inherit; }
+
+/* Every screen: what to do now (one line) / at most one short line under it / the action. */
+.strip { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s3); }
+.msg { flex: 1 1 12em; min-width: 0; }
+.head { margin: 0; font-size: var(--fs-head); line-height: 1.4; letter-spacing: 0.03em; color: var(--text); font-weight: 700; }
+.head rt { font-size: 0.5em; font-weight: 400; letter-spacing: 0.1em; color: var(--text-mute); }
+.body { margin: 0; font-size: var(--fs-small); line-height: 1.5; color: var(--text-mute); }
+.head, .body { line-break: strict; word-break: auto-phrase; overflow-wrap: anywhere; }
+.left { flex: none; padding: 0 var(--s2); border: 1px solid var(--rule); border-radius: var(--r); font-size: var(--fs-small); line-height: 1.7; color: var(--gold); white-space: nowrap; }
+
+.actions { display: flex; gap: var(--s2); flex: 0 0 auto; margin-left: auto; }
+.primary, .ghost, .choice { display: inline-flex; align-items: center; justify-content: center; min-height: var(--tap); min-width: var(--tap); padding: 0 var(--s4); border-radius: var(--r); font-size: var(--fs-body); letter-spacing: 0.04em; white-space: nowrap; cursor: pointer; text-decoration: none; transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease; }
+.primary { min-width: 8em; background: var(--gold); color: var(--gold-ink); border: 1px solid var(--gold); font-weight: 700; }
+.ghost { background: transparent; color: var(--text); border: 1px solid var(--edge); }
+.choice { background: var(--well); color: var(--text); border: 1px solid var(--edge); }
+.primary:hover:not(:disabled) { background: #f8dfa6; }
+.ghost:hover:not(:disabled), .choice:hover { background: #37325a; }
+.primary:active:not(:disabled), .ghost:active:not(:disabled), .choice:active { transform: translateY(1px); }
+.primary:disabled, .ghost:disabled { background: transparent; color: var(--text-off); border: 1px dashed var(--rule); font-weight: 400; cursor: default; }
+.page :is(button, a):focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.result a:focus-visible { outline-color: var(--paper-ink); }
+@media (max-width: 480px) {
+  .pair { flex: 1 0 100%; }
+  .pair > * { flex: 1 1 0; min-width: 0; padding: 0 var(--s2); }
+}
+
+.regions { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s1); }
+.regions .choice { padding: 0 var(--s1); }
+@media (min-width: 700px) { .regions { grid-template-columns: repeat(6, 1fr); gap: var(--s2); } }
+
+/* Cards, everywhere in the same order: picture / name / place / text / sources. Pictures fill their square from the top. */
+.cardHead { display: flex; align-items: baseline; gap: 0 var(--s2); min-width: 0; }
+.name { font-size: 1em; line-height: 1.4; letter-spacing: 0.04em; font-weight: 700; overflow-wrap: anywhere; }
+.where { font-size: var(--fs-small); line-height: 1.4; color: var(--paper-mute); }
+.desc { margin: 0; font-size: var(--fs-small); line-height: 1.55; line-break: strict; overflow-wrap: anywhere; }
+.thumb, .metPicture, .resultPicture { object-fit: cover; object-position: 50% 0; background: var(--paper-rule); }
+
+/* Buddies: three picture slips set straight on the map. The name is a vertical title slip pasted on the picture's
+   shoulder, the way picture scrolls label their figures; one short line underneath instead of a cut-off story. */
+.buddies { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s2); }
+.buddies > li { min-width: 0; }
+.bare > .head { text-align: center; text-shadow: 0 1px 4px #000, 0 0 12px #000; }
+.buddy { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; width: 100%; padding: 5px 5px 6px; text-align: center; border-radius: 2px; border: 1px solid var(--cloud-line); background: var(--paper); color: var(--paper-ink); box-shadow: var(--shadow); cursor: pointer; transition: transform 0.15s ease; }
+.buddy:hover:not(:disabled) { transform: translateY(-3px); }
+.buddy:disabled { opacity: 0.6; cursor: default; }
+.thumb { display: block; width: 100%; aspect-ratio: 4 / 5; border: 1px solid var(--paper-rule); }
+.slip { position: absolute; top: 9px; right: 9px; max-height: calc(100% - 64px); padding: 6px 3px; writing-mode: vertical-rl; background: var(--paper); border: 1px solid var(--cloud-line); font-size: var(--fs-head); line-height: 1.2; letter-spacing: 0.12em; overflow: hidden; }
+.buddyTease { min-height: 2.7em; font-size: var(--fs-fine); line-height: 1.35; font-weight: 700; line-break: strict; word-break: auto-phrase; }
+.buddy .where { font-size: 11px; }
+
+
+/* Screen 5: one-outline thought cloud, scaled uniformly (never stretched). The text box is the part of the cloud
+   that is clear of the lobes; the last bead of the tail ends at the silhouette. */
+.encounter { display: flex; flex-direction: column; align-items: center; }
+.cloud { position: relative; width: min(100%, 392px); aspect-ratio: 368 / 196; filter: drop-shadow(0 4px 12px #000a); }
+.cloud svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.cloudText { position: absolute; left: 16.8%; right: 15.2%; top: 17.3%; bottom: 23.5%; display: flex; flex-direction: column; justify-content: center; color: var(--paper-ink); }
+.tease { margin: 0; font-size: var(--fs-small); line-height: 1.4; letter-spacing: 0.04em; color: var(--paper-mute); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hint { margin: 0; font-size: var(--fs-hint); line-height: 1.45; font-weight: 500; line-break: strict; overflow-wrap: anywhere; text-wrap: pretty; }
+.hintLong { font-size: 15px; line-height: 1.4; }
+.meetRow { display: flex; align-items: flex-end; gap: var(--s2); width: min(100%, 392px); margin-top: -12px; padding: 0 var(--s1); }
+.meetRow .actions { flex: 1 1 auto; justify-content: flex-end; }
+.near { align-self: center; font-size: var(--fs-small); color: var(--text-mute); white-space: nowrap; text-shadow: 0 1px 3px #000; }
+.bare .ghost { background: #1c1930f2; }
+/* The silhouette is black on transparent: it stands against a pale moon. */
+.shadow { position: relative; flex: none; width: 52px; height: 52px; object-fit: contain; padding: 7px; border-radius: 50%; background: radial-gradient(circle at 42% 38%, #f6f2fc, #c9bfe2); box-shadow: 0 0 0 2px var(--cloud-line), 0 0 16px #b79cff55; }
+@media (min-width: 700px) {
+  .cloud, .meetRow { width: 460px; }
+  .hintLong { font-size: 16px; }
+}
+
+/* Screen 6: the picture floats and the text runs round it, which keeps the card low. */
+.metCard, .result { display: flow-root; padding: var(--s2); border-radius: var(--r); background: var(--paper); color: var(--paper-ink); border: 1px solid var(--edge); }
+.metPicture { float: left; width: 88px; height: 88px; margin: 0 var(--s3) var(--s1) 0; border-radius: 2px; }
+.metCard .cardHead { flex-wrap: wrap; margin-bottom: var(--s1); }
+.metName { font-size: var(--fs-head); }
+@media (min-width: 700px) { .metPicture { width: 128px; height: 128px; } }
+
+/* Screen 10, the line-up: where the hundred came from, then the five as short rows. The map above is the picture. */
+.finale { display: grid; gap: var(--s2); grid-template-columns: 1fr auto; grid-template-areas: "head acts" "from from" "cards cards"; align-items: center; }
+.finale .head { grid-area: head; }
+.finale .actions { grid-area: acts; margin-left: 0; }
+.from { grid-area: from; list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--s1); }
+.from li { display: flex; flex-direction: column; align-items: center; padding: var(--s1) 2px; border: 1px solid var(--rule); border-radius: var(--r); font-size: var(--fs-fine); color: var(--text-mute); white-space: nowrap; }
+.from strong { font-size: var(--fs-head); color: var(--text); line-height: 1.2; }
+.results { grid-area: cards; list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--s2); min-width: 0; }
+.result { min-width: 0; padding: 6px; border-top-width: 3px; }
+.resultPicture { float: left; width: 40px; height: 40px; margin: 0 var(--s2) 2px 0; border-radius: 2px; }
+.result .cardHead { flex-direction: column; margin-bottom: 2px; }
+.result .where, .foot { font-size: var(--fs-fine); }
+.foot { clear: both; display: flex; align-items: center; gap: var(--s2); margin-top: var(--s1); border-top: 1px solid var(--paper-rule); }
+.called { display: inline-flex; align-items: center; gap: var(--s1); margin-right: auto; font-weight: 700; }
+.dot { flex: none; width: 10px; height: 10px; border-radius: 50%; border: 1px solid var(--paper-ink); }
+/* The links keep a 44px touch height but the row is drawn 28px high: the extra reaches over the card's own padding. */
+.foot a { display: inline-flex; align-items: center; min-height: var(--tap); margin: -8px 0; color: var(--paper-mute); text-underline-offset: 3px; white-space: nowrap; }
+.foot a:hover { color: var(--paper-ink); }
+@media (max-width: 699px) {
+  .from { grid-template-columns: repeat(3, 1fr); }
+  .results { grid-template-columns: 1fr; gap: var(--s1); }
+  .result { display: flex; align-items: center; gap: var(--s2); padding: 4px 6px; }
+  .resultPicture { float: none; width: 32px; height: 32px; margin: 0; }
+  .result .cardHead { flex: 1 1 auto; min-width: 0; margin: 0; }
+  .result .where { display: none; }
+  .foot { clear: none; margin: 0; border: 0; flex: none; }
+}
+
+/* Mists the player has looked into: small shadows to switch between while comparing. */
+.peeks { display: flex; gap: var(--s1); margin-right: auto; }
+.peek { width: var(--tap); height: var(--tap); padding: 5px; border-radius: 50%; border: 2px solid var(--edge); background: radial-gradient(circle at 42% 38%, #f6f2fc, #c9bfe2); cursor: pointer; }
+.peek[aria-pressed="true"] { border-color: var(--gold, #f2cf85); box-shadow: 0 0 0 2px #f2cf8555; }
+.peek img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.recordName { margin: 0 0 2px; font-size: var(--fs-fine); color: var(--paper-mute); }
+
+.failure { padding: var(--s2) var(--s3); border-radius: var(--r); background: #2e1a22; border: 1px solid #7a3340; border-left: 4px solid var(--warn); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s2); }
+.failure p { margin: 0; flex: 1 1 12em; line-height: 1.5; font-size: var(--fs-body); }
+
+/* The procession: a low strip, each slot edged in its caller's colour (same colours as the lights on the map). */
+.queue { flex: none; list-style: none; margin: 0; padding: 5px var(--s3) calc(5px + env(safe-area-inset-bottom)); display: flex; justify-content: center; gap: var(--s2); background: var(--bar); border-top: 1px solid var(--rule); animation: fade 0.5s ease both; }
+.slot { position: relative; flex: none; width: 44px; height: 44px; border-radius: var(--r); border: 2px solid var(--edge); background: var(--well); overflow: hidden; }
+.slot img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 0; animation: fade 0.5s ease both; }
+.empty { border: 1px dashed var(--edge); background: transparent; display: grid; place-items: center; color: var(--text-off); font-size: var(--fs-small); }
+/* The tap target over a slot while the five are calling: a ring in the caller's colour that breathes until tapped. */
+.call { position: absolute; inset: 0; padding: 0; border: 0; background: none; cursor: pointer; box-shadow: inset 0 0 0 2px currentColor; animation: callPulse 1.2s ease-in-out infinite; }
+@keyframes callPulse { 50% { box-shadow: inset 0 0 0 2px currentColor, inset 0 0 14px 4px currentColor; } }
+.count { position: absolute; left: 0; right: 0; bottom: 0; text-align: center; background: #0f0d18d9; font-size: var(--fs-fine); line-height: 1.35; font-weight: 700; }
+
+@media (prefers-reduced-motion: reduce) {
+  .introFall, .title, .introSub, .panel > *, .back, .queue, .slot img, .mapLoading, .call { animation: none; }
+  .primary, .ghost, .choice, .buddy { transition: none; }
+  .buddy:hover:not(:disabled) { transform: none; }
+}

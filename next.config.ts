@@ -27,6 +27,7 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     '/api/public-experiment': localSearchFiles,
     '/api/search-folklore': localSearchFiles,
+    '/api/hyakki': ['./data/hyakki/**', './data/geo/gadm41_JPN_2.json'],
   },
   outputFileTracingExcludes: {
     '/api/public-experiment': localSearchExcludes,

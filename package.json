@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:phase3-smoke": "node scripts/smoke-phase3.mjs"
+    "test:phase3-smoke": "node scripts/smoke-phase3.mjs",
+    "test:hyakki": "tsx --test src/lib/hyakki.test.ts"
   },
   "dependencies": {
     "@google/genai": "^1.8.0",

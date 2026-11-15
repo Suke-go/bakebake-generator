@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 196" role="img" aria-hidden="true">
+  <!-- Thought cloud for /hyakki, drawn for this project. One outline: every lobe is drawn once in the
+       line colour and once, 4 units smaller, in the paper colour, so only the outer edge keeps a line.
+       Text box: x 62-198, y 52-124. Scale uniformly; never stretch. Colours come from the page:
+       --cloud-line and --cloud-paper. -->
+  <g fill="var(--cloud-line, #4a3f6b)">
+    <circle cx="84" cy="58" r="40"/><circle cx="134" cy="48" r="44"/><circle cx="182" cy="64" r="36"/>
+    <circle cx="210" cy="96" r="34"/><circle cx="176" cy="124" r="38"/><circle cx="128" cy="132" r="40"/>
+    <circle cx="82" cy="124" r="37"/><circle cx="50" cy="92" r="36"/>
+    <circle cx="34" cy="160" r="15"/><circle cx="12" cy="184" r="9"/>
+  </g>
+  <g fill="var(--cloud-paper, #f3eefb)">
+    <circle cx="84" cy="58" r="36"/><circle cx="134" cy="48" r="40"/><circle cx="182" cy="64" r="32"/>
+    <circle cx="210" cy="96" r="30"/><circle cx="176" cy="124" r="34"/><circle cx="128" cy="132" r="36"/>
+    <circle cx="82" cy="124" r="33"/><circle cx="50" cy="92" r="32"/>
+    <ellipse cx="130" cy="90" rx="80" ry="46"/>
+    <circle cx="34" cy="160" r="11"/><circle cx="12" cy="184" r="5.5"/>
+  </g>
+</svg>
