@@ -319,8 +319,23 @@
       return { cx: camera.position.x, cy: camera.position.y, w: fr.right - fr.left };
     }
     let framedInset = 0;
+    // While mists are out, the map is framed on the town and the mists nearest to it, close enough for their clouds
+    // to be read; the rest of the region is a drag away. The frame is set once, when the first mists arrive.
+    let focus = null;
+    function setFocus() {
+      const c = state.pin || state.figures[0] || state.mists[0];
+      const o = merc(c.lon, c.lat);
+      const near = state.mists.map((m) => merc(m.lon, m.lat)).sort((a, b) => Math.hypot(a.x - o.x, a.y - o.y) - Math.hypot(b.x - o.x, b.y - o.y)).slice(0, 7);
+      const pts = [o, ...near, ...state.figures.map((f) => merc(f.lon, f.lat))];
+      focus = { x0: Math.min(...pts.map((q) => q.x)), x1: Math.max(...pts.map((q) => q.x)), y0: Math.min(...pts.map((q) => q.y)), y1: Math.max(...pts.map((q) => q.y)) };
+    }
+    function focusTarget() {
+      const W = Math.max(canvas.clientWidth, 100), availH = Math.max(Math.max(canvas.clientHeight, 100) - state.inset, 120);
+      const scale = Math.max((focus.x1 - focus.x0) / W, (focus.y1 - focus.y0) / availH, 60) / 0.62; // room for the clouds
+      return { cx: (focus.x0 + focus.x1) / 2, cy: (focus.y0 + focus.y1) / 2 - (state.inset / 2) * scale, w: W * scale };
+    }
     function goView(instant) {
-      const to = targetFor(state.view);
+      const to = focus ? focusTarget() : targetFor(state.view);
       userMoved = false; framedInset = state.inset;
       if (instant || state.still) { anim = null; place(to.cx, to.cy, to.w); }
       else anim = { t0: performance.now() / 1000, dur: 1.4, from: current(), to };
@@ -1134,7 +1149,11 @@
           break;
         case 'view': { const changed = state.view !== value; state.view = value; if (camReady && changed) goView(false); break; }
         case 'pin': state.pin = value; roadKey = ''; break;
-        case 'mists': state.mists = value || []; reconcileMists(); refreshTease(); break;
+        case 'mists':
+          state.mists = value || []; reconcileMists(); refreshTease();
+          if (!state.mists.length) focus = null;
+          else if (!focus) { setFocus(); if (camReady && !userMoved) goView(false); }
+          break;
         // A newly chosen yokai may stand where a cloud is: the clouds pick their places again, once.
         case 'figures': state.figures = value || []; syncFigures(); rebuildGroups(); for (const b of bubbles) b.init = false; break;
         case 'lights': state.lights = value || []; syncLights(); break;
