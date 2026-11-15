@@ -110,6 +110,20 @@ function Queue({ chosen, lights, lit, called, onCall }: { chosen: Card[]; lights
     );
 }
 
+/** What the study page (/hyakki/exp) receives when a play ends. The player's town is not part of it. */
+export type PlayLog = {
+    region: RegionKey | null;
+    seconds: number;            // from choosing a region to leaving the line-up
+    peeks: number[];            // clouds opened before each of the four invitations
+    chosen: string[];           // ids of the five
+    friends: number[];          // how many each of the five drew in
+    nearAll: number | null;     // mean likeness of the 95 to their callers
+    nearAloud: number | null;   // the same, for those that answered aloud
+    skippedCall: boolean; skippedParade: boolean;
+    opened: number;             // figures opened on the line-up
+    saved: boolean;             // the line-up was downloaded
+};
+
 // Screen 10: the line-up, composed like a picture scroll of the night parade: one dense crowd moving left. The five
 // the player chose are large and stand clear in front; the friends each one called press round it, the most
 // similar nearest, overlapping as the figures in the scrolls do. Any figure can be tapped to read its story.
@@ -211,7 +225,8 @@ async function paintScroll(chosen: Card[], lights: Light[], spots: Spot[], font:
     return canvas;
 }
 
-function Results({ chosen, lights, onRestart }: { chosen: Card[]; lights: Light[]; onRestart: () => void }) {
+function Results({ chosen, lights, onRestart, onFinish }: { chosen: Card[]; lights: Light[]; onRestart: () => void; onFinish?: (seen: { opened: number; saved: boolean }) => void }) {
+    const seen = useRef({ opened: new Set<number>(), saved: false });
     const sheetRef = useRef<HTMLDivElement>(null);
     const [open, setOpen] = useState<Card | null>(null);
     const [trouble, setTrouble] = useState(false);
@@ -223,12 +238,14 @@ function Results({ chosen, lights, onRestart }: { chosen: Card[]; lights: Light[
         return () => { alive = false; };
     }, []);
     const show = (spot: Spot) => {
+        seen.current.opened.add(spots.indexOf(spot));
         setTrouble(false);
         if (spot.light < 0) { setOpen(chosen[spot.caller]); return; }
         post<{ card: Card }>({ action: 'meet', id: lights[spot.light].id }).then(res => setOpen(res.card), () => setTrouble(true));
     };
 
     const download = async () => {
+        seen.current.saved = true;
         const canvas = await paintScroll(chosen, lights, spots, sheetRef.current ? getComputedStyle(sheetRef.current).fontFamily : 'serif', land);
         canvas?.toBlob(blob => {
             if (!blob) return;
@@ -275,15 +292,25 @@ function Results({ chosen, lights, onRestart }: { chosen: Card[]; lights: Light[
             </div>
             <div className={styles.actions}>
                 <span className={styles.tapNote}>{trouble ? '話を読みこめませんでした。もう一度タップしてください。' : '妖怪をタップすると、話が読めます。'}</span>
-                <button type="button" className={styles.ghost} onClick={onRestart}>もう一度</button>
-                <Link href="/map" className={styles.ghost}>地図にもどる</Link>
-                <button type="button" className={styles.primary} onClick={() => { void download(); }}>画像をダウンロード</button>
+                {onFinish ? (
+                    <>
+                        <button type="button" className={styles.ghost} onClick={() => { void download(); }}>画像をダウンロード</button>
+                        <button type="button" className={styles.primary} onClick={() => onFinish({ opened: seen.current.opened.size, saved: seen.current.saved })}>アンケートへ</button>
+                    </>
+                ) : (
+                    <>
+                        <button type="button" className={styles.ghost} onClick={onRestart}>もう一度</button>
+                        <Link href="/map" className={styles.ghost}>地図にもどる</Link>
+                        <button type="button" className={styles.primary} onClick={() => { void download(); }}>画像をダウンロード</button>
+                    </>
+                )}
             </div>
         </div>
     );
 }
 
-export default function Hyakki() {
+export default function Hyakki({ onFinish }: { onFinish?: (log: PlayLog) => void } = {}) {
+    const study = useRef({ t0: 0, round: new Set<string>(), peeks: [] as number[], skippedCall: false, skippedParade: false });
     const [screen, setScreen] = useState(0);
     const [reduced, setReduced] = useState(false);
     const [region, setRegion] = useState<RegionKey | null>(null);
@@ -356,7 +383,7 @@ export default function Hyakki() {
         }
     }, []);
 
-    const chooseRegion = (key: RegionKey) => { setRegion(key); setPin(null); setScreen(2); };
+    const chooseRegion = (key: RegionKey) => { if (!study.current.t0) study.current.t0 = Date.now(); setRegion(key); setPin(null); setScreen(2); };
 
     const findBuddies = () => {
         if (!region || !pin) return;
@@ -375,6 +402,7 @@ export default function Hyakki() {
             const res = await post<{ mists: Mist[] }>({ action: 'mists', region, chosen: [card.id], shown: [] });
             if (!alive()) return;
             setChosen([card]);
+            study.current.peeks = []; study.current.round = new Set();
             setMists(res.mists);
             setSelected(null); setPeeked([]);
             setScreen(4);
@@ -386,6 +414,8 @@ export default function Hyakki() {
             const res = await post<{ card: Card }>({ action: 'meet', id });
             if (!alive()) return;
             setMet(res.card);
+            study.current.peeks.push(study.current.round.size);
+            study.current.round = new Set();
             setScreen(6);
         });
     };
@@ -423,7 +453,17 @@ export default function Hyakki() {
         });
     };
 
+    const finish = (seen: { opened: number; saved: boolean }) => {
+        const mean = (xs: number[]) => (xs.length ? Math.round((xs.reduce((a, b) => a + b, 0) / xs.length) * 1000) / 1000 : null);
+        onFinish?.({
+            region, seconds: Math.round((Date.now() - study.current.t0) / 1000), peeks: study.current.peeks, chosen: chosen.map(c => c.id),
+            friends: tally(lights), nearAll: mean(lights.map(l => l.near)), nearAloud: mean(lights.filter(l => l.tease).map(l => l.near)),
+            skippedCall: study.current.skippedCall, skippedParade: study.current.skippedParade, ...seen,
+        });
+    };
+
     const restart = () => {
+        study.current = { t0: 0, round: new Set(), peeks: [], skippedCall: false, skippedParade: false };
         generation.current += 1;
         busyRef.current = false;
         setBusy(false);
@@ -440,6 +480,7 @@ export default function Hyakki() {
     const onMist = useCallback((id: string) => {
         if (busyRef.current) return;
         setSelected(id);
+        study.current.round.add(id);
         setPeeked(open => (open.includes(id) ? open : [...open, id]));
         setScreen(s => (s === 4 || s === 5 ? 5 : s));
     }, []);
@@ -604,7 +645,7 @@ export default function Hyakki() {
                                     <h1 className={styles.head}>{called.length === 0 ? '下の5体をタップして、似た仲間をよぶ' : `${chosen[called[called.length - 1]]?.name ?? ''}「${chosen[called[called.length - 1]]?.tease ?? ''}」`}</h1>
                                 </div>
                                 <div className={styles.actions}>
-                                    <button type="button" className={styles.ghost} onClick={() => { setCalled([0, 1, 2, 3, 4]); setScreen(9); }}>とばす</button>
+                                    <button type="button" className={styles.ghost} onClick={() => { study.current.skippedCall = true; setCalled([0, 1, 2, 3, 4]); setScreen(9); }}>とばす</button>
                                 </div>
                             </div>
                         )}
@@ -615,12 +656,12 @@ export default function Hyakki() {
                                     <h1 className={styles.head}>あなたの町へ</h1>
                                 </div>
                                 <div className={styles.actions}>
-                                    <button type="button" className={styles.ghost} onClick={() => setScreen(10)}>とばす</button>
+                                    <button type="button" className={styles.ghost} onClick={() => { study.current.skippedParade = true; setScreen(10); }}>とばす</button>
                                 </div>
                             </div>
                         )}
 
-                        {screen === 10 && <Results chosen={chosen} lights={lights} onRestart={restart} />}
+                        {screen === 10 && <Results chosen={chosen} lights={lights} onRestart={restart} onFinish={onFinish && finish} />}
                     </div>
                 )}
             </div>

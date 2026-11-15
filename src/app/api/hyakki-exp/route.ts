@@ -1,0 +1,47 @@
+// POST /api/hyakki-exp: one anonymous record per finished study play (see src/components/hyakki/HyakkiExp.tsx).
+// The record holds what the player answered and how the play went; it never holds the player's town.
+import { NextResponse } from 'next/server';
+import { getResearchSupabase } from '@/lib/research-server';
+
+const VERSION = 'hyakki-exp-v1';
+const SCALE_KEYS = ['foothold', 'trace', 'collection', 'worldLink', 'worldSpread', 'enjoy', 'again'];
+const point = (v: unknown) => (Number.isInteger(v) && (v as number) >= 1 && (v as number) <= 5 ? (v as number) : null);
+const text = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+
+export async function POST(request: Request) {
+    const supabase = getResearchSupabase();
+    if (!supabase) return NextResponse.json({ error: 'Recording is not set up' }, { status: 503 });
+
+    let body: Record<string, unknown>;
+    try { body = await request.json() as Record<string, unknown>; } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }); }
+
+    const scalesIn = (body.scales ?? {}) as Record<string, unknown>;
+    const scales = Object.fromEntries(SCALE_KEYS.map(k => [k, point(scalesIn[k])]));
+    const interestBefore = point(body.interestBefore), interestAfter = point(body.interestAfter);
+    if (body.consent !== true || body.version !== VERSION || !text(body.age, 16) || !text(body.gender, 16)
+        || interestBefore === null || interestAfter === null || Object.values(scales).some(v => v === null)) {
+        return NextResponse.json({ error: 'Invalid record' }, { status: 400 });
+    }
+
+    const logIn = (body.log ?? {}) as Record<string, unknown>;
+    const list = (v: unknown, max: number) => (Array.isArray(v) ? v.slice(0, max) : []);
+    const payload = {
+        age: text(body.age, 16), gender: text(body.gender, 16), interestBefore, interestAfter,
+        knownTown: text(body.knownTown, 8), scales, why: text(body.why, 500), remember: text(body.remember, 500),
+        log: {
+            region: text(logIn.region, 32), seconds: num(logIn.seconds),
+            peeks: list(logIn.peeks, 5).map(num), chosen: list(logIn.chosen, 5).map(v => text(v, 32)), friends: list(logIn.friends, 5).map(num),
+            nearAll: num(logIn.nearAll), nearAloud: num(logIn.nearAloud),
+            skippedCall: logIn.skippedCall === true, skippedParade: logIn.skippedParade === true,
+            opened: num(logIn.opened), saved: logIn.saved === true,
+        },
+    };
+
+    const { error } = await supabase.from('hyakki_exp_responses').insert({ version: VERSION, payload });
+    if (error) {
+        console.error('hyakki-exp insert failed', error.message);
+        return NextResponse.json({ error: 'Could not record' }, { status: 500 });
+    }
+    return NextResponse.json({ ok: true });
+}
