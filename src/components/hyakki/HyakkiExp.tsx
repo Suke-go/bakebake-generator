@@ -3,7 +3,7 @@
 // /hyakki/exp: the same game with a short consent, two questions before, and a short questionnaire after.
 // One anonymous record per play is sent at the end; nothing is sent if the player leaves earlier.
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Hyakki, { type PlayLog } from './Hyakki';
 import styles from './HyakkiExp.module.css';
 
@@ -44,6 +44,10 @@ export default function HyakkiExp() {
     const [gender, setGender] = useState('');
     const [interestBefore, setInterestBefore] = useState<number | null>(null);
     const [log, setLog] = useState<PlayLog | null>(null);
+    // Half the players are asked to start from a town they know, half from one they do not: the only way to tell
+    // what the familiar starting point adds. Drawn after mounting, so that server and browser render the same page.
+    const [town, setTown] = useState<'own' | 'unknown' | null>(null);
+    useEffect(() => { setTown(Math.random() < 0.5 ? 'own' : 'unknown'); }, []);
     const [knownTown, setKnownTown] = useState('');
     const [scales, setScales] = useState<Record<string, number>>({});
     const [interestAfter, setInterestAfter] = useState<number | null>(null);
@@ -60,7 +64,7 @@ export default function HyakkiExp() {
         try {
             const res = await fetch('/api/hyakki-exp', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ version: EXP_VERSION, consent: true, age, gender, interestBefore, knownTown, scales, interestAfter, why, remember, log }),
+                body: JSON.stringify({ version: EXP_VERSION, consent: true, age, gender, interestBefore, town, knownTown, scales, interestAfter, why, remember, log }),
             });
             if (!res.ok) throw new Error(String(res.status));
             setStep('done');
@@ -103,8 +107,13 @@ export default function HyakkiExp() {
                             </select>
                         </label>
                         <Scale label={INTEREST} value={interestBefore} onChange={setInterestBefore} />
+                        <p className={styles.ask}>
+                            {town === 'unknown'
+                                ? 'このあと地図で町をえらびます。行ったことのない、知らない町をえらんでください。'
+                                : 'このあと地図で町をえらびます。あなたが住んでいる町か、よく知っている町をえらんでください。'}
+                        </p>
                         <div className={styles.actions}>
-                            <button type="button" className={styles.primary} disabled={!age || !gender || interestBefore === null} onClick={() => setStep('play')}>遊ぶ</button>
+                            <button type="button" className={styles.primary} disabled={!age || !gender || interestBefore === null || !town} onClick={() => setStep('play')}>遊ぶ</button>
                         </div>
                     </>
                 )}

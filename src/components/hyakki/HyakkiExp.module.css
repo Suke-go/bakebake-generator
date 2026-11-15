@@ -17,6 +17,7 @@
 .primary { background: #f2cf85; border: 1px solid #f2cf85; color: #2a2110; font-weight: 700; }
 .primary:disabled { background: transparent; border: 1px dashed #a99cc9; color: #8a80a8; font-weight: 400; cursor: default; }
 .ghost { background: transparent; border: 1px solid #7a6fa8; color: #241f36; }
+.ask { padding: 10px 12px; border-radius: 12px; background: #fff; border: 1px solid #a99cc9; font-size: 14px; font-weight: 700; }
 .failed { color: #a3322a; font-size: 14px; }
 .page :is(button, a, select, textarea):focus-visible { outline: 2px solid #3d3466; outline-offset: 2px; }
 /* Phone: the two ends of a scale sit under the row of numbers instead of squeezing it. */

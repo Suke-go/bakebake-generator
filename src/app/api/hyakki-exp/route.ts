@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     const list = (v: unknown, max: number) => (Array.isArray(v) ? v.slice(0, max) : []);
     const payload = {
         age: text(body.age, 16), gender: text(body.gender, 16), interestBefore, interestAfter,
-        knownTown: text(body.knownTown, 8), scales, why: text(body.why, 500), remember: text(body.remember, 500),
+        town: body.town === 'own' || body.town === 'unknown' ? body.town : null, knownTown: text(body.knownTown, 8), scales, why: text(body.why, 500), remember: text(body.remember, 500),
         log: {
             region: text(logIn.region, 32), seconds: num(logIn.seconds),
             peeks: list(logIn.peeks, 5).map(num), chosen: list(logIn.chosen, 5).map(v => text(v, 32)), friends: list(logIn.friends, 5).map(num),
