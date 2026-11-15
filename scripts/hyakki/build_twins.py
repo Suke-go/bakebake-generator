@@ -15,7 +15,7 @@ Twins joined together form families: the same account as told across the country
 
 Reads   data/nichibun/nichibun_enriched.json, data/archive-race/vectors-motif.f32, data/hyakki/units.json,
         public/youkai-gazou-catalog.json
-Writes  data/hyakki/twins.json, paper/hyakki/families.json
+Writes  data/hyakki/twins.json, paper/hyakki/families.json, paper/hyakki/twin_pairs.json
 Run     python -X utf8 scripts/hyakki/build_twins.py
 """
 import json
@@ -132,6 +132,12 @@ def main():
         twins[k] = [{"key": k2, "score": round(s, 3), "mine": sentence(records[rows[r1]]), "theirs": sentence(records[rows[r2]]),
                      "mineId": records[rows[r1]]["id"], "theirsId": records[rows[r2]]["id"]} for k2, (s, r1, r2) in ranked]
     (ROOT / "data/hyakki/twins.json").write_text(json.dumps(twins, ensure_ascii=False), encoding="utf-8")
+    # every pair, with the full summaries, for rating by hand (paper/hyakki/make_rating_page.py)
+    def card(i):
+        r = records[rows[i]]
+        return {"id": r["id"], "name": r["name"], "prefecture": r["prefecture"], "summary": r["summary"]}
+    listed = [{"score": round(sc, 3), "a": card(a), "b": card(b)} for a, b, sc in sorted(pairs, key=lambda t: (records[rows[t[0]]]["id"], records[rows[t[1]]]["id"]))]
+    (ROOT / "paper/hyakki/twin_pairs.json").write_text(json.dumps(listed, ensure_ascii=False), encoding="utf-8")
 
     # families: twins joined together
     parent = list(range(len(rows)))
