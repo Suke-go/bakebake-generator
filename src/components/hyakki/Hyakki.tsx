@@ -507,12 +507,12 @@ export default function Hyakki({ onFinish }: { onFinish?: (log: PlayLog) => void
     const lit = screen >= 8;
 
     // While calling: the last caller and the sentence of its own record that a twin answers, or, when no twin
-    // answers, its one line and the news that this account is told only here.
+    // answers, its one line and the news that no other telling was found (not that there is none).
     const lastCalled = called.length ? called[called.length - 1] : -1;
     const answered = lights.find(l => l.caller === lastCalled && l.callerLine);
     const callLine = lastCalled < 0 || !chosen[lastCalled] ? '下の5体をタップして、同じ話をもつ仲間をよぶ'
         : answered ? `${chosen[lastCalled].name}「${answered.callerLine}」`
-        : `${chosen[lastCalled].name}「${chosen[lastCalled].tease}」 ― この土地だけの話`;
+        : `${chosen[lastCalled].name}「${chosen[lastCalled].tease}」 ― 同じ話は、ほかに見つかりませんでした`;
 
     const mapProps: HyakkiMapProps = {
         view: screen <= 1 || lit ? 'japan' : (region ?? 'japan'),

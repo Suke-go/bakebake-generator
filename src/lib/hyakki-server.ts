@@ -257,3 +257,24 @@ async function readImage(folder: string, image: string, extension: string): Prom
     if (!IMAGE_TOKEN.test(image) || path.dirname(file) !== root) throw new HyakkiInputError('Unknown picture');
     return readFile(file).catch(error => { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null; throw error; });
 }
+
+/**
+ * For the paper only (scripts/hyakki/ordinary_answers.ts): who would answer each of five chosen units under the
+ * ordinary construction, in which units are compared by the mean of their records' vectors together with the
+ * pictures of their kinds. Returns, per caller, the keys of the three units most similar to it among those drawn in.
+ */
+export async function hyakkiOrdinaryAnswers(chosenKeys: readonly string[]): Promise<{ caller: string; answer: string }[]> {
+    const data = await load();
+    const met = chosenKeys.map(k => data.byKey.get(k)).filter((i): i is number => i !== undefined);
+    if (met.length !== chosenKeys.length) throw new HyakkiInputError('Unknown key');
+    const taken = new Set(met);
+    const summoned = selectSummons(data.units, data.units.map((_, i) => i).filter(i => !taken.has(i)), met, data.views);
+    return met.flatMap((c, caller) => summoned.filter(s => s.caller === caller).sort((a, b) => b.near - a.near).slice(0, ECHOES)
+        .map(s => ({ caller: data.units[c].key, answer: data.units[s.index].key })));
+}
+
+/** For the paper only: the units in play, by key. */
+export async function hyakkiPlayable(): Promise<{ key: string; region: string; kind: string }[]> {
+    const data = await load();
+    return data.units.map(u => ({ key: u.key, region: u.region, kind: u.kind }));
+}
