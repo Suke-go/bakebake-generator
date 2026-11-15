@@ -148,13 +148,32 @@ const loadImage = (src: string) => new Promise<HTMLImageElement | null>(done => 
     image.src = src;
 });
 const PAPER = '#eadfc6', INK = '#3a2c1c';
+// Japan, faint, behind the crowd: the whole country from Okinawa to Hokkaido in the 1600x900 space. Outline only.
+const landX = (lon: number) => 760 + (lon - 137.2) * 36, landY = (lat: number) => 450 - (lat - 35.8) * 45.9;
+type Outline = { prefectures: { polys: number[][][] }[] };
+const landPath = (file: Outline) => file.prefectures.flatMap(p => p.polys).flat().filter(ring => ring.length >= 12).map(ring => {
+    let d = '';
+    for (let i = 0; i < ring.length; i += 2) d += `${i ? 'L' : 'M'}${landX(ring[i]).toFixed(1)} ${landY(ring[i + 1]).toFixed(1)}`;
+    return `${d}Z`;
+}).join('');
+// Kasumi, the banded mist of the picture scrolls: four round-ended bars, stepped.
+const KASUMI: [number, number, number][] = [[96, 2, 236], [18, 15, 312], [128, 28, 262], [0, 41, 214], [160, 54, 150]];   // x, y, width of each bar; all 11 high
 
-async function paintScroll(chosen: Card[], lights: Light[], spots: Spot[], counts: string, font: string) {
+async function paintScroll(chosen: Card[], lights: Light[], spots: Spot[], font: string, land: string) {
     const canvas = document.createElement('canvas');
     canvas.width = SHEET_W; canvas.height = SHEET_H;
     const g = canvas.getContext('2d');
     if (!g) return null;
     g.fillStyle = PAPER; g.fillRect(0, 0, SHEET_W, SHEET_H);
+    const kasumi = (x: number, y: number, k: number) => {
+        g.save(); g.translate(x, y); g.scale(k, k);
+        const fade = g.createLinearGradient(0, 0, 400, 0);
+        fade.addColorStop(0, '#c9a24e00'); fade.addColorStop(0.25, '#c9a24e59'); fade.addColorStop(0.75, '#c9a24e59'); fade.addColorStop(1, '#c9a24e00');
+        g.fillStyle = fade;
+        g.beginPath(); for (const [bx, by, bw] of KASUMI) g.roundRect(bx, by, bw, 11, 5.5); g.fill(); g.restore();
+    };
+    kasumi(-60, 60, 1.9); kasumi(760, 730, 2.1);
+    if (land) { const path = new Path2D(land); g.fillStyle = '#3a2c1c12'; g.fill(path); g.lineWidth = 1; g.strokeStyle = '#3a2c1c38'; g.stroke(path); }
     const images = await Promise.all(spots.map(s => loadImage(s.light < 0 ? chosen[s.caller].picture : lights[s.light].picture)));
     const cut = document.createElement('canvas');
     const c = cut.getContext('2d');
@@ -187,18 +206,20 @@ async function paintScroll(chosen: Card[], lights: Light[], spots: Spot[], count
         g.fillStyle = INK; g.font = `700 ${size}px ${font}`; upright(name, x, y, size);
     });
     g.fillStyle = INK; g.font = `700 60px ${font}`; upright('百鬼夜行', 1540, 80, 60);
-    g.textAlign = 'left'; g.font = `18px ${font}`; g.fillText(counts, 40, 24);
     return canvas;
 }
 
-function Results({ chosen, lights, region, onRestart }: { chosen: Card[]; lights: Light[]; region: RegionKey | null; onRestart: () => void }) {
+function Results({ chosen, lights, onRestart }: { chosen: Card[]; lights: Light[]; onRestart: () => void }) {
     const sheetRef = useRef<HTMLDivElement>(null);
     const [open, setOpen] = useState<Card | null>(null);
     const [trouble, setTrouble] = useState(false);
+    const [land, setLand] = useState('');
     const spots = useMemo(() => layoutScroll(chosen, lights), [chosen, lights]);
-    // The five were all met in the player's own region.
-    const counts = useMemo(() => REGIONS.map(r => `${r.label} ${lights.filter(l => l.region === r.key).length + (r.key === region ? chosen.length : 0)}`).join('   '), [lights, region, chosen]);
-
+    useEffect(() => {
+        let alive = true;
+        fetch('/hyakki/japan.json').then(r => r.json()).then((file: Outline) => { if (alive) setLand(landPath(file)); }).catch(() => undefined);
+        return () => { alive = false; };
+    }, []);
     const show = (spot: Spot) => {
         setTrouble(false);
         if (spot.light < 0) { setOpen(chosen[spot.caller]); return; }
@@ -206,7 +227,7 @@ function Results({ chosen, lights, region, onRestart }: { chosen: Card[]; lights
     };
 
     const download = async () => {
-        const canvas = await paintScroll(chosen, lights, spots, counts, sheetRef.current ? getComputedStyle(sheetRef.current).fontFamily : 'serif');
+        const canvas = await paintScroll(chosen, lights, spots, sheetRef.current ? getComputedStyle(sheetRef.current).fontFamily : 'serif', land);
         canvas?.toBlob(blob => {
             if (!blob) return;
             const link = document.createElement('a');
@@ -220,14 +241,14 @@ function Results({ chosen, lights, region, onRestart }: { chosen: Card[]; lights
     return (
         <div className={styles.finale}>
             <div className={styles.scrollSheet} ref={sheetRef}>
+                <svg className={styles.scrollMap} viewBox={`0 0 ${SHEET_W} ${SHEET_H}`} aria-hidden="true"><path d={land} /></svg>
                 <span className={styles.scrollTitle} aria-hidden="true">百鬼夜行</span>
-                <span className={styles.scrollCounts}>{counts}</span>
                 {spots.map((s, n) => {
                     const big = s.light < 0;
                     return (
                         <button key={n} type="button" className={big ? `${styles.walker} ${styles.lead}` : styles.walker} onClick={() => show(s)}
                             aria-label={big ? `${chosen[s.caller].name}の話を見る` : '仲間の話を見る'}
-                            style={{ left: `${(s.x / SHEET_W) * 100}%`, top: `${(s.y / SHEET_H) * 100}%`, width: `${(s.w / SHEET_W) * 100}%`, zIndex: n, color: CALLER_COLORS[s.caller] }}>
+                            style={{ left: `${(s.x / SHEET_W) * 100}%`, top: `${(s.y / SHEET_H) * 100}%`, width: `${(s.w / SHEET_W) * 100}%`, zIndex: n + 1, color: CALLER_COLORS[s.caller] }}>
                             <img src={big ? chosen[s.caller].picture : lights[s.light].picture} alt="" style={s.flip ? { transform: 'scaleX(-1)' } : undefined} />
                             {big && <strong>{chosen[s.caller].name}</strong>}
                         </button>
@@ -577,7 +598,7 @@ export default function Hyakki() {
                             </div>
                         )}
 
-                        {screen === 10 && <Results chosen={chosen} lights={lights} region={region} onRestart={restart} />}
+                        {screen === 10 && <Results chosen={chosen} lights={lights} onRestart={restart} />}
                     </div>
                 )}
             </div>

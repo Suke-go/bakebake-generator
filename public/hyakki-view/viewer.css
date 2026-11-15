@@ -21,15 +21,15 @@ body { font-family: system-ui, "Hiragino Sans", "Yu Gothic", sans-serif; --inset
 #map, .cesium-widget, .cesium-widget canvas { touch-action: none; }
 
 /* Only the required credit stays, small, in a corner above the screen's bottom panel. */
-.cesium-viewer-bottom { bottom: calc(var(--inset) + 2px) !important; right: 4px; font-size: 11px; }
+.cesium-viewer-bottom { top: 2px !important; bottom: auto !important; left: auto !important; right: 4px !important; font-size: 11px; }
 .cesium-credit-textContainer, .cesium-credit-expand-link { opacity: .6; }
 .cesium-widget-credits a, .cesium-credit-text, .cesium-credit-textContainer a { color: #c3b8e0 !important; }
 .cesium-credit-logoContainer { display: none !important; }
 
-.fig { position: absolute; left: 0; top: 0; width: 54px; height: 54px; margin: -27px 0 0 -27px; box-sizing: border-box; border-radius: 50%;
-  border: 4px solid #fff; background: #1a1430 center / cover no-repeat; will-change: transform, opacity; opacity: 0; }
-.lt { position: absolute; left: 0; top: 0; width: 26px; height: 26px; margin: -13px 0 0 -13px; box-sizing: border-box; padding: 3px; border-radius: 50%;
-  background: var(--c, #fff); box-shadow: 0 0 8px var(--c, #fff); opacity: 0; will-change: transform, opacity; }
+.fig { position: absolute; left: 0; top: 0; width: 162px; height: 162px; margin: -81px 0 0 -81px; box-sizing: border-box; border-radius: 50%;
+  border: 12px solid #fff; background: #1a1430 center / cover no-repeat; will-change: transform, opacity; opacity: 0; }
+.lt { position: absolute; left: 0; top: 0; width: 78px; height: 78px; margin: -39px 0 0 -39px; box-sizing: border-box; padding: 9px; border-radius: 50%;
+  background: var(--c, #fff); box-shadow: 0 0 24px var(--c, #fff); opacity: 0; will-change: transform, opacity; }
 .lt i { display: block; width: 100%; height: 100%; background: center / contain no-repeat; }
 
 /* Tease bubble: the shared thought cloud (/hyakki/cloud.svg, inlined by viewer.js); its two colours come from here. */
@@ -38,6 +38,10 @@ body { font-family: system-ui, "Hiragino Sans", "Yu Gothic", sans-serif; --inset
 @keyframes hkTeaseOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.9); } }
 .hk-tease { position: absolute; left: 0; top: 0; will-change: transform; pointer-events: auto; cursor: pointer; visibility: hidden; }
 .hk-quiet .hk-tease { opacity: 0 !important; pointer-events: none; }
+/* A mist that is off screen: a small puff at the edge with an arrow towards it; a tap brings the map there. */
+.hk-edge { position: absolute; left: 0; top: 0; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%; border: 3px solid var(--cloud-line, #4a3f6b); background: var(--cloud-paper, #f3eefb); box-shadow: 0 2px 8px #0008; cursor: pointer; pointer-events: auto; }
+.hk-edge::after { content: ""; position: absolute; left: 50%; top: 50%; width: 0; height: 0; margin: -7px 0 0 -3px; border: 7px solid transparent; border-left: 10px solid var(--cloud-line, #4a3f6b); border-right: 0; transform: rotate(var(--a, 0rad)); }
+.hk-quiet .hk-edge { display: none; }
 /* A cloud is a button: it lifts under the pointer. */
 .hk-cloud-art { transition: transform 0.12s ease; }
 .hk-tease:hover { z-index: 99 !important; }

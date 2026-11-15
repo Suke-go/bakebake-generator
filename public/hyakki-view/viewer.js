@@ -36,7 +36,7 @@
   const WAVE_POP = 0.35; // a light shows at home, then
   const WAVE_RUN = 1.6; // runs to its caller
   const PARADE_WALK = 7; // seconds for the leader to run the whole road (the parade is about 10 s in all)
-  const MARCH_S = 7; // the last scene: all hundred cross the screen from right to left, as in the picture scrolls
+  const MARCH_S = 11; // the last scene: all hundred cross the screen from right to left, as in the picture scrolls
   const CALL_S = 2.2; // one chosen yokai's friends answer its call over this long
   const MAX_LIGHTS = 240;
   const MAX_DOTS = 700;
@@ -627,6 +627,7 @@
         const mine = lts.filter((l) => l.caller === c).sort((a, b) => a.order - b.order);
         mine.forEach((l, k) => { l.tl = (k / Math.max(1, mine.length)) * CALL_S; });
       }
+      for (const l of lts) requestSilhouette(l); // all at once: a skipped wave must not leave blank discs
       callT.length = 0;
       par.done = false;
       rebuildGroups();
@@ -781,8 +782,39 @@
     // right of its mist with the tail pointing down-left at it; at an edge it flips so the tail points down-right.
     // The slot (side and height beside the mist) is chosen once, when the cloud appears; after that the cloud is
     // pinned to its mist and moves only when the player moves the map.
+    // Mists outside the view each get a puff on the nearest edge.
+    const edges = new Map(); // id -> element
+    function layoutEdges() {
+      const top = 26, left = 26, right = FW - 26, bottom = Math.max(canvas.clientHeight - state.inset, 120) - 26;
+      for (const [id, el] of edges) if (!mistScreen.has(id) || inView(id) || !state.handlers.mist) { el.remove(); edges.delete(id); }
+      if (!state.handlers.mist) return;
+      for (const [id, m] of mistScreen) {
+        if (inView(id)) continue;
+        let el = edges.get(id);
+        if (!el) {
+          el = document.createElement('div');
+          el.className = 'hk-edge';
+          el.setAttribute('role', 'button');
+          el.setAttribute('aria-label', '画面の外のもやへ動く');
+          el.addEventListener('click', () => {
+            const o = mists.get(id);
+            if (!o) return;
+            const q = merc(o.lon, o.lat), c = current(), scale = c.w / Math.max(canvas.clientWidth, 100);
+            userMoved = true;
+            anim = { t0: performance.now() / 1000, dur: 0.9, from: c, to: { cx: q.x, cy: q.y - (state.inset / 2) * scale, w: c.w } };
+            wake();
+          });
+          teaseLayer.append(el);
+          edges.set(id, el);
+        }
+        const x = Math.min(right, Math.max(left, m.x)), y = Math.min(bottom, Math.max(top, m.y));
+        el.style.transform = `translate(${x}px, ${y}px)`;
+        el.style.setProperty('--a', `${Math.atan2(m.y - y, m.x - x)}rad`);
+      }
+    }
     function layoutBubbles() {
       watchCamera();
+      layoutEdges();
       if (!bubbles.length) return;
       rects.length = 0;
       // Clouds keep clear of the yokai already chosen (the town's pin sits under the first of them).
@@ -981,16 +1013,17 @@
           let big = 0;
           const tm = tp - tEnd;
           if (tm > 0 && !still) {
-            const span = W * 1.5, gap = span / Math.max(1, M);
+            // Large, as if passing just in front of the player: the line is long, so only a part is on screen at a time.
+            const span = W * 3.2, gap = span / Math.max(1, M);
             const mx = W + 80 * s + j * gap - tm * ((W + span + 160 * s) / MARCH_S);
-            const lane = m.fig ? 0 : ((m.seed % 5) - 2) * 20 * s;
-            const my = (H - state.inset) * 0.5 + lane + hop(m.seed, tp, (m.fig ? 10 : 14) * s);
+            const lane = m.fig ? 0 : ((m.seed % 5) - 2) * 58 * s;
+            const my = (H - state.inset) * 0.5 + lane + hop(m.seed, tp, (m.fig ? 18 : 26) * s);
             big = smooth(tm / 0.9);
             x = lerp(x, mx, big); y = lerp(y, my, big);
             marchK = Math.min(big, smooth((MARCH_S - tm) / 0.8));
           }
           m.x = x; m.y = y; m.a = a0;
-          if (m.fig) { const f = figs[m.i]; f.x = x; f.y = y; f.sc *= 1 + 0.6 * big; } else if (big > 0) lts[m.i].sc = 1 + 0.5 * big;
+          if (m.fig) { const f = figs[m.i]; f.x = x; f.y = y; f.sc *= 1 + 2.4 * big; } else if (big > 0) lts[m.i].sc = 1 + 2 * big;
           if (m.fig) { /* placed above */ } else { const l = lts[m.i]; l.x = x; l.y = y; l.a = a0; l.glow = 1; l.ta = 0.14; l.tx = l.gx; l.ty = l.gy; }
         }
         // Camera: one calm move at the start, to a frame that holds the five and the town; no chasing, no dive.
@@ -1083,11 +1116,11 @@
       // ---------- DOM: pictures and silhouettes ----------
       for (const f of figs) {
         f.el.style.opacity = f.a > 0.01 ? String(f.a) : '0';
-        f.el.style.transform = `translate(${f.x}px, ${f.y}px) scale(${s * f.sc})`;
+        f.el.style.transform = `translate(${f.x}px, ${f.y}px) scale(${(s * f.sc) / 3})`; // drawn at 3x and scaled down, so it stays sharp when it grows
       }
       for (const l of lts) {
         l.el.style.opacity = l.a > 0.01 ? String(l.a) : '0';
-        if (l.a > 0.01) l.el.style.transform = `translate(${l.x}px, ${l.y}px) scale(${s * l.sc * (0.6 + 0.4 * l.a)})`;
+        if (l.a > 0.01) l.el.style.transform = `translate(${l.x}px, ${l.y}px) scale(${(s * l.sc * (0.6 + 0.4 * l.a)) / 3})`;
       }
 
       layoutBubbles(H - state.inset);
