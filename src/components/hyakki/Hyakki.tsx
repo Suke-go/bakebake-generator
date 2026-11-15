@@ -123,10 +123,12 @@ function layoutScroll(chosen: Card[], lights: Light[]): Spot[] {
     chosen.forEach((_, k) => {
         const cx = 200 + k * 280, cy = 455 + Math.sin(k * 1.9) * 45, big = 220;
         leads.push({ x: cx - big / 2, y: cy - big * 0.62, w: big, caller: k, light: -1, flip: false });
-        const mine = lights.map((l, index) => ({ l, index })).filter(o => o.l.caller === k).sort((a, b) => a.l.order - b.l.order);
+        // the nearer a friend is to the one that called it, the closer it stands and the larger it is drawn
+        const mine = lights.map((l, index) => ({ l, index })).filter(o => o.l.caller === k).sort((a, b) => b.l.near - a.l.near);
         mine.forEach((o, n) => {
-            const angle = n * 2.39996 + k, reach = 125 + Math.sqrt((n + 0.5) / mine.length) * Math.min(250, 70 + 5 * mine.length);
-            const w = 74 + ((o.index * 37) % 30), h = w * 1.25;
+            const far = (n + 0.5) / mine.length;
+            const angle = n * 2.39996 + k, reach = 125 + Math.sqrt(far) * Math.min(250, 70 + 5 * mine.length);
+            const w = 112 - 46 * Math.sqrt(far), h = w * 1.25;
             // the same picture can come twice (two places, one kind of yokai): every other one faces the other way
             const times = seen.get(o.l.picture) ?? 0;
             seen.set(o.l.picture, times + 1);
@@ -599,7 +601,7 @@ export default function Hyakki() {
                         {screen === 8 && (
                             <div className={styles.strip}>
                                 <div className={styles.msg}>
-                                    <h1 className={styles.head}>{called.length < TEAM ? '下の5体をタップして、似た仲間をよぶ' : '100体そろいました'}</h1>
+                                    <h1 className={styles.head}>{called.length === 0 ? '下の5体をタップして、似た仲間をよぶ' : `${chosen[called[called.length - 1]]?.name ?? ''}「${chosen[called[called.length - 1]]?.tease ?? ''}」`}</h1>
                                 </div>
                                 <div className={styles.actions}>
                                     <button type="button" className={styles.ghost} onClick={() => { setCalled([0, 1, 2, 3, 4]); setScreen(9); }}>とばす</button>

@@ -9,6 +9,7 @@ import {
 } from './hyakki';
 
 const DIR = path.join(process.cwd(), 'data', 'hyakki');
+const ECHOES = 3;   // per caller: how many of the nearest answer aloud
 const GEO_PATH = path.join(process.cwd(), 'data', 'geo', 'gadm41_JPN_2.json');
 const TEXT_DIM = 384;
 const SHAPE_DIM = 512;
@@ -55,7 +56,18 @@ function load() {
         const rows: number[] = [];
         const units = rawUnits.filter((u, i) => { const ok = texts[u.key]?.suitable === true && pictures.has(`${u.image}.png`); if (ok) rows.push(i); return ok; });
 
-        const views: SimilarityView[] = [{ name: 'lore', weight: VIEW_WEIGHTS.lore, score: (a, b) => dot(textVectors, rows[a], rows[b], TEXT_DIM) }];
+        // Every story shares a large common part, which made all of them look alike (cosines of 0.93-0.99). Take the
+        // mean story out and compare what is left: then a fireball that roars up a river finds the other one that does.
+        const lore = new Float32Array(units.length * TEXT_DIM);
+        const mean = new Float64Array(TEXT_DIM);
+        for (const r of rows) for (let d = 0; d < TEXT_DIM; d++) mean[d] += textVectors[r * TEXT_DIM + d] / rows.length;
+        rows.forEach((r, a) => {
+            let norm = 0;
+            for (let d = 0; d < TEXT_DIM; d++) { const x = textVectors[r * TEXT_DIM + d] - mean[d]; lore[a * TEXT_DIM + d] = x; norm += x * x; }
+            norm = Math.sqrt(norm) || 1;
+            for (let d = 0; d < TEXT_DIM; d++) lore[a * TEXT_DIM + d] /= norm;
+        });
+        const views: SimilarityView[] = [{ name: 'lore', weight: VIEW_WEIGHTS.lore, score: (a, b) => dot(lore, a, b, TEXT_DIM) }];
         let shape = false;
         if (shapeKindsBuf && shapeBuf) {
             const kinds = JSON.parse(shapeKindsBuf.toString('utf8')) as string[] | Record<string, unknown>;
@@ -179,8 +191,13 @@ export async function hyakkiSummon(chosen: unknown): Promise<{ lights: Light[] }
     if (new Set(met).size !== met.length) throw new HyakkiInputError('Repeated id');
     const taken = new Set(met);
     const candidates = data.units.map((_, i) => i).filter(i => !taken.has(i));
-    const lights = selectSummons(data.units, candidates, met, data.views).map(({ index, caller, order }): Light =>
-        ({ id: data.units[index].id, lat: data.units[index].lat, lon: data.units[index].lon, caller, order, silhouette: `/api/hyakki?silhouette=${data.units[index].id}`,
+    const summoned = selectSummons(data.units, candidates, met, data.views);
+    // The few nearest to each caller answer aloud with their one line.
+    const aloud = new Set<number>();
+    met.forEach((_, caller) => summoned.filter(s => s.caller === caller).sort((a, b) => b.near - a.near).slice(0, ECHOES).forEach(s => aloud.add(s.index)));
+    const lights = summoned.map(({ index, caller, order, near }): Light =>
+        ({ id: data.units[index].id, lat: data.units[index].lat, lon: data.units[index].lon, caller, order, near, silhouette: `/api/hyakki?silhouette=${data.units[index].id}`,
+            tease: aloud.has(index) ? (data.texts[data.units[index].key] as { tease?: string }).tease ?? '' : '',
             picture: `/api/hyakki?picture=${encodeURIComponent((data.units[index] as RawUnit).image)}`, region: data.units[index].region as RegionKey }));
     return { lights };
 }

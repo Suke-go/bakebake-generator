@@ -37,7 +37,8 @@
   const WAVE_RUN = 1.6; // runs to its caller
   const PARADE_WALK = 7; // seconds for the leader to run the whole road (the parade is about 10 s in all)
   const MARCH_S = 11; // the last scene: all hundred cross the screen from right to left, as in the picture scrolls
-  const CALL_S = 2.2; // one chosen yokai's friends answer its call over this long
+  const CALL_S = 2.2;
+  const ECHO_S = 5; // how long an answer stays up // one chosen yokai's friends answer its call over this long
   const MAX_LIGHTS = 240;
   const MAX_DOTS = 700;
   const MAX_SEGS = 900;
@@ -607,7 +608,7 @@
     const callT = []; // caller index -> time its call went out
     let lts = []; // { lon, lat, caller, tl, slot, seed, hx, hy, gx, gy, x, y, a, sc, pulse, glow, el, ie, url, loadAt, req }
     function syncLights() {
-      for (const l of lts) l.el.remove();
+      for (const l of lts) { l.el.remove(); if (l.say) l.say.remove(); }
       const src = state.lights.slice(0, MAX_LIGHTS);
       const maxOrder = src.reduce((m, l) => Math.max(m, l.order), 0);
       lts = src.map((l, i) => {
@@ -617,10 +618,13 @@
         const ie = document.createElement('i');
         const pe = document.createElement('b'); // the picture, shown only while the parade crosses the screen
         el.append(ie, pe);
+        // The few nearest to each caller answer aloud: their one line shows at their home when they are called.
+        let say = null;
+        if (l.tease) { say = document.createElement('div'); say.className = 'hk-echo'; say.textContent = l.tease; say.style.setProperty('--c', CALLER_CSS[l.caller % 5]); lightsLayer.append(say); }
         lightsLayer.append(el);
         return {
           lon: l.lon, lat: l.lat, caller: l.caller, order: l.order, tl: 0, slot: 0, seed: hashSeed(`${i}:${l.caller}`),
-          hx: 0, hy: 0, gx: 0, gy: 0, x: -9999, y: -9999, a: 0, sc: 1, pulse: 0, glow: 0, ta: 0, tx: 0, ty: 0, el, ie, pe, pic: l.picture, pk: 0, pr: false, url: l.silhouette, req: false,
+          hx: 0, hy: 0, gx: 0, gy: 0, x: -9999, y: -9999, a: 0, sc: 1, pulse: 0, glow: 0, ta: 0, tx: 0, ty: 0, el, ie, pe, say, sayA: 0, pic: l.picture, pk: 0, pr: false, url: l.silhouette, req: false,
         };
       });
       // Each caller's friends answer in their own order, spread over CALL_S from the moment the player taps that caller.
@@ -938,7 +942,7 @@
         scrInto(l.lon, l.lat, tmpA); l.hx = tmpA[0]; l.hy = tmpA[1];
         const f = figs[l.caller];
         if (f) { const ang = l.slot * 2.399963, r = (22 + 9 * Math.sqrt(l.slot)) * s; l.gx = f.sx + Math.cos(ang) * r; l.gy = f.sy + Math.sin(ang) * r; } else { l.gx = l.hx; l.gy = l.hy; }
-        l.x = -9999; l.y = -9999; l.a = 0; l.sc = farK; l.pk = 0; l.pulse = 0; l.glow = 0; l.ta = 0;
+        l.x = -9999; l.y = -9999; l.a = 0; l.sc = farK; l.pk = 0; l.sayA = 0; l.pulse = 0; l.glow = 0; l.ta = 0;
       }
       let linkAlpha = 1;
       let roadAlpha = 0, roadHead = 0;
@@ -1064,6 +1068,7 @@
             if (f) pushDot(f.sx, f.sy, 70 * s, CALLER[l.caller % 5], 0.45, clamp01((e + 0.7) / 1.2) * 0.98);
           }
           if (e < 0) continue;
+          if (l.say && e < ECHO_S) l.sayA = Math.min(1, e / 0.4, (ECHO_S - e) / 0.6);
           l.glow = 1;
           if (e === Infinity) { l.x = l.gx; l.y = l.gy; l.a = 1; l.ta = 0.16; l.tx = l.gx; l.ty = l.gy; continue; }
           // Lights up at home, then runs to the chosen yokai that called it, leaving a faint line behind.
@@ -1122,6 +1127,7 @@
       for (const l of lts) {
         if (state.parade && !l.pr && l.pic) { l.pr = true; l.pe.style.backgroundImage = `url("${l.pic}")`; } // fetched as the parade sets off
         l.pe.style.opacity = String(l.pk);
+        if (l.say) { l.say.style.opacity = String(l.sayA); if (l.sayA > 0) l.say.style.transform = `translate(${l.hx}px, ${l.hy}px) translate(-50%, -150%)`; }
         l.ie.style.opacity = String(1 - l.pk); // the shadow gives way to the picture
         l.el.style.opacity = l.a > 0.01 ? String(l.a) : '0';
         if (l.a > 0.01) l.el.style.transform = `translate(${l.x}px, ${l.y}px) scale(${(s * l.sc * (0.6 + 0.4 * l.a)) / 3})`;

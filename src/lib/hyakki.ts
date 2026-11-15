@@ -196,7 +196,7 @@ export function selectMists(units: readonly Unit[], candidates: readonly number[
  * with `order` = wave position (rounds first).
  */
 export function selectSummons(units: readonly Unit[], candidates: readonly number[], chosen: readonly number[], views: readonly SimilarityView[], count = PARADE_TOTAL - chosen.length):
-    { index: number; caller: number; order: number }[] {
+    { index: number; caller: number; order: number; near: number }[] {
     const scores = chosen.map(c => similarityTo(c, candidates, views).combined);
     const at = new Map(candidates.map((c, j) => [c, j] as const));
     const best = new Map<number, { score: number; caller: number }>();
@@ -240,7 +240,8 @@ export function selectSummons(units: readonly Unit[], candidates: readonly numbe
     const callerOf = (i: number) => roundCaller.get(i) ?? best.get(i)!.caller;
     const rest = sortedBy(picked.filter(i => !roundOrder.has(i)), i => best.get(i)!.score, true);
     const order = new Map([...roundOrder, ...rest.map((i, rank) => [i, roundOrder.size + rank] as const)]);
-    const out: { index: number; caller: number; order: number }[] = [];
+    // near: how alike the yokai is to the one that called it (the combined score; larger is nearer).
+    const out: { index: number; caller: number; order: number; near: number }[] = [];
     chosen.forEach((c, caller) => {
         const group = picked.filter(i => callerOf(i) === caller);
         let here: Point = units[c];
@@ -248,7 +249,7 @@ export function selectSummons(units: readonly Unit[], candidates: readonly numbe
             let nearest = 0;
             for (let k = 1; k < group.length; k++) if (distanceKm(here, units[group[k]]) < distanceKm(here, units[group[nearest]])) nearest = k;
             const [i] = group.splice(nearest, 1);
-            out.push({ index: i, caller, order: order.get(i)! });
+            out.push({ index: i, caller, order: order.get(i)!, near: scores[caller][at.get(i)!] });
             here = units[i];
         }
     });
