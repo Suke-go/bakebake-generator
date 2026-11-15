@@ -6,10 +6,15 @@ import type { Card, Light, Mist, Point, RegionKey } from './hyakki-types';
 import {
     REGIONS, CHOSEN_COUNT, VIEW_WEIGHTS, selectBuddies, selectMists, selectSummons, distanceKm,
     type SimilarityView, type Unit,
+    similarityTo,
 } from './hyakki';
 
 const DIR = path.join(process.cwd(), 'data', 'hyakki');
-const ECHOES = 3;   // per caller: how many of the nearest answer aloud
+const PARADE_REST = 95;            // the parade is one hundred with the five
+const TWIN_MISTS = 5;         // of the twelve mists, how many hold an account also told in another prefecture
+const ECHOES = 3;            // per caller: how many twins answer aloud
+const TWINS_PER_CALLER = 6;  // per caller: how many twins are drawn in before distant relations fill the parade
+type Twin = { key: string; score: number; mine: string; theirs: string };
 const GEO_PATH = path.join(process.cwd(), 'data', 'geo', 'gadm41_JPN_2.json');
 const TEXT_DIM = 384;
 const SHAPE_DIM = 512;
@@ -25,7 +30,7 @@ type Ring = [number, number][];
 type Area = { prefecture: string; municipality: string; box: [number, number, number, number]; polygons: Ring[][] };
 
 let loaded: Promise<{
-    units: RawUnit[]; texts: Texts; byId: Map<string, number>; images: Set<string>; views: SimilarityView[]; shape: boolean;
+    units: RawUnit[]; texts: Texts; twins: Record<string, Twin[]>; byKey: Map<string, number>; byId: Map<string, number>; images: Set<string>; views: SimilarityView[]; shape: boolean;
 }> | null = null;
 
 async function readOptional(file: string): Promise<Buffer | null> {
@@ -82,7 +87,9 @@ function load() {
                 shape = true;
             } else console.warn('hyakki: shape-vectors.f32 does not match shape-kinds.json; shape view skipped');
         }
-        return { units, texts, byId: new Map(units.map((u, i) => [u.id, i] as const)), images: new Set(units.map(u => u.image)), views, shape };
+        const twinsBuf = await readOptional('twins.json');
+        const twins = twinsBuf ? JSON.parse(twinsBuf.toString('utf8')) as Record<string, Twin[]> : {};
+        return { units, texts, twins, byKey: new Map(units.map((u, i) => [u.key, i] as const)), byId: new Map(units.map((u, i) => [u.id, i] as const)), images: new Set(units.map(u => u.image)), views, shape };
     })().catch(error => { loaded = null; throw error; });
     return loaded;
 }
@@ -172,7 +179,21 @@ export async function hyakkiMists(region: unknown, chosen: unknown, shown: unkno
     const onScreen = shown === undefined ? [] : checkIds(data.byId, shown, 0, MAX_LIST);
     const taken = new Set(met);
     const candidates = data.units.map((_, i) => i).filter(i => data.units[i].region === key && !taken.has(i));
-    const mists = selectMists(data.units, candidates, met[met.length - 1], onScreen, data.views, new Set(met.map(i => data.units[i].kind))).map(({ index, tier }): Mist => {
+    const metKinds = new Set(met.map(i => data.units[i].kind));
+    const picked = selectMists(data.units, candidates, met[met.length - 1], onScreen, data.views, metKinds);
+    // At least TWIN_MISTS of the twelve hold an account that is also told in another prefecture, so that a call is
+    // seldom met with silence. Newly arriving mists without a twin give way, least similar first; mists already on
+    // screen are never swapped.
+    const hasTwin = (i: number) => (data.twins[data.units[i].key] ?? []).some(t => data.byKey.has(t.key));
+    const staying = new Set(onScreen);
+    const inPicked = new Set(picked.map(m => m.index));
+    const pool = candidates.filter(i => hasTwin(i) && !inPicked.has(i) && !metKinds.has(data.units[i].kind));
+    const alike = similarityTo(met[met.length - 1], pool, data.views).combined;
+    const incoming = pool.map((i, j) => ({ i, s: alike[j] })).sort((a, b) => b.s - a.s).map(o => o.i);
+    for (let k = picked.length - 1; k >= 0 && incoming.length && picked.filter(m => hasTwin(m.index)).length < TWIN_MISTS; k--) {
+        if (!hasTwin(picked[k].index) && !staying.has(picked[k].index)) picked[k] = { index: incoming.shift()!, tier: 2 };
+    }
+    const mists = picked.map(({ index, tier }): Mist => {
         const u = data.units[index];
         return { id: u.id, lat: u.lat, lon: u.lon, level: level(u), tier, hint: (data.texts[u.key] as { hint: string }).hint, tease: (data.texts[u.key] as { tease?: string }).tease ?? '' };
     });
@@ -191,14 +212,27 @@ export async function hyakkiSummon(chosen: unknown): Promise<{ lights: Light[] }
     if (new Set(met).size !== met.length) throw new HyakkiInputError('Repeated id');
     const taken = new Set(met);
     const candidates = data.units.map((_, i) => i).filter(i => !taken.has(i));
-    const summoned = selectSummons(data.units, candidates, met, data.views);
-    // The few nearest to each caller answer aloud with their one line.
-    const aloud = new Set<number>();
-    met.forEach((_, caller) => summoned.filter(s => s.caller === caller).sort((a, b) => b.near - a.near).slice(0, ECHOES).forEach(s => aloud.add(s.index)));
-    const lights = summoned.map(({ index, caller, order, near }): Light =>
-        ({ id: data.units[index].id, lat: data.units[index].lat, lon: data.units[index].lon, caller, order, near, silhouette: `/api/hyakki?silhouette=${data.units[index].id}`,
-            tease: aloud.has(index) ? (data.texts[data.units[index].key] as { tease?: string }).tease ?? '' : '',
-            picture: `/api/hyakki?picture=${encodeURIComponent((data.units[index] as RawUnit).image)}`, region: data.units[index].region as RegionKey }));
+    // Twins first. Each caller in turn draws in the unit, not yet drawn, that holds the closest retelling of one of
+    // its own records in another prefecture. A caller with no twin draws none: its account is told only here.
+    const drawn = new Map<number, { caller: number; order: number; score: number; line: string; mine: string; rank: number }>();
+    const lists = met.map(c => (data.twins[data.units[c].key] ?? [])
+        .map(t => ({ ...t, index: data.byKey.get(t.key) }))
+        .filter((t): t is Twin & { index: number } => t.index !== undefined && !taken.has(t.index)));
+    for (let round = 0; round < TWINS_PER_CALLER; round++) {
+        lists.forEach((list, caller) => {
+            const next = list.find(t => !drawn.has(t.index));
+            if (next) drawn.set(next.index, { caller, order: drawn.size, score: next.score, line: next.theirs, mine: next.mine, rank: round });
+        });
+    }
+    // Distant relations fill the rest, by the combined similarity and without a place reserved for each prefecture.
+    const others = selectSummons(data.units, candidates.filter(i => !drawn.has(i)), met, data.views, PARADE_REST - drawn.size, false);
+    const light = (index: number, caller: number, order: number, near: number, twin: boolean, tease: string, callerLine: string): Light =>
+        ({ id: data.units[index].id, lat: data.units[index].lat, lon: data.units[index].lon, caller, order, near, twin, tease, callerLine, silhouette: `/api/hyakki?silhouette=${data.units[index].id}`,
+            picture: `/api/hyakki?picture=${encodeURIComponent((data.units[index] as RawUnit).image)}`, region: data.units[index].region as RegionKey });
+    const lights = [
+        ...[...drawn].map(([index, d]) => light(index, d.caller, d.order, 1 + d.score, true, d.rank < ECHOES ? d.line : '', d.rank < ECHOES ? d.mine : '')),
+        ...others.map(o => light(o.index, o.caller, drawn.size + o.order, o.near, false, '', '')),
+    ].sort((a, b) => a.caller - b.caller);
     return { lights };
 }
 

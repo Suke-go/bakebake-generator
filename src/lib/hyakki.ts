@@ -195,7 +195,7 @@ export function selectMists(units: readonly Unit[], candidates: readonly number[
  * Returned grouped by caller; within a caller in walking order (nearest neighbour from that chosen yokai),
  * with `order` = wave position (rounds first).
  */
-export function selectSummons(units: readonly Unit[], candidates: readonly number[], chosen: readonly number[], views: readonly SimilarityView[], count = PARADE_TOTAL - chosen.length):
+export function selectSummons(units: readonly Unit[], candidates: readonly number[], chosen: readonly number[], views: readonly SimilarityView[], count = PARADE_TOTAL - chosen.length, everyPrefecture = true):
     { index: number; caller: number; order: number; near: number }[] {
     const scores = chosen.map(c => similarityTo(c, candidates, views).combined);
     const at = new Map(candidates.map((c, j) => [c, j] as const));
@@ -228,7 +228,8 @@ export function selectSummons(units: readonly Unit[], candidates: readonly numbe
     const reserved = new Set(picked.map(i => units[i].prefecture));
     // One per prefecture first (strongest first so the kind cap is spent on the best), then the rest;
     // each step retries without the kind cap so a rule never leaves a prefecture or the total short.
-    for (const [cap, perPrefecture] of [[SUMMON_KIND_CAP, true], [Infinity, true], [SUMMON_KIND_CAP, false], [Infinity, false]] as const) {
+    // everyPrefecture = false skips the two passes that reserve a place for each prefecture: they admit weak matches.
+    for (const [cap, perPrefecture] of ([[SUMMON_KIND_CAP, true], [Infinity, true], [SUMMON_KIND_CAP, false], [Infinity, false]] as const).filter(step => everyPrefecture || !step[1])) {
         for (const i of ranked) {
             if (picked.length >= count) break;
             if (!free(i, cap) || (perPrefecture && reserved.has(units[i].prefecture))) continue;

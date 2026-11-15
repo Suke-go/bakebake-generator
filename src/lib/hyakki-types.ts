@@ -31,10 +31,17 @@ export type Card = Point & {
  *  (0 = first to answer the call). */
 export type Light = Point & {
     id: string; caller: number; order: number; silhouette: string; picture: string; region: RegionKey;
-    /** How alike this yokai is to the one that called it; larger is nearer. It decides how close it stands. */
+    /** How alike this yokai is to the one that called it; larger is nearer. It decides how close it stands.
+     *  Twins score above 1, everything else between 0 and 1. */
     near: number;
-    /** Its one short line, only for the few nearest to each caller: they answer aloud when called. Otherwise ''. */
+    /** True when one of its records tells the same account as a record of its caller (see scripts/hyakki/build_twins.py).
+     *  The others are distant relations: alike in kind or in parts, drawn smaller and fainter. */
+    twin: boolean;
+    /** For the closest twins of each caller: one sentence of the matching record, name masked. They answer aloud
+     *  with it when called. Otherwise ''. */
     tease: string;
+    /** With tease: the sentence of the caller's own record that this one matches, so that the two can be read together. */
+    callerLine: string;
 };
 
 // GET  /api/hyakki?region=<RegionKey>&lat=<n>&lon=<n>      -> { buddies: Card[] }   (3 cards; the pin is never stored or logged)

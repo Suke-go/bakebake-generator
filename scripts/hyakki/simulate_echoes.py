@@ -44,7 +44,7 @@ def main():
     row = {units[i]["id"]: k for k, i in enumerate(rows)}
 
     rng = random.Random(0)
-    aloud, everyone = [], []
+    answers, callers_with_answer, sessions_with_answer, twins_drawn = [], 0, 0, 0
     for _ in range(SESSIONS):
         pool = by_region[rng.choice(sorted(by_region))]
         chosen, kinds = [], set()
@@ -55,24 +55,21 @@ def main():
                 kinds.add(u["kind"])
         body = json.dumps({"action": "summon", "chosen": [u["id"] for u in chosen]}).encode()
         lights = json.load(urllib.request.urlopen(urllib.request.Request(API, body, {"Content-Type": "application/json"}), timeout=120))["lights"]
-        for light in lights:
-            d = km(light, chosen[light["caller"]])
-            same = by_id[light["id"]]["prefecture"] == chosen[light["caller"]]["prefecture"]
-            cos = float(v[row[light["id"]]] @ v[row[chosen[light["caller"]]["id"]]])
-            everyone.append((d, same, cos))
-            if light["tease"]:
-                aloud.append((d, same, cos))
+        assert len(lights) == 95, len(lights)
+        aloud = [l for l in lights if l["tease"]]
+        twins_drawn += sum(l["twin"] for l in lights)
+        callers_with_answer += len({l["caller"] for l in aloud})
+        sessions_with_answer += bool(aloud)
+        for l in aloud:
+            answers.append((km(l, chosen[l["caller"]]), l["near"] - 1))   # a twin's near is 1 + the cosine of the matching records
 
-    def summary(rows):
-        ds = sorted(d for d, _, _ in rows)
-        cs = sorted(c for _, _, c in rows)
-        far = [c for d, _, c in rows if d > 200]
-        return {"count": len(rows), "textCosineMedian": round(cs[len(cs) // 2], 3), "textCosine>=0.5": round(sum(c >= 0.5 for c in cs) / len(cs), 3),
-                "textCosine>=0.6": round(sum(c >= 0.6 for c in cs) / len(cs), 3), "over200kmAndCosine>=0.5": round(sum(c >= 0.5 for c in far) / len(rows), 3),
-                "samePrefecture": round(sum(s for _, s, _ in rows) / len(rows), 3), "over200km": round(sum(d > 200 for d in ds) / len(ds), 3),
-                "over400km": round(sum(d > 400 for d in ds) / len(ds), 3), "medianKm": round(ds[len(ds) // 2])}
-
-    out = {"sessions": SESSIONS, "answeringAloud": summary(aloud), "allDrawnIn": summary(everyone)}
+    ds = sorted(d for d, _ in answers)
+    cs = sorted(c for _, c in answers)
+    out = {"sessions": SESSIONS, "sessionsWithAnAnswer": round(sessions_with_answer / SESSIONS, 3),
+           "callersWithAnAnswer": round(callers_with_answer / (5 * SESSIONS), 3), "answersPerSession": round(len(answers) / SESSIONS, 2),
+           "twinsDrawnPerSession": round(twins_drawn / SESSIONS, 2),
+           "answers": {"count": len(answers), "over200km": round(sum(d > 200 for d in ds) / len(ds), 3), "medianKm": round(ds[len(ds) // 2]),
+                       "cosineMedian": round(cs[len(cs) // 2], 3), "cosine>=0.6": round(sum(c >= 0.6 for c in cs) / len(cs), 3)}}
     (ROOT / "paper/hyakki/echoes.json").write_text(json.dumps(out, indent=1), encoding="utf-8")
     print(json.dumps(out, indent=1))
 

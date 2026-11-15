@@ -281,7 +281,7 @@ function Results({ chosen, lights, onRestart, onFinish }: { chosen: Card[]; ligh
                 {spots.map((s, n) => {
                     const big = s.light < 0;
                     return (
-                        <button key={n} type="button" className={big ? `${styles.walker} ${styles.lead}` : styles.walker} onClick={() => show(s)}
+                        <button key={n} type="button" className={big ? `${styles.walker} ${styles.lead}` : lights[s.light].twin ? styles.walker : `${styles.walker} ${styles.distant}`} onClick={() => show(s)}
                             aria-label={big ? `${chosen[s.caller].name}の話を見る` : '仲間の話を見る'}
                             style={{ left: `${(s.x / W) * 100}%`, top: `${(s.y / H) * 100}%`, width: `${(s.w / W) * 100}%`, zIndex: n + 1, color: CALLER_COLORS[s.caller] }}>
                             <img src={big ? chosen[s.caller].picture : lights[s.light].picture} alt="" style={s.flip ? { transform: 'scaleX(-1)' } : undefined} />
@@ -506,6 +506,14 @@ export default function Hyakki({ onFinish }: { onFinish?: (log: PlayLog) => void
     const selectedMist = mists.find(m => m.id === selected) ?? null;
     const lit = screen >= 8;
 
+    // While calling: the last caller and the sentence of its own record that a twin answers, or, when no twin
+    // answers, its one line and the news that this account is told only here.
+    const lastCalled = called.length ? called[called.length - 1] : -1;
+    const answered = lights.find(l => l.caller === lastCalled && l.callerLine);
+    const callLine = lastCalled < 0 || !chosen[lastCalled] ? '下の5体をタップして、同じ話をもつ仲間をよぶ'
+        : answered ? `${chosen[lastCalled].name}「${answered.callerLine}」`
+        : `${chosen[lastCalled].name}「${chosen[lastCalled].tease}」 ― この土地だけの話`;
+
     const mapProps: HyakkiMapProps = {
         view: screen <= 1 || lit ? 'japan' : (region ?? 'japan'),
         still: reduced,
@@ -658,7 +666,7 @@ export default function Hyakki({ onFinish }: { onFinish?: (log: PlayLog) => void
                         {screen === 8 && (
                             <div className={styles.strip}>
                                 <div className={styles.msg}>
-                                    <h1 className={styles.head}>{called.length === 0 ? '下の5体をタップして、似た仲間をよぶ' : `${chosen[called[called.length - 1]]?.name ?? ''}「${chosen[called[called.length - 1]]?.tease ?? ''}」`}</h1>
+                                    <h1 className={styles.head}>{callLine}</h1>
                                 </div>
                                 <div className={styles.actions}>
                                     <button type="button" className={styles.ghost} onClick={() => { study.current.skippedCall = true; setCalled([0, 1, 2, 3, 4]); setScreen(9); }}>とばす</button>
