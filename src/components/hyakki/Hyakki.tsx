@@ -110,99 +110,104 @@ function Queue({ chosen, lights, lit, called, onCall }: { chosen: Card[]; lights
     );
 }
 
-// Screen 10: the line-up. One sheet with all hundred: the five the player chose in the middle with their pictures,
-// each with the friends it called above and below it as silhouettes. The same drawing is what the player downloads.
-const SHEET_W = 1600, SHEET_H = 1000;
+// Screen 10: the line-up, composed like a picture scroll of the night parade: one dense crowd moving left. The five
+// the player chose are large and stand clear in front; the friends each one called press round it, the most
+// similar nearest, overlapping as the figures in the scrolls do. Any figure can be tapped to read its story.
+// The same layout is painted on a canvas for the download.
+const SHEET_W = 1600, SHEET_H = 900;
+type Spot = { x: number; y: number; w: number; caller: number; light: number; flip: boolean };   // light -1: one of the five
+
+function layoutScroll(chosen: Card[], lights: Light[]): Spot[] {
+    const crowd: Spot[] = [], leads: Spot[] = [];
+    const seen = new Map<string, number>();
+    chosen.forEach((_, k) => {
+        const cx = 200 + k * 280, cy = 455 + Math.sin(k * 1.9) * 45, big = 220;
+        leads.push({ x: cx - big / 2, y: cy - big * 0.62, w: big, caller: k, light: -1, flip: false });
+        const mine = lights.map((l, index) => ({ l, index })).filter(o => o.l.caller === k).sort((a, b) => a.l.order - b.l.order);
+        mine.forEach((o, n) => {
+            const angle = n * 2.39996 + k, reach = 125 + Math.sqrt((n + 0.5) / mine.length) * Math.min(250, 70 + 5 * mine.length);
+            const w = 74 + ((o.index * 37) % 30), h = w * 1.25;
+            // the same picture can come twice (two places, one kind of yokai): every other one faces the other way
+            const times = seen.get(o.l.picture) ?? 0;
+            seen.set(o.l.picture, times + 1);
+            crowd.push({
+                x: Math.min(1480 - w, Math.max(16, cx + Math.cos(angle) * reach * 1.05 - w / 2)),
+                y: Math.min(SHEET_H - h - 14, Math.max(40, cy + Math.sin(angle) * reach * 0.92 - h / 2)),
+                w, caller: k, light: o.index, flip: times % 2 === 1,
+            });
+        });
+    });
+    // far figures first, the five last: they are drawn on top
+    return [...crowd.sort((a, b) => a.y + a.w * 1.25 - (b.y + b.w * 1.25)), ...leads];
+}
+
 const loadImage = (src: string) => new Promise<HTMLImageElement | null>(done => {
     const image = new Image();
     image.onload = () => done(image);
     image.onerror = () => done(null);
     image.src = src;
 });
-type SheetArt = { pictures: (HTMLImageElement | null)[]; shadows: (HTMLImageElement | null)[] };
+const PAPER = '#eadfc6', INK = '#3a2c1c';
 
-function paintSheet(canvas: HTMLCanvasElement, art: SheetArt, chosen: Card[], lights: Light[], from: { label: string; n: number }[], font: string, opaque: boolean) {
-    const g = canvas.getContext('2d');
-    if (!g) return;
+async function paintScroll(chosen: Card[], lights: Light[], spots: Spot[], counts: string, font: string) {
+    const canvas = document.createElement('canvas');
     canvas.width = SHEET_W; canvas.height = SHEET_H;
-    g.clearRect(0, 0, SHEET_W, SHEET_H);
-    if (opaque) {
-        const night = g.createRadialGradient(SHEET_W / 2, SHEET_H / 2, 80, SHEET_W / 2, SHEET_H / 2, SHEET_W * 0.62);
-        night.addColorStop(0, '#2b2449'); night.addColorStop(1, '#100e1a');
-        g.fillStyle = night; g.fillRect(0, 0, SHEET_W, SHEET_H);
-    }
-    g.textBaseline = 'middle';
-    g.shadowColor = '#000'; g.shadowBlur = 8;
-    g.fillStyle = '#f2cf85'; g.textAlign = 'left'; g.font = `700 38px ${font}`;
-    g.fillText('百鬼夜行の顔ぶれ', 40, 52);
-    g.fillStyle = '#c4bedb'; g.textAlign = 'right'; g.font = `22px ${font}`;
-    g.fillText(from.map(r => `${r.label} ${r.n}`).join('   '), SHEET_W - 40, 52);
-    g.shadowBlur = 0;
-
-    const midY = 470, bigR = 92, column = SHEET_W / TEAM;
-    chosen.forEach((card, k) => {
-        const cx = column * (k + 0.5), color = CALLER_COLORS[k];
-        // friends: alternately above and below their caller, four across, nearest first
-        const mine = lights.map((l, index) => ({ l, index })).filter(o => o.l.caller === k).sort((a, b) => a.l.order - b.l.order);
-        const tiers = Math.max(1, Math.ceil(mine.length / 8));
-        const gap = Math.min(62, 212 / Math.max(1, tiers - 1)), r = Math.min(27, gap * 0.45);
-        mine.forEach((o, n) => {
-            const up = n % 2 === 0, slot = Math.floor(n / 2), col = slot % 4, tier = Math.floor(slot / 4);
-            const x = cx + (col - 1.5) * 66 + (tier % 2 ? 14 : -14);
-            const y = up ? midY - bigR - 44 - tier * gap : midY + bigR + 124 + tier * gap;
-            g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fillStyle = color; g.fill();
-            const shadow = art.shadows[o.index];
-            if (shadow) {
-                const box = r * 1.45, k2 = Math.min(box / shadow.width, box / shadow.height);
-                g.drawImage(shadow, x - (shadow.width * k2) / 2, y - (shadow.height * k2) / 2, shadow.width * k2, shadow.height * k2);
-            }
-        });
-        // the chosen one: its picture in a ring of its colour
+    const g = canvas.getContext('2d');
+    if (!g) return null;
+    g.fillStyle = PAPER; g.fillRect(0, 0, SHEET_W, SHEET_H);
+    const images = await Promise.all(spots.map(s => loadImage(s.light < 0 ? chosen[s.caller].picture : lights[s.light].picture)));
+    const cut = document.createElement('canvas');
+    const c = cut.getContext('2d');
+    spots.forEach((s, n) => {
+        const image = images[n], w = Math.round(s.w), h = Math.round(s.w * 1.25);
+        if (!image || !c) return;
+        // the picture, cover-fitted from the top, fading out towards its edges so that it sits on the paper
+        cut.width = w; cut.height = h;
+        const k = Math.max(w / image.width, h / image.height);
+        c.drawImage(image, (w - image.width * k) / 2, 0, image.width * k, image.height * k);
+        c.globalCompositeOperation = 'destination-in';
+        c.save(); c.translate(w / 2, h * 0.47); c.scale(1, h / w);
+        const fade = c.createRadialGradient(0, 0, w * 0.3, 0, 0, w * 0.52);
+        fade.addColorStop(0, '#000'); fade.addColorStop(1, 'transparent');
+        c.fillStyle = fade; c.fillRect(-w, -w, w * 2, w * 2);
+        c.restore(); c.globalCompositeOperation = 'source-over';
+        g.globalCompositeOperation = 'multiply';
         g.save();
-        g.beginPath(); g.arc(cx, midY, bigR, 0, Math.PI * 2); g.clip();
-        g.fillStyle = '#c3b8dc'; g.fillRect(cx - bigR, midY - bigR, bigR * 2, bigR * 2);
-        const picture = art.pictures[k];
-        if (picture) {
-            const k2 = Math.max((bigR * 2) / picture.width, (bigR * 2) / picture.height);
-            g.drawImage(picture, cx - (picture.width * k2) / 2, midY - bigR, picture.width * k2, picture.height * k2);
-        }
+        if (s.flip) { g.translate(s.x + w, s.y); g.scale(-1, 1); } else g.translate(s.x, s.y);
+        g.drawImage(cut, 0, 0);
         g.restore();
-        g.beginPath(); g.arc(cx, midY, bigR, 0, Math.PI * 2); g.lineWidth = 7; g.strokeStyle = color; g.stroke();
-        g.shadowColor = '#000'; g.shadowBlur = 8; g.textAlign = 'center';
-        g.fillStyle = '#f1eef8'; g.font = `700 34px ${font}`;
-        g.fillText(card.name, cx, midY + bigR + 34, column - 30);
-        g.fillStyle = '#c4bedb'; g.font = `20px ${font}`;
-        g.fillText(`${placeText(card)}  +${mine.length}`, cx, midY + bigR + 70, column - 30);
-        g.shadowBlur = 0;
+        g.globalCompositeOperation = 'source-over';
     });
+    const upright = (text: string, x: number, y: number, size: number) => [...text].forEach((ch, n) => g.fillText(ch, x, y + n * size * 1.12));
+    g.textAlign = 'center'; g.textBaseline = 'top'; g.fillStyle = INK;
+    spots.filter(s => s.light < 0).forEach(s => {
+        const name = chosen[s.caller].name, size = 26, x = s.x + s.w - 6, y = s.y - 4, tall = [...name].length * size * 1.12 + 10;
+        g.fillStyle = PAPER; g.fillRect(x - size * 0.75, y - 6, size * 1.5, tall);
+        g.lineWidth = 3; g.strokeStyle = CALLER_COLORS[s.caller]; g.strokeRect(x - size * 0.75, y - 6, size * 1.5, tall);
+        g.fillStyle = INK; g.font = `700 ${size}px ${font}`; upright(name, x, y, size);
+    });
+    g.fillStyle = INK; g.font = `700 60px ${font}`; upright('百鬼夜行', 1540, 80, 60);
+    g.textAlign = 'left'; g.font = `18px ${font}`; g.fillText(counts, 40, 24);
+    return canvas;
 }
 
 function Results({ chosen, lights, region, onRestart }: { chosen: Card[]; lights: Light[]; region: RegionKey | null; onRestart: () => void }) {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const art = useRef<SheetArt | null>(null);
-    const [ready, setReady] = useState(false);
+    const sheetRef = useRef<HTMLDivElement>(null);
+    const [open, setOpen] = useState<Card | null>(null);
+    const [trouble, setTrouble] = useState(false);
+    const spots = useMemo(() => layoutScroll(chosen, lights), [chosen, lights]);
     // The five were all met in the player's own region.
-    const from = useMemo(() => REGIONS.map(r => ({ label: r.label, n: lights.filter(l => l.region === r.key).length + (r.key === region ? chosen.length : 0) })), [lights, region, chosen]);
+    const counts = useMemo(() => REGIONS.map(r => `${r.label} ${lights.filter(l => l.region === r.key).length + (r.key === region ? chosen.length : 0)}`).join('   '), [lights, region, chosen]);
 
-    useEffect(() => {
-        let alive = true;
-        void Promise.all([Promise.all(chosen.map(c => loadImage(c.picture))), Promise.all(lights.map(l => loadImage(l.silhouette)))]).then(([pictures, shadows]) => {
-            const canvas = canvasRef.current;
-            if (!alive || !canvas) return;
-            art.current = { pictures, shadows };
-            paintSheet(canvas, art.current, chosen, lights, from, getComputedStyle(canvas).fontFamily, false);
-            setReady(true);
-        });
-        return () => { alive = false; };
-    }, [chosen, lights, from]);
+    const show = (spot: Spot) => {
+        setTrouble(false);
+        if (spot.light < 0) { setOpen(chosen[spot.caller]); return; }
+        post<{ card: Card }>({ action: 'meet', id: lights[spot.light].id }).then(res => setOpen(res.card), () => setTrouble(true));
+    };
 
-    // The downloaded picture has its own night sky; on screen the sheet is clear and the map shows through.
-    const download = () => {
-        const shown = canvasRef.current;
-        if (!shown || !art.current) return;
-        const canvas = document.createElement('canvas');
-        paintSheet(canvas, art.current, chosen, lights, from, getComputedStyle(shown).fontFamily, true);
-        canvas.toBlob(blob => {
+    const download = async () => {
+        const canvas = await paintScroll(chosen, lights, spots, counts, sheetRef.current ? getComputedStyle(sheetRef.current).fontFamily : 'serif');
+        canvas?.toBlob(blob => {
             if (!blob) return;
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
@@ -214,22 +219,42 @@ function Results({ chosen, lights, region, onRestart }: { chosen: Card[]; lights
 
     return (
         <div className={styles.finale}>
-            <canvas ref={canvasRef} className={styles.lineup} width={SHEET_W} height={SHEET_H} role="img"
-                aria-label={`百鬼夜行の顔ぶれ。${chosen.map(c => c.name).join('、')}と、よばれた仲間${lights.length}体。${from.map(r => `${r.label}${r.n}体`).join('、')}`} />
-            <ul className={styles.sources} aria-label="話と絵のもと">
-                {chosen.map((card, i) => (
-                    <li key={card.id}>
-                        <span className={styles.dot} style={{ background: CALLER_COLORS[i] }} aria-hidden="true" />
-                        <strong>{card.name}</strong>
-                        <a href={card.storyUrl} target="_blank" rel="noopener noreferrer">話のもと</a>
-                        <a href={card.pictureSourceUrl} target="_blank" rel="noopener noreferrer">絵のもと</a>
-                    </li>
-                ))}
-            </ul>
+            <div className={styles.scrollSheet} ref={sheetRef}>
+                <span className={styles.scrollTitle} aria-hidden="true">百鬼夜行</span>
+                <span className={styles.scrollCounts}>{counts}</span>
+                {spots.map((s, n) => {
+                    const big = s.light < 0;
+                    return (
+                        <button key={n} type="button" className={big ? `${styles.walker} ${styles.lead}` : styles.walker} onClick={() => show(s)}
+                            aria-label={big ? `${chosen[s.caller].name}の話を見る` : '仲間の話を見る'}
+                            style={{ left: `${(s.x / SHEET_W) * 100}%`, top: `${(s.y / SHEET_H) * 100}%`, width: `${(s.w / SHEET_W) * 100}%`, zIndex: n, color: CALLER_COLORS[s.caller] }}>
+                            <img src={big ? chosen[s.caller].picture : lights[s.light].picture} alt="" style={s.flip ? { transform: 'scaleX(-1)' } : undefined} />
+                            {big && <strong>{chosen[s.caller].name}</strong>}
+                        </button>
+                    );
+                })}
+                {open && (
+                    <div className={styles.lore} role="dialog" aria-label={open.name}>
+                        <img src={open.picture} alt="" />
+                        <span className={styles.cardHead}>
+                            <strong className={styles.name}>{open.name}</strong>
+                            <span className={styles.where}>{placeText(open)}</span>
+                        </span>
+                        {open.recordName !== open.name && <p className={styles.recordName}>記録の名前: {open.recordName}</p>}
+                        <p className={styles.desc}>{open.desc}</p>
+                        <p className={styles.loreFoot}>
+                            <a href={open.storyUrl} target="_blank" rel="noopener noreferrer">話のもと</a>
+                            <a href={open.pictureSourceUrl} target="_blank" rel="noopener noreferrer">絵のもと</a>
+                            <button type="button" onClick={() => setOpen(null)}>とじる</button>
+                        </p>
+                    </div>
+                )}
+            </div>
             <div className={styles.actions}>
+                <span className={styles.tapNote}>{trouble ? '話を読みこめませんでした。もう一度タップしてください。' : '妖怪をタップすると、話が読めます。'}</span>
                 <button type="button" className={styles.ghost} onClick={onRestart}>もう一度</button>
                 <Link href="/map" className={styles.ghost}>地図にもどる</Link>
-                <button type="button" className={styles.primary} onClick={download} disabled={!ready}>画像をダウンロード</button>
+                <button type="button" className={styles.primary} onClick={() => { void download(); }}>画像をダウンロード</button>
             </div>
         </div>
     );
@@ -424,7 +449,7 @@ export default function Hyakki() {
                 )}
 
                 {screen > 0 && (
-                    <div className={`${styles.panel} ${screen === 10 ? styles.sheet : ''} ${screen === 5 || screen === 3 || screen === 6 ? styles.bare : ''} ${screen === 3 ? styles.picks : ''}`} ref={panelRef} tabIndex={-1} aria-live="polite">
+                    <div className={`${styles.panel} ${screen === 10 ? styles.sheet : ''} ${screen === 5 || screen === 3 ? styles.bare : ''} ${screen === 3 ? styles.picks : ''} ${screen === 6 ? styles.reveal : ''}`} ref={panelRef} tabIndex={-1} aria-live="polite">
                         {failure && (
                             <div className={styles.failure} role="alert">
                                 <p>{failure.reason}</p>
@@ -509,16 +534,13 @@ export default function Hyakki() {
 
                         {screen === 6 && met && (
                             <div className={styles.met}>
-                                <h1 className={styles.joined}>{met.name}が仲間になった</h1>
-                                <div className={styles.metCard}>
+                                <h1 className={styles.scroll}>
                                     <img src={met.picture} alt="" className={styles.metPicture} />
-                                    <span className={styles.cardHead}>
-                                        <strong className={`${styles.name} ${styles.metName}`}>{met.name}</strong>
-                                        <span className={styles.where}>{placeText(met)}</span>
-                                    </span>
-                                    {met.recordName !== met.name && <p className={styles.recordName}>記録の名前: {met.recordName}</p>}
-                                    <p className={styles.desc}>{met.desc}</p>
-                                </div>
+                                    <strong className={styles.metName}>{met.name}</strong>
+                                    <span className={styles.joined}>が仲間になった</span>
+                                </h1>
+                                <p className={styles.metWhere}>{placeText(met)}{met.recordName !== met.name && ` ・ 記録の名前: ${met.recordName}`}</p>
+                                <p className={styles.desc}>{met.desc}</p>
                                 <button type="button" className={styles.primary} onClick={next} disabled={busy}>
                                     {chosen.length + 1 >= TEAM ? '5体で、百鬼夜行をよぶ' : `つぎの仲間をさがす(あと${TEAM - chosen.length - 1}体)`}
                                 </button>

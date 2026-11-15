@@ -25,10 +25,11 @@ export type Card = Point & {
     storyUrl: string; pictureSourceUrl: string;
 };
 
-/** A summoned yokai: never a name or a picture, only a black silhouette (same-origin URL) that runs.
+/** A summoned yokai. While it runs it is a black silhouette; `id` and `picture` are for the line-up at the end,
+ * where every yokai is shown and can be opened (the choosing is over by then, so nothing is given away).
  *  caller is the index (0-4) of the chosen yokai that called it; order is its place in the wave
  *  (0 = first to answer the call). */
-export type Light = Point & { caller: number; order: number; silhouette: string; region: RegionKey };
+export type Light = Point & { id: string; caller: number; order: number; silhouette: string; picture: string; region: RegionKey };
 
 // GET  /api/hyakki?region=<RegionKey>&lat=<n>&lon=<n>      -> { buddies: Card[] }   (3 cards; the pin is never stored or logged)
 // GET  /api/hyakki?silhouette=<mist id>                     -> image/png

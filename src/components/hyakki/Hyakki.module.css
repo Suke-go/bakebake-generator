@@ -34,7 +34,7 @@
 
 .panel { position: absolute; z-index: 10; left: 0; right: 0; bottom: var(--s2); margin-inline: auto; width: min(720px, calc(100% - 16px)); display: flex; flex-direction: column; gap: var(--s2); padding: var(--s2) var(--s3); border: 1px solid var(--rule); border-radius: var(--r-panel); background: #1c1930f2; box-shadow: var(--shadow); outline: none; }
 /* Screen 10: a clear sheet over the map, as large as the screen allows. */
-.panel.sheet { width: min(1180px, calc(100% - 16px)); background: #14121fb8; backdrop-filter: blur(2px); }
+.panel.sheet { width: min(1400px, calc(100% - 16px)); background: #14121fb8; backdrop-filter: blur(2px); }
 /* Screen 5: the cloud is the frame, so the panel itself is not drawn. */
 .panel.bare { width: min(476px, calc(100% - 8px)); padding: 0; border-color: transparent; background: none; box-shadow: none; }
 .panel > * { animation: rise 0.3s ease both; }
@@ -118,30 +118,43 @@
   .hintLong { font-size: 16px; }
 }
 
-/* Screen 6: a find. The name is announced in gold over the map and the card arrives with a lamp glow; the picture
-   comes up out of its shadow. The picture floats and the text runs round it, which keeps the card low. */
-.met { display: flex; flex-direction: column; align-items: center; gap: var(--s2); }
-.joined { margin: 0; font-size: 20px; line-height: 1.3; letter-spacing: 0.1em; font-weight: 700; color: var(--gold); text-align: center; text-shadow: 0 1px 4px #000, 0 0 14px #000; }
-.metCard { display: flow-root; width: 100%; padding: var(--s2); border-radius: 2px; background: var(--paper); color: var(--paper-ink); border: 1px solid var(--gold); box-shadow: 0 0 0 3px #f2cf8540, 0 0 40px #f2cf8566, var(--shadow); animation: arrive 0.6s cubic-bezier(0.2, 1.3, 0.4, 1) both; }
-.metPicture { float: left; width: 104px; aspect-ratio: 4 / 5; margin: 0 var(--s3) var(--s1) 0; border: 1px solid var(--paper-rule); animation: reveal 1.1s ease both; }
-.metCard .cardHead { flex-wrap: wrap; margin-bottom: var(--s1); }
-.metName { font-size: 20px; }
+/* Screen 6: a find. The night closes over the map and the yokai stands alone: its picture comes up out of its
+   shadow inside a gold frame with slow rays behind it, its name upright beside it like the title of a scroll. */
+.panel.reveal { top: 0; bottom: 0; width: 100%; align-items: center; justify-content: center; padding: var(--s3); border: 0; border-radius: 0; box-shadow: none; background: radial-gradient(circle at 50% 40%, #241d40f0, #0b0916f7 70%); animation: fade 0.4s ease both; }
+.met { display: flex; flex-direction: column; align-items: center; gap: var(--s3); width: min(540px, 100%); }
+.scroll { position: relative; margin: 0; display: grid; grid-template-columns: auto auto; grid-template-rows: 1fr auto; column-gap: var(--s4); align-items: start; font-weight: 700; isolation: isolate; }
+.scroll::before { content: ""; position: absolute; z-index: -1; left: 50%; top: 50%; width: 150dvh; height: 150dvh; margin: -75dvh 0 0 -75dvh; background: repeating-conic-gradient(#f2cf8526 0 5deg, transparent 5deg 20deg); -webkit-mask-image: radial-gradient(circle, #000 0, transparent 46%); mask-image: radial-gradient(circle, #000 0, transparent 46%); animation: rays 60s linear infinite; pointer-events: none; }
+.metPicture { grid-row: 1 / 3; height: min(44dvh, 360px); aspect-ratio: 4 / 5; border: 3px solid var(--gold); box-shadow: 0 0 0 1px #0008, 0 0 60px #f2cf8577, var(--shadow); animation: reveal 1.4s ease both; }
+.metName { writing-mode: vertical-rl; font-size: clamp(34px, 7dvh, 56px); line-height: 1.15; letter-spacing: 0.16em; color: var(--gold); text-shadow: 0 2px 8px #000; animation: settle 0.6s 0.7s ease both; }
+.joined { writing-mode: vertical-rl; justify-self: center; font-size: var(--fs-body); letter-spacing: 0.2em; font-weight: 400; color: var(--text-mute); animation: settle 0.6s 1s ease both; }
+.metWhere { margin: 0; font-size: var(--fs-small); color: var(--text-mute); text-align: center; }
+.met .desc { font-size: var(--fs-body); line-height: 1.7; color: var(--text); }
 .met .primary { align-self: stretch; }
-@keyframes arrive { from { opacity: 0; transform: scale(0.9) translateY(10px); } }
-@keyframes reveal { from { filter: brightness(0); } to { filter: none; } }
-@media (min-width: 700px) { .metPicture { width: 128px; } }
+@keyframes reveal { from { filter: brightness(0); transform: scale(1.06); } 45% { filter: brightness(0); } to { filter: none; transform: none; } }
+@keyframes rays { to { transform: rotate(360deg); } }
 
-/* Screen 10, the line-up: the sheet with all hundred (drawn on a canvas, so it can be downloaded as it is seen),
-   then one row with the sources of the five and the actions. */
+/* Screen 10, the line-up: a sheet of paper with the parade on it, as in the picture scrolls. Figures are placed in
+   a 1600x1000 space (percentages), blend into the paper and fade at their edges; each is a button. */
 .finale { display: flex; flex-direction: column; gap: var(--s2); }
-.lineup { display: block; margin-inline: auto; width: min(100%, calc((100dvh - 210px) * 1.6)); aspect-ratio: 16 / 10; }
-.sources { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 0 var(--s4); font-size: var(--fs-fine); color: var(--text-mute); }
-.sources li { display: inline-flex; align-items: center; gap: var(--s1); white-space: nowrap; }
-.sources strong { color: var(--text); margin-right: 2px; }
-.sources a { display: inline-flex; align-items: center; min-height: 28px; padding: 0 2px; color: var(--text-mute); text-underline-offset: 3px; }
-.sources a:hover { color: var(--text); }
-.finale .actions { margin-inline: auto; flex-wrap: wrap; justify-content: center; }
-.dot { flex: none; width: 10px; height: 10px; border-radius: 50%; }
+.scrollSheet { position: relative; container-type: inline-size; margin-inline: auto; width: min(100%, calc((100dvh - 170px) * 1.777)); aspect-ratio: 16 / 9; overflow: hidden; border-radius: 2px; background: #eadfc6 radial-gradient(ellipse at 50% 50%, #f1e8d2, #e2d4b4); color: #3a2c1c; box-shadow: inset 0 0 0 1px #b9a67c, var(--shadow); }
+.scrollTitle { position: absolute; right: 1.9%; top: 8%; writing-mode: vertical-rl; font-size: 3.75cqw; line-height: 1; letter-spacing: 0.12em; font-weight: 700; }
+.scrollCounts { position: absolute; left: 2.5%; top: 2.2%; font-size: max(1.1cqw, 9px); white-space: nowrap; opacity: 0.8; }
+.walker { position: absolute; aspect-ratio: 4 / 5; padding: 0; border: 0; background: none; cursor: pointer; transition: transform 0.12s ease; }
+.walker img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 0; mix-blend-mode: multiply; -webkit-mask-image: radial-gradient(ellipse 52% 52% at 50% 47%, #000 58%, transparent 100%); mask-image: radial-gradient(ellipse 52% 52% at 50% 47%, #000 58%, transparent 100%); }
+.walker:hover, .walker:focus-visible { transform: scale(1.25); z-index: 500 !important; }
+/* The five: nothing faded, and a name slip in the caller's colour pasted on the shoulder. */
+.lead img { -webkit-mask-image: radial-gradient(ellipse 54% 54% at 50% 47%, #000 78%, transparent 100%); mask-image: radial-gradient(ellipse 54% 54% at 50% 47%, #000 78%, transparent 100%); }
+.lead strong { position: absolute; right: -4%; top: -3%; padding: 0.35em 0.2em; writing-mode: vertical-rl; font-size: max(1.65cqw, 11px); line-height: 1.1; letter-spacing: 0.08em; color: #3a2c1c; white-space: nowrap; background: #eadfc6; border: 2px solid currentColor; }
+.lead strong { -webkit-text-fill-color: #3a2c1c; }
+.lore { position: absolute; z-index: 600; left: 50%; top: 50%; transform: translate(-50%, -50%); display: flow-root; width: min(92%, 460px); padding: var(--s3); border-radius: 2px; background: var(--paper); color: var(--paper-ink); border: 1px solid var(--gold); box-shadow: 0 0 0 3px #f2cf8540, 0 10px 40px #000a; text-align: left; animation: rise 0.25s ease both; }
+.lore > img { float: left; width: 96px; aspect-ratio: 4 / 5; margin: 0 var(--s3) var(--s1) 0; object-fit: cover; object-position: 50% 0; border: 1px solid var(--paper-rule); }
+.lore .name { font-size: var(--fs-head); }
+.lore .cardHead { flex-wrap: wrap; }
+.loreFoot { clear: both; margin: var(--s2) 0 0; display: flex; align-items: center; gap: var(--s3); font-size: var(--fs-small); }
+.loreFoot a { color: var(--paper-mute); text-underline-offset: 3px; }
+.loreFoot button { margin-left: auto; min-height: 36px; padding: 0 var(--s3); border: 1px solid var(--paper-mute); border-radius: var(--r); background: none; color: var(--paper-ink); cursor: pointer; }
+.finale .actions { margin: 0; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.tapNote { margin-right: auto; font-size: var(--fs-small); color: var(--text-mute); }
 
 /* Mists the player has looked into: small shadows to switch between while comparing. */
 .peeks { display: flex; gap: var(--s1); margin-right: auto; }
@@ -166,7 +179,8 @@
 .count { position: absolute; left: 0; right: 0; bottom: 0; text-align: center; background: #0f0d18d9; font-size: var(--fs-fine); line-height: 1.35; font-weight: 700; }
 
 @media (prefers-reduced-motion: reduce) {
-  .introFall, .title, .introSub, .panel > *, .back, .queue, .slot img, .mapLoading, .call, .metCard, .metPicture { animation: none; }
+  .introFall, .title, .introSub, .panel > *, .back, .queue, .slot img, .mapLoading, .call, .metPicture, .metName, .joined, .scroll::before, .panel.reveal, .lore { animation: none; }
+  .walker { transition: none; }
   .primary, .ghost, .choice, .buddy { transition: none; }
   .buddy:hover:not(:disabled) { transform: none; }
 }

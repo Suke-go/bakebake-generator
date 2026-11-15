@@ -180,7 +180,8 @@ export async function hyakkiSummon(chosen: unknown): Promise<{ lights: Light[] }
     const taken = new Set(met);
     const candidates = data.units.map((_, i) => i).filter(i => !taken.has(i));
     const lights = selectSummons(data.units, candidates, met, data.views).map(({ index, caller, order }): Light =>
-        ({ lat: data.units[index].lat, lon: data.units[index].lon, caller, order, silhouette: `/api/hyakki?silhouette=${data.units[index].id}`, region: data.units[index].region as RegionKey }));
+        ({ id: data.units[index].id, lat: data.units[index].lat, lon: data.units[index].lon, caller, order, silhouette: `/api/hyakki?silhouette=${data.units[index].id}`,
+            picture: `/api/hyakki?picture=${encodeURIComponent((data.units[index] as RawUnit).image)}`, region: data.units[index].region as RegionKey }));
     return { lights };
 }
 
