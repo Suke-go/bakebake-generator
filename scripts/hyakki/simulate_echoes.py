@@ -12,6 +12,8 @@ import math
 import os
 import random
 import urllib.request
+
+import numpy as np
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -34,6 +36,12 @@ def main():
     for u in playable:
         by_region.setdefault(u["region"], []).append(u)
     by_id = {u["id"]: u for u in playable}
+    # text similarity as the game computes it: unit vectors, mean over the units in play removed, cosine
+    rows = [i for i, u in enumerate(units) if u["id"] in by_id]
+    v = np.fromfile(ROOT / "data/hyakki/text-vectors.f32", dtype="<f4").reshape(len(units), -1)[rows]
+    v = v - v.mean(axis=0)
+    v /= np.linalg.norm(v, axis=1, keepdims=True)
+    row = {units[i]["id"]: k for k, i in enumerate(rows)}
 
     rng = random.Random(0)
     aloud, everyone = [], []
@@ -50,13 +58,18 @@ def main():
         for light in lights:
             d = km(light, chosen[light["caller"]])
             same = by_id[light["id"]]["prefecture"] == chosen[light["caller"]]["prefecture"]
-            everyone.append((d, same))
+            cos = float(v[row[light["id"]]] @ v[row[chosen[light["caller"]]["id"]]])
+            everyone.append((d, same, cos))
             if light["tease"]:
-                aloud.append((d, same))
+                aloud.append((d, same, cos))
 
     def summary(rows):
-        ds = sorted(d for d, _ in rows)
-        return {"count": len(rows), "samePrefecture": round(sum(s for _, s in rows) / len(rows), 3), "over200km": round(sum(d > 200 for d in ds) / len(ds), 3),
+        ds = sorted(d for d, _, _ in rows)
+        cs = sorted(c for _, _, c in rows)
+        far = [c for d, _, c in rows if d > 200]
+        return {"count": len(rows), "textCosineMedian": round(cs[len(cs) // 2], 3), "textCosine>=0.5": round(sum(c >= 0.5 for c in cs) / len(cs), 3),
+                "textCosine>=0.6": round(sum(c >= 0.6 for c in cs) / len(cs), 3), "over200kmAndCosine>=0.5": round(sum(c >= 0.5 for c in far) / len(rows), 3),
+                "samePrefecture": round(sum(s for _, s, _ in rows) / len(rows), 3), "over200km": round(sum(d > 200 for d in ds) / len(ds), 3),
                 "over400km": round(sum(d > 400 for d in ds) / len(ds), 3), "medianKm": round(ds[len(ds) // 2])}
 
     out = {"sessions": SESSIONS, "answeringAloud": summary(aloud), "allDrawnIn": summary(everyone)}
