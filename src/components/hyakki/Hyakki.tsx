@@ -90,7 +90,7 @@ function Queue({ chosen, lights, lit, called, onCall }: { chosen: Card[]; lights
     const counts = totals.map((n, k) => (called.includes(k) ? n : 0));
 
     return (
-        <ol className={styles.queue} aria-label="行列">
+        <ol className={onCall ? `${styles.queue} ${styles.calling}` : styles.queue} aria-label="行列">
             {Array.from({ length: TEAM }, (_, i) => {
                 const card = chosen[i];
                 const count = counts[i];
@@ -110,36 +110,126 @@ function Queue({ chosen, lights, lit, called, onCall }: { chosen: Card[]; lights
     );
 }
 
-// Screen 10: the line-up. The map above shows every friend's home joined to the town; here, how many came from
-// each region, and the five the player chose (their stories were read when they met, so only names and sources).
-function Results({ chosen, counts, lights, region, onRestart }: { chosen: Card[]; counts: number[]; lights: Light[]; region: RegionKey | null; onRestart: () => void }) {
+// Screen 10: the line-up. One sheet with all hundred: the five the player chose in the middle with their pictures,
+// each with the friends it called above and below it as silhouettes. The same drawing is what the player downloads.
+const SHEET_W = 1600, SHEET_H = 1000;
+const loadImage = (src: string) => new Promise<HTMLImageElement | null>(done => {
+    const image = new Image();
+    image.onload = () => done(image);
+    image.onerror = () => done(null);
+    image.src = src;
+});
+type SheetArt = { pictures: (HTMLImageElement | null)[]; shadows: (HTMLImageElement | null)[] };
+
+function paintSheet(canvas: HTMLCanvasElement, art: SheetArt, chosen: Card[], lights: Light[], from: { label: string; n: number }[], font: string, opaque: boolean) {
+    const g = canvas.getContext('2d');
+    if (!g) return;
+    canvas.width = SHEET_W; canvas.height = SHEET_H;
+    g.clearRect(0, 0, SHEET_W, SHEET_H);
+    if (opaque) {
+        const night = g.createRadialGradient(SHEET_W / 2, SHEET_H / 2, 80, SHEET_W / 2, SHEET_H / 2, SHEET_W * 0.62);
+        night.addColorStop(0, '#2b2449'); night.addColorStop(1, '#100e1a');
+        g.fillStyle = night; g.fillRect(0, 0, SHEET_W, SHEET_H);
+    }
+    g.textBaseline = 'middle';
+    g.shadowColor = '#000'; g.shadowBlur = 8;
+    g.fillStyle = '#f2cf85'; g.textAlign = 'left'; g.font = `700 38px ${font}`;
+    g.fillText('百鬼夜行の顔ぶれ', 40, 52);
+    g.fillStyle = '#c4bedb'; g.textAlign = 'right'; g.font = `22px ${font}`;
+    g.fillText(from.map(r => `${r.label} ${r.n}`).join('   '), SHEET_W - 40, 52);
+    g.shadowBlur = 0;
+
+    const midY = 470, bigR = 92, column = SHEET_W / TEAM;
+    chosen.forEach((card, k) => {
+        const cx = column * (k + 0.5), color = CALLER_COLORS[k];
+        // friends: alternately above and below their caller, four across, nearest first
+        const mine = lights.map((l, index) => ({ l, index })).filter(o => o.l.caller === k).sort((a, b) => a.l.order - b.l.order);
+        const tiers = Math.max(1, Math.ceil(mine.length / 8));
+        const gap = Math.min(62, 212 / Math.max(1, tiers - 1)), r = Math.min(27, gap * 0.45);
+        mine.forEach((o, n) => {
+            const up = n % 2 === 0, slot = Math.floor(n / 2), col = slot % 4, tier = Math.floor(slot / 4);
+            const x = cx + (col - 1.5) * 66 + (tier % 2 ? 14 : -14);
+            const y = up ? midY - bigR - 44 - tier * gap : midY + bigR + 124 + tier * gap;
+            g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fillStyle = color; g.fill();
+            const shadow = art.shadows[o.index];
+            if (shadow) {
+                const box = r * 1.45, k2 = Math.min(box / shadow.width, box / shadow.height);
+                g.drawImage(shadow, x - (shadow.width * k2) / 2, y - (shadow.height * k2) / 2, shadow.width * k2, shadow.height * k2);
+            }
+        });
+        // the chosen one: its picture in a ring of its colour
+        g.save();
+        g.beginPath(); g.arc(cx, midY, bigR, 0, Math.PI * 2); g.clip();
+        g.fillStyle = '#c3b8dc'; g.fillRect(cx - bigR, midY - bigR, bigR * 2, bigR * 2);
+        const picture = art.pictures[k];
+        if (picture) {
+            const k2 = Math.max((bigR * 2) / picture.width, (bigR * 2) / picture.height);
+            g.drawImage(picture, cx - (picture.width * k2) / 2, midY - bigR, picture.width * k2, picture.height * k2);
+        }
+        g.restore();
+        g.beginPath(); g.arc(cx, midY, bigR, 0, Math.PI * 2); g.lineWidth = 7; g.strokeStyle = color; g.stroke();
+        g.shadowColor = '#000'; g.shadowBlur = 8; g.textAlign = 'center';
+        g.fillStyle = '#f1eef8'; g.font = `700 34px ${font}`;
+        g.fillText(card.name, cx, midY + bigR + 34, column - 30);
+        g.fillStyle = '#c4bedb'; g.font = `20px ${font}`;
+        g.fillText(`${placeText(card)}  +${mine.length}`, cx, midY + bigR + 70, column - 30);
+        g.shadowBlur = 0;
+    });
+}
+
+function Results({ chosen, lights, region, onRestart }: { chosen: Card[]; lights: Light[]; region: RegionKey | null; onRestart: () => void }) {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const art = useRef<SheetArt | null>(null);
+    const [ready, setReady] = useState(false);
     // The five were all met in the player's own region.
-    const from = REGIONS.map(r => ({ ...r, n: lights.filter(l => l.region === r.key).length + (r.key === region ? chosen.length : 0) }));
+    const from = useMemo(() => REGIONS.map(r => ({ label: r.label, n: lights.filter(l => l.region === r.key).length + (r.key === region ? chosen.length : 0) })), [lights, region, chosen]);
+
+    useEffect(() => {
+        let alive = true;
+        void Promise.all([Promise.all(chosen.map(c => loadImage(c.picture))), Promise.all(lights.map(l => loadImage(l.silhouette)))]).then(([pictures, shadows]) => {
+            const canvas = canvasRef.current;
+            if (!alive || !canvas) return;
+            art.current = { pictures, shadows };
+            paintSheet(canvas, art.current, chosen, lights, from, getComputedStyle(canvas).fontFamily, false);
+            setReady(true);
+        });
+        return () => { alive = false; };
+    }, [chosen, lights, from]);
+
+    // The downloaded picture has its own night sky; on screen the sheet is clear and the map shows through.
+    const download = () => {
+        const shown = canvasRef.current;
+        if (!shown || !art.current) return;
+        const canvas = document.createElement('canvas');
+        paintSheet(canvas, art.current, chosen, lights, from, getComputedStyle(shown).fontFamily, true);
+        canvas.toBlob(blob => {
+            if (!blob) return;
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'hyakki-yagyo.png';
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+        }, 'image/png');
+    };
+
     return (
         <div className={styles.finale}>
-            <h1 className={styles.head}>百鬼夜行の顔ぶれ</h1>
-            <ul className={styles.from} aria-label="どの地方から来たか">
-                {from.map(r => <li key={r.key}><span>{r.label}</span><strong>{r.n}</strong></li>)}
-            </ul>
-            <ul className={styles.results}>
+            <canvas ref={canvasRef} className={styles.lineup} width={SHEET_W} height={SHEET_H} role="img"
+                aria-label={`百鬼夜行の顔ぶれ。${chosen.map(c => c.name).join('、')}と、よばれた仲間${lights.length}体。${from.map(r => `${r.label}${r.n}体`).join('、')}`} />
+            <ul className={styles.sources} aria-label="話と絵のもと">
                 {chosen.map((card, i) => (
-                    <li key={card.id} className={styles.result} style={{ borderTopColor: CALLER_COLORS[i] }}>
-                        <img src={card.picture} alt="" className={styles.resultPicture} />
-                        <span className={styles.cardHead}>
-                            <strong className={styles.name}>{card.name}</strong>
-                            <span className={styles.where}>{placeText(card)}</span>
-                        </span>
-                        <div className={styles.foot}>
-                            <span className={styles.called} aria-label={`よんだ仲間 ${counts[i]}体`}><span className={styles.dot} style={{ background: CALLER_COLORS[i] }} aria-hidden="true" />+{counts[i]}</span>
-                            <a href={card.storyUrl} target="_blank" rel="noopener noreferrer">話のもと</a>
-                            <a href={card.pictureSourceUrl} target="_blank" rel="noopener noreferrer">絵のもと</a>
-                        </div>
+                    <li key={card.id}>
+                        <span className={styles.dot} style={{ background: CALLER_COLORS[i] }} aria-hidden="true" />
+                        <strong>{card.name}</strong>
+                        <a href={card.storyUrl} target="_blank" rel="noopener noreferrer">話のもと</a>
+                        <a href={card.pictureSourceUrl} target="_blank" rel="noopener noreferrer">絵のもと</a>
                     </li>
                 ))}
             </ul>
             <div className={styles.actions}>
                 <button type="button" className={styles.ghost} onClick={onRestart}>もう一度</button>
-                <Link href="/map" className={styles.primary}>地図にもどる</Link>
+                <Link href="/map" className={styles.ghost}>地図にもどる</Link>
+                <button type="button" className={styles.primary} onClick={download} disabled={!ready}>画像をダウンロード</button>
             </div>
         </div>
     );
@@ -299,7 +389,6 @@ export default function Hyakki() {
     const figures = useMemo(() => (met ? [...chosen, met] : chosen), [chosen, met]);
     const selectedMist = mists.find(m => m.id === selected) ?? null;
     const lit = screen >= 8;
-    const callerCounts = useMemo(() => tally(lights), [lights]);
 
     const mapProps: HyakkiMapProps = {
         view: screen <= 1 || lit ? 'japan' : (region ?? 'japan'),
@@ -335,7 +424,7 @@ export default function Hyakki() {
                 )}
 
                 {screen > 0 && (
-                    <div className={`${styles.panel} ${screen === 10 ? styles.wide : ''} ${screen === 5 || screen === 3 ? styles.bare : ''}`} ref={panelRef} tabIndex={-1} aria-live="polite">
+                    <div className={`${styles.panel} ${screen === 10 ? styles.sheet : ''} ${screen === 5 || screen === 3 || screen === 6 ? styles.bare : ''}`} ref={panelRef} tabIndex={-1} aria-live="polite">
                         {failure && (
                             <div className={styles.failure} role="alert">
                                 <p>{failure.reason}</p>
@@ -385,8 +474,8 @@ export default function Hyakki() {
                         {screen === 4 && (
                             <div className={styles.strip}>
                                 <div className={styles.msg}>
-                                    <h1 className={styles.head}>もやをのぞく</h1>
-                                    <p className={styles.body}>こいもやほど、さっきの一体に似ています。</p>
+                                    <h1 className={styles.head}>雲をタップして、のぞく</h1>
+                                    <p className={styles.body}>雲のないもやも、のぞけます。こいほど、さっきの一体に似ています。</p>
                                 </div>
                                 <span className={styles.left}>あと{TEAM - chosen.length}体</span>
                             </div>
@@ -420,7 +509,8 @@ export default function Hyakki() {
                         )}
 
                         {screen === 6 && met && (
-                            <>
+                            <div className={styles.met}>
+                                <h1 className={styles.joined}>{met.name}が仲間になった</h1>
                                 <div className={styles.metCard}>
                                     <img src={met.picture} alt="" className={styles.metPicture} />
                                     <span className={styles.cardHead}>
@@ -430,10 +520,10 @@ export default function Hyakki() {
                                     {met.recordName !== met.name && <p className={styles.recordName}>記録の名前: {met.recordName}</p>}
                                     <p className={styles.desc}>{met.desc}</p>
                                 </div>
-                                <div className={styles.actions}>
-                                    <button type="button" className={styles.primary} onClick={next} disabled={busy}>次へ</button>
-                                </div>
-                            </>
+                                <button type="button" className={styles.primary} onClick={next} disabled={busy}>
+                                    {chosen.length + 1 >= TEAM ? '5体で、百鬼夜行をよぶ' : `つぎの仲間をさがす(あと${TEAM - chosen.length - 1}体)`}
+                                </button>
+                            </div>
                         )}
 
                         {screen === 7 && (
@@ -466,7 +556,7 @@ export default function Hyakki() {
                             </div>
                         )}
 
-                        {screen === 10 && <Results chosen={chosen} counts={callerCounts} lights={lights} region={region} onRestart={restart} />}
+                        {screen === 10 && <Results chosen={chosen} lights={lights} region={region} onRestart={restart} />}
                     </div>
                 )}
             </div>
