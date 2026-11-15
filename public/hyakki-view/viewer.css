@@ -38,6 +38,10 @@ body { font-family: system-ui, "Hiragino Sans", "Yu Gothic", sans-serif; --inset
 @keyframes hkTeaseOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.9); } }
 .hk-tease { position: absolute; left: 0; top: 0; will-change: transform; pointer-events: auto; cursor: pointer; visibility: hidden; }
 .hk-quiet .hk-tease { opacity: 0 !important; pointer-events: none; }
+/* A cloud is a button: it lifts under the pointer. */
+.hk-cloud-art { transition: transform 0.12s ease; }
+.hk-tease:hover { z-index: 99 !important; }
+.hk-tease:hover > div { filter: brightness(1.06) drop-shadow(0 0 8px #f2cf85aa); }
 .hk-tease-in { animation: hkTeaseIn 0.6s ease-out both; }
 .hk-tease-out { animation: hkTeaseOut 0.6s ease-in both; pointer-events: none; }
 .hk-still .hk-tease-in, .hk-still .hk-tease-out { animation: none; }

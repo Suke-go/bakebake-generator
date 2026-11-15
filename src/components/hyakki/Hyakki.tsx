@@ -424,7 +424,7 @@ export default function Hyakki() {
                 )}
 
                 {screen > 0 && (
-                    <div className={`${styles.panel} ${screen === 10 ? styles.sheet : ''} ${screen === 5 || screen === 3 || screen === 6 ? styles.bare : ''}`} ref={panelRef} tabIndex={-1} aria-live="polite">
+                    <div className={`${styles.panel} ${screen === 10 ? styles.sheet : ''} ${screen === 5 || screen === 3 || screen === 6 ? styles.bare : ''} ${screen === 3 ? styles.picks : ''}`} ref={panelRef} tabIndex={-1} aria-live="polite">
                         {failure && (
                             <div className={styles.failure} role="alert">
                                 <p>{failure.reason}</p>
@@ -455,7 +455,7 @@ export default function Hyakki() {
 
                         {screen === 3 && (
                             <>
-                                <h1 className={styles.head}>相棒を1体えらぶ</h1>
+                                <h1 className={styles.head}>行列の先頭をえらぶ</h1>
                                 <ul className={styles.buddies}>
                                     {buddies.map(card => (
                                         <li key={card.id}>
@@ -474,8 +474,7 @@ export default function Hyakki() {
                         {screen === 4 && (
                             <div className={styles.strip}>
                                 <div className={styles.msg}>
-                                    <h1 className={styles.head}>雲をタップして、のぞく</h1>
-                                    <p className={styles.body}>雲のないもやも、のぞけます。こいほど、さっきの一体に似ています。</p>
+                                    <h1 className={styles.head}>気になる雲をタップ</h1>
                                 </div>
                                 <span className={styles.left}>あと{TEAM - chosen.length}体</span>
                             </div>

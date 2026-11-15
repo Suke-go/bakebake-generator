@@ -343,7 +343,7 @@
       const width = fr.right - fr.left;
       // The widest view must still hold the whole country in the part the panel leaves free.
       const aspect = Math.max(canvas.clientWidth, 100) / Math.max(canvas.clientHeight - state.inset, 120);
-      const maxW = Math.max(jmax.x - jmin.x, (jmax.y - jmin.y) * aspect) * 1.1, minW = Math.max(canvas.clientWidth, 100) * 3;
+      const maxW = Math.max(jmax.x - jmin.x, (jmax.y - jmin.y) * aspect) * 1.1, minW = Math.max(canvas.clientWidth, 100) * 20; // 20 m per px: closer than this the map tiles run out
       const target = Math.min(maxW, Math.max(minW, width));
       if (Math.abs(target - width) > 1) { const k = target / width; fr.right *= k; fr.left *= k; fr.top *= k; fr.bottom *= k; }
       const p = camera.position;
@@ -533,7 +533,7 @@
       for (const [, o] of mists) if (!incoming.has(o.id)) o.leaving = true;
       wake();
     }
-    const tierDensity = (t) => 0.75 + 0.6 * (t - 1); // small mists need to read against the pale land
+    const tierDensity = () => 1.1; // every mist looks the same: which one to open is told by its cloud, not its thickness
 
     // ---------- shared picture loading: one request per URL ----------
     const pics = new Map(); // url -> { loaded, waiting: [fn] }
@@ -678,20 +678,6 @@
     const mistScreen = new Map(); // id -> { x, y, r } this frame
     const tierOf = (id) => { const m = mists.get(id); return m ? Math.round(m.tier) : 1; };
     const teaseOf = (id) => { const m = state.mists.find((q) => q.id === id); return m && m.tease ? m.tease : ''; };
-    function pickTease(n, avoid, still) {
-      const pool = state.mists.filter((m) => m.tease && m.tease.trim());
-      if (still) return [...pool].sort((a, b) => b.tier - a.tier).slice(0, n).map((m) => m.id);
-      let cand = pool.filter((m) => !avoid.has(m.id));
-      if (cand.length < n) cand = pool;
-      const out = [], left = [...cand];
-      while (out.length < n && left.length) {
-        const w = left.map((m) => (m.tier === 3 ? 3 : m.tier === 2 ? 1.5 : 1));
-        let t = Math.random() * w.reduce((a, b) => a + b, 0), k = 0;
-        while (k < left.length - 1 && t >= w[k]) { t -= w[k]; k++; }
-        out.push(left.splice(k, 1)[0].id);
-      }
-      return out;
-    }
     // The thought cloud is the shared drawing /hyakki/cloud.svg (viewBox 260x196), inlined so its colour variables
     // work; it is only ever scaled uniformly. Text sits in the box x 50-210, y 46-132, in two lines.
     const K = 0.75, CW = 260 * K, CH = 196 * K;
@@ -734,17 +720,33 @@
       b.inner.className = 'hk-tease-out';
       setTimeout(() => { b.el.remove(); const i = bubbles.indexOf(b); if (i >= 0) bubbles.splice(i, 1); }, 700);
     }
-    // Clouds do not wander: the thickest mists get one each, and a cloud stays with its mist until that mist goes.
+    // Clouds follow the player's view, not a clock: every mist now on screen has one, and a cloud whose mist has
+    // left the screen goes. This runs when the mists change and each time the camera comes to rest.
+    function inView(id) {
+      const m = mistScreen.get(id);
+      if (!m) return mistScreen.size === 0;
+      return m.x > 0 && m.x < FW && m.y > 0 && m.y < Math.max(canvas.clientHeight - state.inset, 120);
+    }
     function teaseTick() {
-      const n = FW < 600 ? 2 : FW < 900 ? 3 : 4;
-      for (const b of bubbles) if (!b.leaving && !teaseOf(b.id)) retire(b);
+      for (const b of bubbles) if (!b.leaving && (!teaseOf(b.id) || !inView(b.id))) retire(b);
       const live = bubbles.filter((b) => !b.leaving);
+      for (const b of live) b.init = false; // places are picked again for the new view
       const keep = new Set(live.map((b) => b.id));
-      // Mists the player has looked into keep their cloud open; the thickest of the rest fill the remaining places.
-      const looked = state.peeked.filter((id) => teaseOf(id) && !keep.has(id));
-      const want = [...looked, ...pickTease(n, new Set(), true).filter((id) => !keep.has(id) && !looked.includes(id)).slice(0, Math.max(0, n - live.length - looked.length))];
-      for (const id of want) bubbles.push(makeBubble(id, tierOf(id)));
+      const pool = state.mists.filter((m) => m.tease && m.tease.trim() && !keep.has(m.id) && inView(m.id));
+      const looked = pool.filter((m) => state.peeked.includes(m.id));
+      const rest = pool.filter((m) => !state.peeked.includes(m.id)).sort((a, b) => b.tier - a.tier);
+      for (const m of [...looked, ...rest]) bubbles.push(makeBubble(m.id, tierOf(m.id)));
       wake();
+    }
+    let camKey = '', camRest = 0;
+    function watchCamera() {
+      const c = current(), key = `${Math.round(c.cx)},${Math.round(c.cy)},${Math.round(c.w)}`;
+      if (key === camKey) return;
+      const first = !camKey;
+      camKey = key;
+      if (first) return;
+      clearTimeout(camRest);
+      camRest = setTimeout(() => { if (state.mists.length) teaseTick(); }, 350);
     }
     let teaseKey = '';
     let teaseFirst = 0;
@@ -763,8 +765,9 @@
     // Sizes are fixed (the cloud is scaled once), so only transforms are written here. The cloud sits up and to the
     // right of its mist with the tail pointing down-left at it; at an edge it flips so the tail points down-right.
     // The slot (side and height beside the mist) is chosen once, when the cloud appears; after that the cloud is
-    // pinned to its mist and moves only when the player moves the map. A cloud with no free slot is not shown.
+    // pinned to its mist and moves only when the player moves the map.
     function layoutBubbles() {
+      watchCamera();
       if (!bubbles.length) return;
       rects.length = 0;
       // Clouds keep clear of the yokai already chosen (the town's pin sits under the first of them).
@@ -776,14 +779,20 @@
         const w = b.w, h = b.h;
         if (!b.init) {
           b.init = true; b.shown = false;
-          for (let q = 0; q < 10 && !b.shown; q++) {
-            const flip = q >= 5, dy = [0, -h * 0.5, h * 0.4, -h * 1.0, h * 0.8][q % 5];
+          // Every mist on screen shows its cloud. Free places are tried first; with none free, the cloud takes
+          // the place that stays on screen and overlaps its neighbours (zooming in pulls them apart).
+          let fall = null;
+          for (let q = 0; q < 14 && !b.shown; q++) {
+            const flip = q % 2 === 1, dy = [0, -h * 0.5, h * 0.4, -h * 1.0, h * 0.8, -h * 1.5, h * 1.3][q >> 1];
             const ox = flip ? -m.r * 0.35 - (w - tipX) : m.r * 0.35 - tipX, oy = -m.r * 0.45 - tipY + dy;
             const r = { x: m.x + ox, y: m.y + oy, w, h };
-            if (r.x < 4 || r.y < 4 || r.x + w > FW - 4 || rects.some((o) => hitRect(r, o))) continue;
+            if (r.x < 4 || r.y < 4 || r.x + w > FW - 4) continue;
+            if (!fall) fall = { ox, oy, flip };
+            if (rects.some((o) => hitRect(r, o))) continue;
             b.ox = ox; b.oy = oy; b.shown = true;
             b.art.style.transform = flip ? 'scaleX(-1)' : '';
           }
+          if (!b.shown && fall) { b.ox = fall.ox; b.oy = fall.oy; b.shown = true; b.art.style.transform = fall.flip ? 'scaleX(-1)' : ''; }
           b.el.style.zIndex = String(tierOf(b.id) * 10);
         }
         b.el.style.visibility = b.shown ? 'visible' : 'hidden';
@@ -856,7 +865,7 @@
         // The floor keeps one thumb-sized when zoomed out.
         const groundM = o.level === 'place' ? 7000 : 16000;
         const minPx = (o.level === 'place' ? 26 : 44) * s;
-        o.vis = Math.min(Math.max(groundM * pxPerMetre(o.lon, o.lat, o.x, o.y), minPx), 150 * s) * (0.8 + 0.2 * o.ap) * (0.92 + 0.04 * (o.tier - 1));
+        o.vis = Math.min(Math.max(groundM * pxPerMetre(o.lon, o.lat, o.x, o.y), minPx), 150 * s) * (0.8 + 0.2 * o.ap);
         if (!o.leaving && o.appear > 0.35) {
           lastHits.push({ id, x: o.x, y: o.y, hit: Math.max(o.vis * 1.15, 26) });
           mistScreen.set(id, { x: o.x, y: o.y, r: Math.min(o.vis, 160 * s) });

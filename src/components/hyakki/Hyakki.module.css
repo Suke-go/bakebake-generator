@@ -79,6 +79,15 @@
    shoulder, the way picture scrolls label their figures; one short line underneath instead of a cut-off story. */
 .buddies { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s2); }
 .buddies > li { min-width: 0; }
+/* The three slips are the whole screen's business here: as large as the width and the height allow. */
+.panel.picks { width: min(780px, calc(100% - 8px), calc((100dvh - 190px) * 1.75)); }
+.picks > .head { font-size: 22px; }
+@media (min-width: 700px) {
+  .picks .slip { font-size: 24px; padding: 8px 5px; }
+  .picks .buddyTease { font-size: var(--fs-head); }
+  .picks .buddy .where { font-size: var(--fs-small); }
+  .picks .buddy { padding: 7px 7px 9px; gap: 4px; }
+}
 .bare > .head { text-align: center; text-shadow: 0 1px 4px #000, 0 0 12px #000; }
 .buddy { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; width: 100%; padding: 5px 5px 6px; text-align: center; border-radius: 2px; border: 1px solid var(--cloud-line); background: var(--paper); color: var(--paper-ink); box-shadow: var(--shadow); cursor: pointer; transition: transform 0.15s ease; }
 .buddy:hover:not(:disabled) { transform: translateY(-3px); }
