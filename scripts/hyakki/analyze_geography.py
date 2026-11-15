@@ -122,7 +122,7 @@ def main():
         by_kind[kind[i]].append(i)
     kinds = []
     for name, rows in by_kind.items():
-        if len(rows) < MIN_KIND:
+        if len(rows) < MIN_KIND or not name:
             continue
         b = [band[pid[i], pid[main_idx[i]]] for i in rows]
         top_pref = Counter(records[i]["prefecture"] for i in rows).most_common(1)[0]
@@ -135,7 +135,7 @@ def main():
     out["nearestSameKind"] = round(sum(kind[main_idx[i]] == kind[i] for i in everyone) / n, 4)
 
     # pairs far apart and very alike, as candidates for examples
-    far = [i for i in everyone if main_score[i] >= 0.75 and dist[pid[i], pid[main_idx[i]]] > 400]
+    far = [i for i in everyone if main_score[i] >= 0.6 and dist[pid[i], pid[main_idx[i]]] > 400]
     far.sort(key=lambda i: -main_score[i])
     out["farExamples"] = [{"cosine": round(float(main_score[i]), 3), "km": round(float(dist[pid[i], pid[main_idx[i]]])),
                            "a": [records[i]["name"], records[i]["prefecture"], records[i]["summary"][:160]],
