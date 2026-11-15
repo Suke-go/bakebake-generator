@@ -313,6 +313,17 @@ export default function Hyakki() {
         return () => { query.removeEventListener('change', onChange); clearTimeout(timer); };
     }, []);
 
+    // Full screen, where the browser has it (an iPhone does not: the button is then not shown).
+    const [canFill, setCanFill] = useState(false);
+    const [filled, setFilled] = useState(false);
+    useEffect(() => {
+        setCanFill(document.fullscreenEnabled);
+        const onChange = () => setFilled(document.fullscreenElement !== null);
+        document.addEventListener('fullscreenchange', onChange);
+        return () => document.removeEventListener('fullscreenchange', onChange);
+    }, []);
+    const toggleFill = () => { void (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen()).catch(() => undefined); };
+
     // Move keyboard and screen reader focus to the new panel after every step.
     useEffect(() => { if (screen > 0) panelRef.current?.focus({ preventScroll: true }); }, [screen]);
 
@@ -461,6 +472,15 @@ export default function Hyakki() {
             <div className={styles.stage} ref={stageRef}>
                 <div className={styles.map} ref={mapRef}><HyakkiMap {...mapProps} /></div>
                 {screen > 0 && <Link href="/map" className={styles.back}>← 地図</Link>}
+                {canFill && (
+                    <button type="button" className={styles.fill} onClick={toggleFill} aria-label={filled ? '全画面をやめる' : '全画面にする'} title={filled ? '全画面をやめる' : '全画面にする'}>
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            {filled
+                                ? <path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" />
+                                : <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />}
+                        </svg>
+                    </button>
+                )}
 
                 {screen === 0 && (
                     <button type="button" className={`${styles.intro} ${styles.introFall}`} onClick={() => setScreen(1)} aria-label="はじめる">

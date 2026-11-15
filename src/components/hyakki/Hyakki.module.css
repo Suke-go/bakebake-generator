@@ -22,6 +22,10 @@
 /* The way out is always there but quiet: plain text, full-size touch target. */
 .back { position: absolute; z-index: 5; top: var(--s1); left: var(--s1); display: inline-flex; align-items: center; min-height: var(--tap); padding: 0 var(--s3); border-radius: var(--r); color: var(--text-off); font-size: var(--fs-small); text-decoration: none; text-shadow: 0 1px 3px #000; animation: fade 0.5s ease both; }
 .back:hover { color: var(--text); }
+/* Full screen: a small round button that stays above every screen, under the map's credit line. */
+.fill { position: absolute; z-index: 30; top: 22px; right: var(--s2); display: grid; place-items: center; width: var(--tap); height: var(--tap); padding: 0; border: 0; border-radius: 50%; background: #1c1930cc; color: var(--text); box-shadow: 0 0 0 1px #7a6fa855; cursor: pointer; }
+.fill:hover { background: #37325a; }
+.fill svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
 /* Screen 0: the title stands upright like the heading of a scroll, then the night clears to the map. */
 .intro { position: absolute; z-index: 20; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; border: 0; padding: var(--s4); color: var(--gold); font: inherit; cursor: pointer; background: radial-gradient(circle at 50% 42%, #272143, #0b0916 72%); }
