@@ -326,7 +326,7 @@
     function setFocus() {
       const c = state.pin || state.figures[0] || state.mists[0];
       const o = merc(c.lon, c.lat);
-      const near = state.mists.map((m) => merc(m.lon, m.lat)).sort((a, b) => Math.hypot(a.x - o.x, a.y - o.y) - Math.hypot(b.x - o.x, b.y - o.y)).slice(0, 7);
+      const near = state.mists.map((m) => merc(m.lon, m.lat)).sort((a, b) => Math.hypot(a.x - o.x, a.y - o.y) - Math.hypot(b.x - o.x, b.y - o.y)).slice(0, Math.min(window.innerWidth, window.innerHeight) < 600 ? 4 : 7);
       const pts = [o, ...near, ...state.figures.map((f) => merc(f.lon, f.lat))];
       focus = { x0: Math.min(...pts.map((q) => q.x)), x1: Math.max(...pts.map((q) => q.x)), y0: Math.min(...pts.map((q) => q.y)), y1: Math.max(...pts.map((q) => q.y)) };
     }
@@ -701,7 +701,9 @@
     const teaseOf = (id) => { const m = state.mists.find((q) => q.id === id); return m && m.tease ? m.tease : ''; };
     // The thought cloud is the shared drawing /hyakki/cloud.svg (viewBox 260x196), inlined so its colour variables
     // work; it is only ever scaled uniformly. Text sits in the box x 50-210, y 46-132, in two lines.
-    const K = 0.75, CW = 260 * K, CH = 196 * K;
+    // On a phone the clouds are drawn smaller, so that several fit on the narrow map.
+    const NARROW = Math.min(window.innerWidth, window.innerHeight) < 600;
+    const K = NARROW ? 0.56 : 0.75, CW = 260 * K, CH = 196 * K;
     const CLOUD_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 196" width="' + CW + '" height="' + CH + '" aria-hidden="true">'
       + '<g fill="var(--cloud-line)"><circle cx="84" cy="58" r="40"/><circle cx="134" cy="48" r="44"/><circle cx="182" cy="64" r="36"/><circle cx="210" cy="96" r="34"/><circle cx="176" cy="124" r="38"/><circle cx="128" cy="132" r="40"/><circle cx="82" cy="124" r="37"/><circle cx="50" cy="92" r="36"/><circle cx="34" cy="160" r="15"/><circle cx="12" cy="184" r="9"/></g>'
       + '<g fill="var(--cloud-paper)"><circle cx="84" cy="58" r="36"/><circle cx="134" cy="48" r="40"/><circle cx="182" cy="64" r="32"/><circle cx="210" cy="96" r="30"/><circle cx="176" cy="124" r="34"/><circle cx="128" cy="132" r="36"/><circle cx="82" cy="124" r="33"/><circle cx="50" cy="92" r="32"/><ellipse cx="130" cy="90" rx="80" ry="46"/><circle cx="34" cy="160" r="11"/><circle cx="12" cy="184" r="5.5"/></g></svg>';
@@ -844,7 +846,8 @@
             b.ox = ox; b.oy = oy; b.shown = true;
             b.art.style.transform = flip ? 'scaleX(-1)' : '';
           }
-          if (!b.shown && fall) { b.ox = fall.ox; b.oy = fall.oy; b.shown = true; b.art.style.transform = fall.flip ? 'scaleX(-1)' : ''; }
+          // On a phone a cloud with no free place stays closed: stacked clouds cannot be read or tapped there.
+          if (!b.shown && fall && !NARROW) { b.ox = fall.ox; b.oy = fall.oy; b.shown = true; b.art.style.transform = fall.flip ? 'scaleX(-1)' : ''; }
           b.el.style.zIndex = String(tierOf(b.id) * 10);
         }
         b.el.style.visibility = b.shown ? 'visible' : 'hidden';

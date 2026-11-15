@@ -131,7 +131,8 @@ export type PlayLog = {
 const SHEET_W = 1600, SHEET_H = 900;
 type Spot = { x: number; y: number; w: number; caller: number; light: number; flip: boolean };   // light -1: one of the five
 
-function layoutScroll(chosen: Card[], lights: Light[]): Spot[] {
+// On an upright phone the sheet stands upright too: the same layout with its two axes exchanged.
+function layoutScroll(chosen: Card[], lights: Light[], tall = false): Spot[] {
     const crowd: Spot[] = [], leads: Spot[] = [];
     const seen = new Map<string, number>();
     chosen.forEach((_, k) => {
@@ -154,7 +155,9 @@ function layoutScroll(chosen: Card[], lights: Light[]): Spot[] {
         });
     });
     // far figures first, the five last: they are drawn on top
-    return [...crowd.sort((a, b) => a.y + a.w * 1.25 - (b.y + b.w * 1.25)), ...leads];
+    const wide = [...crowd.sort((a, b) => a.y + a.w * 1.25 - (b.y + b.w * 1.25)), ...leads];
+    if (!tall) return wide;
+    return wide.map(s => { const h = s.w * 1.25, cx = s.x + s.w / 2, cy = s.y + h / 2; return { ...s, x: cy - s.w / 2, y: cx - h / 2 }; });
 }
 
 const loadImage = (src: string) => new Promise<HTMLImageElement | null>(done => {
@@ -165,22 +168,25 @@ const loadImage = (src: string) => new Promise<HTMLImageElement | null>(done => 
 });
 const PAPER = '#eadfc6', INK = '#3a2c1c';
 // Japan, faint, behind the crowd: the whole country from Okinawa to Hokkaido in the 1600x900 space. Outline only.
-const landX = (lon: number) => 760 + (lon - 137.2) * 36, landY = (lat: number) => 450 - (lat - 35.8) * 45.9;
+const landXY = (tall: boolean) => (tall
+    ? { x: (lon: number) => 450 + (lon - 137.2) * 37.5, y: (lat: number) => 800 - (lat - 35.8) * 47.8 }
+    : { x: (lon: number) => 760 + (lon - 137.2) * 36, y: (lat: number) => 450 - (lat - 35.8) * 45.9 });
 type Outline = { prefectures: { polys: number[][][] }[] };
-const landPath = (file: Outline) => file.prefectures.flatMap(p => p.polys).flat().filter(ring => ring.length >= 12).map(ring => {
+const landPath = (file: Outline, tall: boolean) => file.prefectures.flatMap(p => p.polys).flat().filter(ring => ring.length >= 12).map(ring => {
     let d = '';
-    for (let i = 0; i < ring.length; i += 2) d += `${i ? 'L' : 'M'}${landX(ring[i]).toFixed(1)} ${landY(ring[i + 1]).toFixed(1)}`;
+    for (let i = 0; i < ring.length; i += 2) d += `${i ? 'L' : 'M'}${landXY(tall).x(ring[i]).toFixed(1)} ${landXY(tall).y(ring[i + 1]).toFixed(1)}`;
     return `${d}Z`;
 }).join('');
 // Kasumi, the banded mist of the picture scrolls: four round-ended bars, stepped.
 const KASUMI: [number, number, number][] = [[96, 2, 236], [18, 15, 312], [128, 28, 262], [0, 41, 214], [160, 54, 150]];   // x, y, width of each bar; all 11 high
 
-async function paintScroll(chosen: Card[], lights: Light[], spots: Spot[], font: string, land: string) {
+async function paintScroll(chosen: Card[], lights: Light[], spots: Spot[], font: string, land: string, tall: boolean) {
+    const W = tall ? SHEET_H : SHEET_W, H = tall ? SHEET_W : SHEET_H;
     const canvas = document.createElement('canvas');
-    canvas.width = SHEET_W; canvas.height = SHEET_H;
+    canvas.width = W; canvas.height = H;
     const g = canvas.getContext('2d');
     if (!g) return null;
-    g.fillStyle = PAPER; g.fillRect(0, 0, SHEET_W, SHEET_H);
+    g.fillStyle = PAPER; g.fillRect(0, 0, W, H);
     const kasumi = (x: number, y: number, k: number) => {
         g.save(); g.translate(x, y); g.scale(k, k);
         const fade = g.createLinearGradient(0, 0, 400, 0);
@@ -188,7 +194,7 @@ async function paintScroll(chosen: Card[], lights: Light[], spots: Spot[], font:
         g.fillStyle = fade;
         g.beginPath(); for (const [bx, by, bw] of KASUMI) g.roundRect(bx, by, bw, 11, 5.5); g.fill(); g.restore();
     };
-    kasumi(-60, 60, 1.9); kasumi(760, 730, 2.1);
+    kasumi(-60, 60, tall ? 1.3 : 1.9); kasumi(W - 840, H - 170, tall ? 1.5 : 2.1);
     if (land) { const path = new Path2D(land); g.fillStyle = '#3a2c1c12'; g.fill(path); g.lineWidth = 1; g.strokeStyle = '#3a2c1c38'; g.stroke(path); }
     const images = await Promise.all(spots.map(s => loadImage(s.light < 0 ? chosen[s.caller].picture : lights[s.light].picture)));
     const cut = document.createElement('canvas');
@@ -221,7 +227,8 @@ async function paintScroll(chosen: Card[], lights: Light[], spots: Spot[], font:
         g.lineWidth = 3; g.strokeStyle = CALLER_COLORS[s.caller]; g.strokeRect(x - size * 0.75, y - 6, size * 1.5, tall);
         g.fillStyle = INK; g.font = `700 ${size}px ${font}`; upright(name, x, y, size);
     });
-    g.fillStyle = INK; g.font = `700 60px ${font}`; upright('百鬼夜行', 1540, 80, 60);
+    g.fillStyle = INK; g.font = `700 60px ${font}`;
+    if (tall) { g.textBaseline = 'alphabetic'; g.fillText('百鬼夜行', W / 2, H - 36); } else upright('百鬼夜行', 1540, 80, 60);
     return canvas;
 }
 
@@ -231,12 +238,21 @@ function Results({ chosen, lights, onRestart, onFinish }: { chosen: Card[]; ligh
     const [open, setOpen] = useState<Card | null>(null);
     const [trouble, setTrouble] = useState(false);
     const [land, setLand] = useState('');
-    const spots = useMemo(() => layoutScroll(chosen, lights), [chosen, lights]);
+    const [tall, setTall] = useState(false);
+    useEffect(() => {
+        const query = window.matchMedia('(max-width: 700px) and (orientation: portrait)');
+        const update = () => setTall(query.matches);
+        update();
+        query.addEventListener('change', update);
+        return () => query.removeEventListener('change', update);
+    }, []);
+    const W = tall ? SHEET_H : SHEET_W, H = tall ? SHEET_W : SHEET_H;
+    const spots = useMemo(() => layoutScroll(chosen, lights, tall), [chosen, lights, tall]);
     useEffect(() => {
         let alive = true;
-        fetch('/hyakki/japan.json').then(r => r.json()).then((file: Outline) => { if (alive) setLand(landPath(file)); }).catch(() => undefined);
+        fetch('/hyakki/japan.json').then(r => r.json()).then((file: Outline) => { if (alive) setLand(landPath(file, tall)); }).catch(() => undefined);
         return () => { alive = false; };
-    }, []);
+    }, [tall]);
     const show = (spot: Spot) => {
         seen.current.opened.add(spots.indexOf(spot));
         setTrouble(false);
@@ -246,7 +262,7 @@ function Results({ chosen, lights, onRestart, onFinish }: { chosen: Card[]; ligh
 
     const download = async () => {
         seen.current.saved = true;
-        const canvas = await paintScroll(chosen, lights, spots, sheetRef.current ? getComputedStyle(sheetRef.current).fontFamily : 'serif', land);
+        const canvas = await paintScroll(chosen, lights, spots, sheetRef.current ? getComputedStyle(sheetRef.current).fontFamily : 'serif', land, tall);
         canvas?.toBlob(blob => {
             if (!blob) return;
             const link = document.createElement('a');
@@ -259,15 +275,15 @@ function Results({ chosen, lights, onRestart, onFinish }: { chosen: Card[]; ligh
 
     return (
         <div className={styles.finale}>
-            <div className={styles.scrollSheet} ref={sheetRef}>
-                <svg className={styles.scrollMap} viewBox={`0 0 ${SHEET_W} ${SHEET_H}`} aria-hidden="true"><path d={land} /></svg>
+            <div className={tall ? `${styles.scrollSheet} ${styles.tall}` : styles.scrollSheet} ref={sheetRef}>
+                <svg className={styles.scrollMap} viewBox={`0 0 ${W} ${H}`} aria-hidden="true"><path d={land} /></svg>
                 <span className={styles.scrollTitle} aria-hidden="true">百鬼夜行</span>
                 {spots.map((s, n) => {
                     const big = s.light < 0;
                     return (
                         <button key={n} type="button" className={big ? `${styles.walker} ${styles.lead}` : styles.walker} onClick={() => show(s)}
                             aria-label={big ? `${chosen[s.caller].name}の話を見る` : '仲間の話を見る'}
-                            style={{ left: `${(s.x / SHEET_W) * 100}%`, top: `${(s.y / SHEET_H) * 100}%`, width: `${(s.w / SHEET_W) * 100}%`, zIndex: n + 1, color: CALLER_COLORS[s.caller] }}>
+                            style={{ left: `${(s.x / W) * 100}%`, top: `${(s.y / H) * 100}%`, width: `${(s.w / W) * 100}%`, zIndex: n + 1, color: CALLER_COLORS[s.caller] }}>
                             <img src={big ? chosen[s.caller].picture : lights[s.light].picture} alt="" style={s.flip ? { transform: 'scaleX(-1)' } : undefined} />
                             {big && <strong>{chosen[s.caller].name}</strong>}
                         </button>

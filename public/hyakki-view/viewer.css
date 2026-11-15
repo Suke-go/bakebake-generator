@@ -58,3 +58,5 @@ body { font-family: system-ui, "Hiragino Sans", "Yu Gothic", sans-serif; --inset
   color: var(--hk-ink); font: 700 var(--hk-bubble-font) / 1.4 'Kaisei Tokumin', 'Hiragino Mincho ProN', 'Yu Mincho', serif; letter-spacing: 0.04em; }
 .hk-pin { position: absolute; left: 0; top: 0; width: 18px; height: 18px; margin: -9px 0 0 -9px; box-sizing: border-box; border-radius: 50%;
   background: #ffd98a; border: 2px solid #fff6dc; box-shadow: 0 0 10px #ffd98a; opacity: 0; pointer-events: none; will-change: transform; }
+
+@media (max-width: 599px) { :root, body { --hk-bubble-font: 11.5px; } .hk-edge { width: 34px; height: 34px; margin: -17px 0 0 -17px; } .hk-echo { font-size: 11px; padding: 4px 9px; border-width: 2px; } }

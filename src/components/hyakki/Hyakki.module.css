@@ -23,7 +23,7 @@
 .back { position: absolute; z-index: 5; top: var(--s1); left: var(--s1); display: inline-flex; align-items: center; min-height: var(--tap); padding: 0 var(--s3); border-radius: var(--r); color: var(--text-off); font-size: var(--fs-small); text-decoration: none; text-shadow: 0 1px 3px #000; animation: fade 0.5s ease both; }
 .back:hover { color: var(--text); }
 /* Full screen: a small round button that stays above every screen, under the map's credit line. */
-.fill { position: absolute; z-index: 30; top: 22px; right: var(--s2); display: grid; place-items: center; width: var(--tap); height: var(--tap); padding: 0; border: 0; border-radius: 50%; background: #1c1930cc; color: var(--text); box-shadow: 0 0 0 1px #7a6fa855; cursor: pointer; }
+.fill { position: absolute; z-index: 30; top: 26px; right: var(--s2); display: grid; place-items: center; width: var(--tap); height: var(--tap); padding: 0; border: 0; border-radius: 50%; background: #1c1930cc; color: var(--text); box-shadow: 0 0 0 1px #7a6fa855; cursor: pointer; }
 .fill:hover { background: #37325a; }
 .fill svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
@@ -142,8 +142,8 @@
 .met { display: flex; flex-direction: column; align-items: center; gap: var(--s3); width: min(540px, 100%); }
 .scroll { position: relative; margin: 0; display: grid; grid-template-columns: auto auto; grid-template-rows: 1fr auto; column-gap: var(--s4); align-items: start; font-weight: 700; isolation: isolate; }
 .scroll::before { content: ""; position: absolute; z-index: -1; left: 50%; top: 50%; width: 150dvh; height: 150dvh; margin: -75dvh 0 0 -75dvh; background: repeating-conic-gradient(#f2cf8526 0 5deg, transparent 5deg 20deg); -webkit-mask-image: radial-gradient(circle, #000 0, transparent 46%); mask-image: radial-gradient(circle, #000 0, transparent 46%); animation: rays 60s linear infinite; pointer-events: none; }
-.metPicture { grid-row: 1 / 3; height: min(44dvh, 360px); aspect-ratio: 4 / 5; border: 3px solid var(--gold); box-shadow: 0 0 0 1px #0008, 0 0 60px #f2cf8577, var(--shadow); animation: reveal 1.4s ease both; }
-.metName { writing-mode: vertical-rl; font-size: clamp(34px, 7dvh, 56px); line-height: 1.15; letter-spacing: 0.16em; color: var(--gold); text-shadow: 0 2px 8px #000; animation: settle 0.6s 0.7s ease both; }
+.metPicture { grid-row: 1 / 3; width: min(288px, 35dvh, calc(100vw - 112px)); height: auto; aspect-ratio: 4 / 5; border: 3px solid var(--gold); box-shadow: 0 0 0 1px #0008, 0 0 60px #f2cf8577, var(--shadow); animation: reveal 1.4s ease both; }
+.metName { writing-mode: vertical-rl; font-size: clamp(30px, min(7dvh, 11vw), 56px); line-height: 1.15; letter-spacing: 0.16em; color: var(--gold); text-shadow: 0 2px 8px #000; animation: settle 0.6s 0.7s ease both; }
 .joined { writing-mode: vertical-rl; justify-self: center; font-size: var(--fs-body); letter-spacing: 0.2em; font-weight: 400; color: var(--text-mute); animation: settle 0.6s 1s ease both; }
 .metWhere { margin: 0; font-size: var(--fs-small); color: var(--text-mute); text-align: center; }
 .met .desc { font-size: var(--fs-body); line-height: 1.7; color: var(--text); }
@@ -155,6 +155,12 @@
    a 1600x1000 space (percentages), blend into the paper and fade at their edges; each is a button. */
 .finale { display: flex; flex-direction: column; gap: var(--s2); }
 .scrollSheet { position: relative; container-type: inline-size; margin-inline: auto; width: min(100%, calc((100dvh - 150px) * 1.777)); aspect-ratio: 16 / 9; color: #3a2c1c; }
+/* Upright phone: the sheet stands upright, the title runs along its foot, and the names are a size larger. */
+.scrollSheet.tall { width: min(100%, calc((100dvh - 200px) * 0.5625)); aspect-ratio: 9 / 16; }
+.tall .scrollTitle { writing-mode: horizontal-tb; right: auto; left: 50%; top: auto; bottom: 1.2%; transform: translateX(-50%); font-size: 6.6cqw; white-space: nowrap; }
+.tall .lead strong { font-size: max(3cqw, 11px); }
+.tall .lore > img { width: 72px; }
+.tall .lore .desc { font-size: var(--fs-fine); line-height: 1.5; }
 .scrollMap { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .scrollMap path { fill: #3a2c1c12; stroke: #3a2c1c38; stroke-width: 1; }
 .scrollTitle { position: absolute; z-index: 400; right: 1.9%; top: 8%; writing-mode: vertical-rl; font-size: 3.75cqw; line-height: 1; letter-spacing: 0.12em; font-weight: 700; }
@@ -165,7 +171,8 @@
 .lead img { -webkit-mask-image: radial-gradient(ellipse 54% 54% at 50% 47%, #000 78%, transparent 100%); mask-image: radial-gradient(ellipse 54% 54% at 50% 47%, #000 78%, transparent 100%); }
 .lead strong { position: absolute; right: -4%; top: -3%; padding: 0.35em 0.2em; writing-mode: vertical-rl; font-size: max(1.65cqw, 11px); line-height: 1.1; letter-spacing: 0.08em; color: #3a2c1c; white-space: nowrap; background: #eadfc6; border: 2px solid currentColor; }
 .lead strong { -webkit-text-fill-color: #3a2c1c; }
-.lore { position: absolute; z-index: 600; left: 50%; top: 50%; transform: translate(-50%, -50%); display: flow-root; width: min(92%, 460px); padding: var(--s3); border-radius: 2px; background: var(--paper); color: var(--paper-ink); border: 1px solid var(--gold); box-shadow: 0 0 0 3px #f2cf8540, 0 10px 40px #000a; text-align: left; animation: rise 0.25s ease both; }
+/* Centred with margins, not a transform: the entry animation animates transform and would undo it. */
+.lore { position: absolute; z-index: 600; inset: 0; margin: auto; height: fit-content; display: flow-root; width: min(94%, 460px); padding: var(--s3); border-radius: 2px; background: var(--paper); color: var(--paper-ink); border: 1px solid var(--gold); box-shadow: 0 0 0 3px #f2cf8540, 0 10px 40px #000a; text-align: left; animation: rise 0.25s ease both; }
 .lore > img { float: left; width: 96px; aspect-ratio: 4 / 5; margin: 0 var(--s3) var(--s1) 0; object-fit: cover; object-position: 50% 0; border: 1px solid var(--paper-rule); }
 .lore .name { font-size: var(--fs-head); }
 .lore .cardHead { flex-wrap: wrap; }
