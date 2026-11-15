@@ -615,11 +615,12 @@
         el.className = 'lt';
         el.style.setProperty('--c', CALLER_CSS[l.caller % 5]);
         const ie = document.createElement('i');
-        el.append(ie);
+        const pe = document.createElement('b'); // the picture, shown only while the parade crosses the screen
+        el.append(ie, pe);
         lightsLayer.append(el);
         return {
           lon: l.lon, lat: l.lat, caller: l.caller, order: l.order, tl: 0, slot: 0, seed: hashSeed(`${i}:${l.caller}`),
-          hx: 0, hy: 0, gx: 0, gy: 0, x: -9999, y: -9999, a: 0, sc: 1, pulse: 0, glow: 0, ta: 0, tx: 0, ty: 0, el, ie, url: l.silhouette, req: false,
+          hx: 0, hy: 0, gx: 0, gy: 0, x: -9999, y: -9999, a: 0, sc: 1, pulse: 0, glow: 0, ta: 0, tx: 0, ty: 0, el, ie, pe, pic: l.picture, pk: 0, pr: false, url: l.silhouette, req: false,
         };
       });
       // Each caller's friends answer in their own order, spread over CALL_S from the moment the player taps that caller.
@@ -937,7 +938,7 @@
         scrInto(l.lon, l.lat, tmpA); l.hx = tmpA[0]; l.hy = tmpA[1];
         const f = figs[l.caller];
         if (f) { const ang = l.slot * 2.399963, r = (22 + 9 * Math.sqrt(l.slot)) * s; l.gx = f.sx + Math.cos(ang) * r; l.gy = f.sy + Math.sin(ang) * r; } else { l.gx = l.hx; l.gy = l.hy; }
-        l.x = -9999; l.y = -9999; l.a = 0; l.sc = farK; l.pulse = 0; l.glow = 0; l.ta = 0;
+        l.x = -9999; l.y = -9999; l.a = 0; l.sc = farK; l.pk = 0; l.pulse = 0; l.glow = 0; l.ta = 0;
       }
       let linkAlpha = 1;
       let roadAlpha = 0, roadHead = 0;
@@ -1023,7 +1024,7 @@
             marchK = Math.min(big, smooth((MARCH_S - tm) / 0.8));
           }
           m.x = x; m.y = y; m.a = a0;
-          if (m.fig) { const f = figs[m.i]; f.x = x; f.y = y; f.sc *= 1 + 2.4 * big; } else if (big > 0) lts[m.i].sc = 1 + 2 * big;
+          if (m.fig) { const f = figs[m.i]; f.x = x; f.y = y; f.sc *= 1 + 2.4 * big; } else if (big > 0) { lts[m.i].sc = 1 + 2 * big; lts[m.i].pk = big; }
           if (m.fig) { /* placed above */ } else { const l = lts[m.i]; l.x = x; l.y = y; l.a = a0; l.glow = 1; l.ta = 0.14; l.tx = l.gx; l.ty = l.gy; }
         }
         // Camera: one calm move at the start, to a frame that holds the five and the town; no chasing, no dive.
@@ -1119,6 +1120,9 @@
         f.el.style.transform = `translate(${f.x}px, ${f.y}px) scale(${(s * f.sc) / 3})`; // drawn at 3x and scaled down, so it stays sharp when it grows
       }
       for (const l of lts) {
+        if (state.parade && !l.pr && l.pic) { l.pr = true; l.pe.style.backgroundImage = `url("${l.pic}")`; } // fetched as the parade sets off
+        l.pe.style.opacity = String(l.pk);
+        l.ie.style.opacity = String(1 - l.pk); // the shadow gives way to the picture
         l.el.style.opacity = l.a > 0.01 ? String(l.a) : '0';
         if (l.a > 0.01) l.el.style.transform = `translate(${l.x}px, ${l.y}px) scale(${(s * l.sc * (0.6 + 0.4 * l.a)) / 3})`;
       }

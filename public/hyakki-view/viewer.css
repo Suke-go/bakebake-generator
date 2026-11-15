@@ -30,6 +30,7 @@ body { font-family: system-ui, "Hiragino Sans", "Yu Gothic", sans-serif; --inset
   border: 12px solid #fff; background: #1a1430 center / cover no-repeat; will-change: transform, opacity; opacity: 0; }
 .lt { position: absolute; left: 0; top: 0; width: 78px; height: 78px; margin: -39px 0 0 -39px; box-sizing: border-box; padding: 9px; border-radius: 50%;
   background: var(--c, #fff); box-shadow: 0 0 24px var(--c, #fff); opacity: 0; will-change: transform, opacity; }
+.lt b { position: absolute; inset: 6px; border-radius: 50%; background: #eadfc6 50% 0 / cover no-repeat; opacity: 0; }
 .lt i { display: block; width: 100%; height: 100%; background: center / contain no-repeat; }
 
 /* Tease bubble: the shared thought cloud (/hyakki/cloud.svg, inlined by viewer.js); its two colours come from here. */
