@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { storeResearchToken } from '@/lib/research-log';
 import { RESEARCH_CONSENT_VERSION } from '@/lib/research-versions';
@@ -15,6 +15,39 @@ const PREFECTURES = [
     "徳島県", "香川県", "愛媛県", "高知県", "福岡県", "佐賀県", "長崎県",
     "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県", "海外"
 ];
+
+// Shown in the English form; the stored value stays the Japanese name above.
+const PREFECTURES_EN: Record<string, string> = {
+    "北海道": "Hokkaido", "青森県": "Aomori", "岩手県": "Iwate", "宮城県": "Miyagi", "秋田県": "Akita", "山形県": "Yamagata", "福島県": "Fukushima",
+    "茨城県": "Ibaraki", "栃木県": "Tochigi", "群馬県": "Gunma", "埼玉県": "Saitama", "千葉県": "Chiba", "東京都": "Tokyo", "神奈川県": "Kanagawa",
+    "新潟県": "Niigata", "富山県": "Toyama", "石川県": "Ishikawa", "福井県": "Fukui", "山梨県": "Yamanashi", "長野県": "Nagano", "岐阜県": "Gifu",
+    "静岡県": "Shizuoka", "愛知県": "Aichi", "三重県": "Mie", "滋賀県": "Shiga", "京都府": "Kyoto", "大阪府": "Osaka", "兵庫県": "Hyogo",
+    "奈良県": "Nara", "和歌山県": "Wakayama", "鳥取県": "Tottori", "島根県": "Shimane", "岡山県": "Okayama", "広島県": "Hiroshima", "山口県": "Yamaguchi",
+    "徳島県": "Tokushima", "香川県": "Kagawa", "愛媛県": "Ehime", "高知県": "Kochi", "福岡県": "Fukuoka", "佐賀県": "Saga", "長崎県": "Nagasaki",
+    "熊本県": "Kumamoto", "大分県": "Oita", "宮崎県": "Miyazaki", "鹿児島県": "Kagoshima", "沖縄県": "Okinawa",
+};
+
+const OVERSEAS = "海外";
+
+// ISO 3166-1 alpha-2, without Japan. Names come from the browser in the form's language.
+const COUNTRY_CODES = (
+    'AD AE AF AG AI AL AM AO AR AS AT AU AW AZ BA BB BD BE BF BG BH BI BJ BM BN BO BR BS BT BW BY BZ ' +
+    'CA CD CF CG CH CI CK CL CM CN CO CR CU CV CW CY CZ DE DJ DK DM DO DZ EC EE EG ER ES ET FI FJ FM FO FR ' +
+    'GA GB GD GE GF GH GI GL GM GN GP GQ GR GT GU GW GY HK HN HR HT HU ID IE IL IN IQ IR IS IT JM JO ' +
+    'KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MG MH MK ML MM MN MO MQ MR MT MU MV MW MX MY MZ ' +
+    'NA NC NE NG NI NL NO NP NR NZ OM PA PE PF PG PH PK PL PR PS PT PW PY QA RE RO RS RU RW ' +
+    'SA SB SC SD SE SG SI SK SL SM SN SO SR SS ST SV SY SZ TC TD TG TH TJ TL TM TN TO TR TT TV TW TZ ' +
+    'UA UG US UY UZ VA VC VE VG VI VN VU WS XK YE ZA ZM ZW'
+).split(' ');
+
+function regionNames(locale: string): (code: string) => string {
+    try {
+        const names = new Intl.DisplayNames([locale], { type: 'region' });
+        return code => names.of(code) ?? code;
+    } catch {
+        return code => code;
+    }
+}
 
 const YOKAI_PERCEPTION_OPTIONS = [
     { value: 'character', label: 'アニメやゲームに出てくるキャラクター' },
@@ -110,15 +143,22 @@ function ConsentScreen({ onAccept, onDecline, isDeclining, isEnglish }: { onAcce
                     border: '1px solid rgba(255, 255, 255, 0.06)'
                 }}>
                     <span className="body-text" style={{ fontSize: '0.8rem', opacity: 0.5, display: 'block', marginBottom: '0.6rem' }}>
-                        研究実施者
+                        {isEnglish ? 'Researchers' : '研究実施者'}
                     </span>
                     <div className="body-text" style={{ fontSize: '0.85rem', lineHeight: 1.9, opacity: 0.75 }}>
-                        <p style={{ margin: '0 0 0.2rem 0' }}>一倉 弘毅（筑波大学大学院 システム情報工学研究群）</p>
-                        <p style={{ margin: '0 0 0.2rem 0' }}>干川 未来（筑波大学 システム情報工学研究群）</p>
-                        <p style={{ margin: '0 0 0.2rem 0' }}>清水 紘輔（筑波大学 情報学群 情報メディア創成学類）</p>
-                        <p style={{ margin: '0 0 0.6rem 0' }}>池辺 莉々（日本女子大学 文学部 史学科）</p>
-                        <p style={{ margin: 0, fontSize: '0.8rem' }}>
-                            担当連絡先：清水（shimizu@ai.iit.tsukuba.ac.jp）
+                        {(isEnglish ? [
+                            'Hiroki Ichikura (Degree Programs in Systems and Information Engineering, University of Tsukuba)',
+                            'Mirai Hoshikawa (Degree Programs in Systems and Information Engineering, University of Tsukuba)',
+                            'Kosuke Shimizu (College of Media Arts, Science and Technology, University of Tsukuba)',
+                            'Riri Ikebe (Department of History, Faculty of Humanities, Japan Women’s University)',
+                        ] : [
+                            '一倉 弘毅（筑波大学大学院 システム情報工学研究群）',
+                            '干川 未来（筑波大学 システム情報工学研究群）',
+                            '清水 紘輔（筑波大学 情報学群 情報メディア創成学類）',
+                            '池辺 莉々（日本女子大学 文学部 史学科）',
+                        ]).map(line => <p key={line} style={{ margin: '0 0 0.2rem 0' }}>{line}</p>)}
+                        <p style={{ margin: '0.4rem 0 0', fontSize: '0.8rem' }}>
+                            {isEnglish ? 'Contact: Shimizu (shimizu@ai.iit.tsukuba.ac.jp)' : '担当連絡先：清水（shimizu@ai.iit.tsukuba.ac.jp）'}
                         </p>
                     </div>
                 </div>
@@ -172,6 +212,7 @@ export default function EntrySurvey({ isEnglish, onComplete }: { isEnglish: bool
     const [isDeclining, setIsDeclining] = useState(false);
     const [visitorType, setVisitorType] = useState("");
     const [origin, setOrigin] = useState("");
+    const [country, setCountry] = useState("");
     const [familiarity, setFamiliarity] = useState<number | null>(null);
     const [preImage, setPreImage] = useState("");
     // New fields for SIGGRAPH evaluation
@@ -180,6 +221,11 @@ export default function EntrySurvey({ isEnglish, onComplete }: { isEnglish: bool
     const [yokaiPerception, setYokaiPerception] = useState("");
     const [aiExperience, setAiExperience] = useState<number | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const countryOptions = useMemo(() => {
+        const locale = isEnglish ? 'en' : 'ja';
+        const nameOf = regionNames(locale);
+        return COUNTRY_CODES.map(code => ({ code, name: nameOf(code) })).sort((a, b) => a.name.localeCompare(b.name, locale));
+    }, [isEnglish]);
     const [error, setError] = useState("");
 
     useEffect(() => {
@@ -190,17 +236,27 @@ export default function EntrySurvey({ isEnglish, onComplete }: { isEnglish: bool
         e.preventDefault();
         setError("");
 
-        if (!visitorType || !origin || !familiarity || !age || !yokaiPerception) {
-            setError(isEnglish ? 'Please complete all required fields.' : '必須項目をすべて入力してください。');
+        // Question 4 (first image), 6 (gender) and 8 (AI experience) are optional.
+        const missing = [
+            !visitorType && 1,
+            (!origin || (origin === OVERSEAS && !country)) && 2,
+            !familiarity && 3,
+            !age && 5,
+            !yokaiPerception && 7,
+        ].filter(Boolean);
+        if (missing.length > 0) {
+            setError(isEnglish ? `Please answer question ${missing.join(', ')}.` : `質問 ${missing.join('、')} にお答えください。`);
             return;
         }
+        // Overseas visitors are stored with their country, in English for one spelling per country.
+        const originValue = origin === OVERSEAS ? `${OVERSEAS}（${regionNames('en')(country)}）` : origin;
 
         setIsSubmitting(true);
 
         try {
             const entryPayload = {
                 visitorType,
-                origin,
+                origin: originValue,
                 familiarity,
                 preImage: preImage.trim(),
                 age,
@@ -232,7 +288,7 @@ export default function EntrySurvey({ isEnglish, onComplete }: { isEnglish: bool
                 const { data, error: dbError } = await supabase
                     .from('surveys')
                     .insert([{
-                        visitor_type: visitorType, pre_origin: origin, pre_familiarity: familiarity,
+                        visitor_type: visitorType, pre_origin: originValue, pre_familiarity: familiarity,
                         pre_image: preImage.trim() || null, pre_age: age, pre_gender: gender || null,
                         pre_yokai_perception: yokaiPerception, pre_ai_experience: aiExperience,
                     }])
@@ -327,7 +383,7 @@ export default function EntrySurvey({ isEnglish, onComplete }: { isEnglish: bool
                     {error && <div style={{ color: '#ff6b6b', textAlign: 'center' }}>{error}</div>}
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                        <label className="body-text">{isEnglish ? '1. Which best describes you?' : '1. あなたについて'}</label>
+                        <label className="body-text">{isEnglish ? '1. Which best describes you?' : '1. あなたについて'}<span style={{ color: '#ff6b6b', fontSize: '0.8rem', marginLeft: '0.5rem' }}>{isEnglish ? 'Required' : '必須'}</span></label>
                         <select
                             className="glass-input"
                             value={visitorType}
@@ -344,7 +400,7 @@ export default function EntrySurvey({ isEnglish, onComplete }: { isEnglish: bool
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                        <label className="body-text">{isEnglish ? '2. Where are you visiting from?' : '2. どちらからお越しですか？'}</label>
+                        <label className="body-text">{isEnglish ? '2. Where are you visiting from?' : '2. どちらからお越しですか？'}<span style={{ color: '#ff6b6b', fontSize: '0.8rem', marginLeft: '0.5rem' }}>{isEnglish ? 'Required' : '必須'}</span></label>
                         <select
                             className="glass-input"
                             value={origin}
@@ -352,14 +408,30 @@ export default function EntrySurvey({ isEnglish, onComplete }: { isEnglish: bool
                             style={{ padding: '1rem', width: '100%' }}
                         >
                             <option value="" disabled>{isEnglish ? 'Select one' : '選択してください'}</option>
-                            {PREFECTURES.map(pref => (
-                                <option key={pref} value={pref}>{pref}</option>
+                            {isEnglish && <option value={OVERSEAS}>Outside Japan</option>}
+                            {PREFECTURES.filter(pref => pref !== OVERSEAS).map(pref => (
+                                <option key={pref} value={pref}>{isEnglish ? `${PREFECTURES_EN[pref]} (Japan)` : pref}</option>
                             ))}
+                            {!isEnglish && <option value={OVERSEAS}>{OVERSEAS}</option>}
                         </select>
+                        {origin === OVERSEAS && (
+                            <select
+                                className="glass-input"
+                                value={country}
+                                onChange={e => setCountry(e.target.value)}
+                                aria-label={isEnglish ? 'Country or region' : '国・地域'}
+                                style={{ padding: '1rem', width: '100%' }}
+                            >
+                                <option value="" disabled>{isEnglish ? 'Select your country or region' : '国・地域を選択してください'}</option>
+                                {countryOptions.map(({ code, name }) => (
+                                    <option key={code} value={code}>{name}</option>
+                                ))}
+                            </select>
+                        )}
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                        <label className="body-text">{isEnglish ? '3. How familiar are you with yokai or folklore?' : '3. 「妖怪」や「伝承」にどれくらい馴染みがありますか？'}</label>
+                        <label className="body-text">{isEnglish ? '3. How familiar are you with yokai or folklore?' : '3. 「妖怪」や「伝承」にどれくらい馴染みがありますか？'}<span style={{ color: '#ff6b6b', fontSize: '0.8rem', marginLeft: '0.5rem' }}>{isEnglish ? 'Required' : '必須'}</span></label>
                         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem' }}>
                             {[1, 2, 3, 4, 5].map(num => (
                                 <button
@@ -480,6 +552,8 @@ export default function EntrySurvey({ isEnglish, onComplete }: { isEnglish: bool
                             <span>{isEnglish ? 'Use it regularly' : '日常的に使う'}</span>
                         </div>
                     </div>
+
+                    {error && <div role="alert" style={{ color: '#ff6b6b', textAlign: 'center' }}>{error}</div>}
 
                     <button
                         type="submit"
