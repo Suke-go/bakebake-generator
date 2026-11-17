@@ -4,6 +4,7 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useApp } from '@/lib/context';
+import { keepsakeFileName, loadDemoKeepsake, PROJECT_SITE_URL, type DemoKeepsake } from '@/lib/demo-keepsake';
 import '@/app/globals.css';
 
 const THEME_OPTIONS = [
@@ -40,19 +41,35 @@ function ExitSurveyForm() {
     const searchParams = useSearchParams();
     const id = searchParams.get('id');
     const isEnglish = searchParams.get('lang') === 'en';
+    // Reached from /demo: the participant's own phone, away from the venue
+    // printer and the shared terminal.
+    const isDemo = searchParams.get('from') === 'demo';
     const localizedPath = React.useCallback((path: string) => `${path}${isEnglish ? `${path.includes('?') ? '&' : '?'}lang=en` : ''}`, [isEnglish]);
     const returnToStart = React.useCallback(() => {
         resetState();
         setLocale(isEnglish ? 'en' : 'ja');
-        router.push(localizedPath('/generator'));
-    }, [isEnglish, localizedPath, resetState, router, setLocale]);
+        router.push(isDemo ? '/demo' : localizedPath('/generator'));
+    }, [isDemo, isEnglish, localizedPath, resetState, router, setLocale]);
 
     const [triggerSent, setTriggerSent] = useState(false);
+
+    // /demo: the yokai to hand back on the final screen. The full image comes
+    // from this tab; the saved record is the fallback (e.g. after a reload).
+    const [keepsake, setKeepsake] = useState<DemoKeepsake | null>(() => loadDemoKeepsake());
+    useEffect(() => {
+        if (!isDemo || !id || keepsake) return;
+        let cancelled = false;
+        void supabase.from('surveys').select('yokai_name, yokai_image_b64').eq('id', id).single().then(({ data }) => {
+            if (!cancelled && data?.yokai_image_b64) setKeepsake({ name: data.yokai_name || '', image: data.yokai_image_b64 });
+        });
+        return () => { cancelled = true; };
+    }, [id, isDemo, keepsake]);
 
     // Form fields
     const [systems, setSystems] = useState<string[]>([]);
     const [theme, setTheme] = useState("");
     const [impression, setImpression] = useState("");
+    const [pastYokaiImpression, setPastYokaiImpression] = useState("");
     const [selections, setSelections] = useState<string[]>([]);
     const [actionLog, setActionLog] = useState<number | null>(null);
     const [postYokaiPerception, setPostYokaiPerception] = useState("");
@@ -65,7 +82,7 @@ function ExitSurveyForm() {
     // オンライン: Supabase の print_triggered を true に → print_daemon がポーリングで検知
     // オフライン: Supabase 失敗時 → /api/local-print に直接 POST
     useEffect(() => {
-        if (!id || triggerSent) return;
+        if (!id || triggerSent || isDemo) return;
 
         const triggerPrint = async () => {
             try {
@@ -107,7 +124,7 @@ function ExitSurveyForm() {
         };
 
         triggerPrint();
-    }, [id, triggerSent]);
+    }, [id, triggerSent, isDemo]);
 
     const handleSystemSelect = (sys: string) => {
         setSystems(prev => prev.includes(sys) ? prev.filter(s => s !== sys) : [...prev, sys]);
@@ -145,6 +162,7 @@ function ExitSurveyForm() {
                     post_completed_at: new Date().toISOString(),
                     post_theme: theme.trim(),
                     post_impression: impression.trim(),
+                    post_past_yokai_impression: pastYokaiImpression.trim() || null,
                     post_selections: selections,
                     post_action: actionLog,
                     post_systems: systems,
@@ -196,6 +214,7 @@ function ExitSurveyForm() {
         const t1 = setTimeout(() => setShowThankTitle(true), 400);
         const t2 = setTimeout(() => setShowThankBody(true), 1600);
         const t3 = setTimeout(() => setShowThankButtons(true), 2800);
+        if (isDemo) return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
         startIdleTimers();
         const restart = () => startIdleTimers();
         window.addEventListener('pointerdown', restart);
@@ -208,7 +227,7 @@ function ExitSurveyForm() {
             window.removeEventListener('pointermove', restart);
             window.removeEventListener('keydown', restart);
         };
-    }, [isComplete, startIdleTimers, clearIdleTimers]);
+    }, [isComplete, isDemo, startIdleTimers, clearIdleTimers]);
 
     if (!id) {
         return (
@@ -239,7 +258,7 @@ function ExitSurveyForm() {
                     </h1>
                 )}
 
-                {showThankBody && (
+                {showThankBody && !isDemo && (
                     <div className="float-up" style={{
                         display: 'flex',
                         flexDirection: 'column',
@@ -252,7 +271,10 @@ function ExitSurveyForm() {
                             lineHeight: 2.0,
                             letterSpacing: '0.08em',
                         }}>
-                            {isEnglish ? 'Please collect your printed talisman.' : '印刷されたお札をお受け取りください。'}
+                            {isEnglish ? 'Please collect both printed copies.' : '印刷された2枚をお受け取りください。'}
+                        </p>
+                        <p className="body-text" style={{ fontSize: '1rem', lineHeight: 1.9, maxWidth: '32rem' }}>
+                            {isEnglish ? <><strong>Exhibition copy:</strong> Write your thoughts, then stick it beside a yokai that feels similar to yours.<br /><strong>Take-home copy:</strong> Keep it as a souvenir.</> : <><strong>お札（展示に貼る用）：</strong>感想を書いて、似ていると思う妖怪のそばに貼ってください。<br /><strong>お土産（持ち帰り用）：</strong>お持ち帰りください。</>}
                         </p>
                         <p className="body-text" style={{
                             fontSize: '0.85rem',
@@ -264,6 +286,12 @@ function ExitSurveyForm() {
                     </div>
                 )}
 
+                {showThankBody && isDemo && (
+                    <p className="body-text float-up" style={{ fontSize: '1rem', opacity: 0.85, lineHeight: 2.0, letterSpacing: '0.08em', maxWidth: '32rem' }}>
+                        {isEnglish ? <>Your yokai has been recorded.<br />Have a safe journey home.</> : <>あなたの妖怪は記録されました。<br />気をつけてお帰りください。</>}
+                    </p>
+                )}
+
                 {showThankButtons && (
                     <div className="float-up" style={{
                         marginTop: '2.5rem',
@@ -272,20 +300,40 @@ function ExitSurveyForm() {
                         alignItems: 'center',
                         gap: '0.8rem',
                     }}>
+                        {isDemo && keepsake && (
+                            <>
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={keepsake.image} alt={keepsake.name} style={{ width: 'min(240px, 70vw)', borderRadius: 4, border: '1px solid rgba(255,255,255,0.2)' }} />
+                                {keepsake.name && <p className="title-text" style={{ fontSize: '1.3rem', margin: '0.3rem 0 0.6rem' }}>{keepsake.name}</p>}
+                                <a href={keepsake.image} download={keepsakeFileName(keepsake)} className="interactive-button" style={{ padding: '1rem 2rem', textDecoration: 'none' }}>
+                                    {isEnglish ? 'Download your yokai' : '妖怪の画像をダウンロード'}
+                                </a>
+                            </>
+                        )}
+                        {isDemo && (
+                            <a href="/collection" className="interactive-button" style={{ padding: '1rem 2rem', textDecoration: 'none' }}>
+                                {isEnglish ? 'See the yokai others have made' : 'ほかの人が作った妖怪を見る'}
+                            </a>
+                        )}
+                        {isDemo && (
+                            <a href={PROJECT_SITE_URL} className="interactive-button" style={{ padding: '1rem 2rem', textDecoration: 'none' }}>
+                                {isEnglish ? 'Go to bakebake.org' : 'bakebake.org へ進む'}
+                            </a>
+                        )}
                         <button
                             onClick={returnToStart}
                             className="interactive-button"
-                            style={{ padding: '1rem 2rem' }}
+                            style={isDemo ? { padding: '0.7rem 1.5rem', opacity: 0.5, fontSize: '0.85rem' } : { padding: '1rem 2rem' }}
                         >
                             {isEnglish ? 'Return to start' : '初期画面へ戻る'}
                         </button>
-                        <button
+                        {!isDemo && <button
                             onClick={() => router.push(localizedPath('/survey/enter'))}
                             className="interactive-button"
                             style={{ padding: '0.7rem 1.5rem', opacity: 0.5, fontSize: '0.85rem' }}
                         >
                             {isEnglish ? 'Take part again' : 'もう一度参加する'}
-                        </button>
+                        </button>}
                     </div>
                 )}
 
@@ -319,7 +367,9 @@ function ExitSurveyForm() {
             </h1>
 
             <p className="body-text" style={{ textAlign: 'center', opacity: 0.8, maxWidth: '600px' }}>
-                {isEnglish ? 'While your record is printing, please answer the following questions.' : 'プリンターから記録が出力されるのを待ちながら、以下の質問にお答えください。'}
+                {isDemo
+                    ? (isEnglish ? 'To finish, please answer the following questions.' : '最後に、以下の質問にお答えください。')
+                    : (isEnglish ? 'While your record is printing, please answer the following questions.' : 'プリンターから記録が出力されるのを待ちながら、以下の質問にお答えください。')}
             </p>
 
             <form onSubmit={handleSubmit} style={{
@@ -439,6 +489,21 @@ function ExitSurveyForm() {
                             </label>
                         ))}
                     </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                    <label htmlFor="past-yokai-impression" className="body-text">
+                        {isEnglish ? '7. What did you think or feel when you saw the yokai from the past?' : '7. 過去の妖怪を見て、どのようなことを思ったり感じたりしましたか？'}
+                    </label>
+                    <textarea
+                        id="past-yokai-impression"
+                        className="glass-input"
+                        placeholder={isEnglish ? 'Optional — write freely' : '自由にお書きください（任意）'}
+                        value={pastYokaiImpression}
+                        onChange={e => setPastYokaiImpression(e.target.value)}
+                        rows={3}
+                        style={{ padding: '1rem', width: '100%', resize: 'vertical' }}
+                    />
                 </div>
 
                 <button

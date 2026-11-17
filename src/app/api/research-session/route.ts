@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     }
 
     const locale = body.locale === 'en' ? 'en' : body.locale === 'ja' ? 'ja' : null;
-    const required = ['visitorType', 'origin', 'preImage', 'age', 'yokaiPerception'];
+    const required = ['visitorType', 'origin', 'age', 'yokaiPerception'];
     if (body.consentAccepted !== true || body.consentVersion !== RESEARCH_CONSENT_VERSION || !locale || required.some(key => !stringOrNull(body[key])) || !Number.isInteger(body.familiarity)) {
         return NextResponse.json({ error: 'Invalid study entry' }, { status: 400 });
     }

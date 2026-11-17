@@ -64,7 +64,7 @@ export default function LandingPage() {
                         </div>
                         <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.2rem', borderRadius: '8px' }}>
                             <h3 style={{ fontSize: '1rem', marginBottom: '0.6rem', color: 'var(--text-bright)' }}>2. 伝承記録との照合</h3>
-                            <p style={{ fontSize: '0.9rem', opacity: 0.8, lineHeight: 1.6 }}>あなたの体験をもとに日文研のデータベースを検索し、歴史的に語り継がれてきた類似の伝承記録を探し出します。</p>
+                            <p style={{ fontSize: '0.9rem', opacity: 0.8, lineHeight: 1.6 }}>あなたの体験をもとに日文研のデータベースを検索し、接点を考えるための伝承候補を提示します。</p>
                         </div>
                         <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.2rem', borderRadius: '8px' }}>
                             <h3 style={{ fontSize: '1rem', marginBottom: '0.6rem', color: 'var(--text-bright)' }}>3. 命名と視覚化</h3>
@@ -86,7 +86,7 @@ export default function LandingPage() {
                         <p style={{ marginBottom: '0.8rem' }}>主な参照: 国際日本文化研究センター（日文研）「怪異・妖怪伝承データベース」系譜を参照。</p>
                         <p style={{ marginBottom: '0.8rem' }}>実データ基盤は data/raw-folklore.json を使い、data/folklore-embeddings.json（ローカル優先）で検索。</p>
                         <p style={{ marginBottom: '0.8rem' }}>補助データとして CyberAgentAILab/YokaiEval（Wikipedia由来）を併用。</p>
-                        <p>AI構成: 検索・類似度計算は Google Gemini（gemini-embedding-001）、生成は Gemini（gemini-2.5-flash、gemini-2.5-flash-image / gemini-3-pro-image-preview）。必要時に OpenAI（GPT-4o-mini / DALL-E 3）へフォールバック。</p>
+                        <p>AI構成: 伝承検索は33,378件を対象に、常駐時はローカルQwen3-Embedding、停止時はローカルmultilingual-e5索引で行います。検索時の外部API呼び出しはありません。生成は Gemini（gemini-2.5-flash、gemini-2.5-flash-image / gemini-3-pro-image-preview）を使用し、必要時に OpenAI（GPT-4o-mini / DALL-E 3）へフォールバックします。</p>
                     </div>
                 </section>
 
@@ -120,6 +120,27 @@ export default function LandingPage() {
                     </a>
                     <p style={{ fontSize: '0.8rem', opacity: 0.45 }}>
                         事前アンケートに回答し、参加証を受け取ります
+                    </p>
+                    <a
+                        href="/demo"
+                        style={{
+                            display: 'inline-block',
+                            marginTop: '1rem',
+                            padding: '1rem 2.2rem',
+                            fontSize: '1rem',
+                            fontFamily: 'var(--font-main)',
+                            letterSpacing: '0.12em',
+                            color: 'var(--text-bright)',
+                            border: '1px solid rgba(255, 255, 255, 0.18)',
+                            borderRadius: '6px',
+                            textDecoration: 'none',
+                            textAlign: 'center',
+                        }}
+                    >
+                        スマートフォンだけで体験する
+                    </a>
+                    <p style={{ fontSize: '0.8rem', opacity: 0.45 }}>
+                        会場の端末を使わず、この画面のまま妖怪を生成します
                     </p>
                 </section>
 

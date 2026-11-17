@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 // Keep <img> for data URI image payloads to avoid Next Image URL validation issues.
+import { usePathname } from 'next/navigation';
 import { useApp } from '@/lib/context';
 import { generateImage } from '@/lib/api-client';
 import ProgressDots from './ProgressDots';
@@ -10,6 +11,7 @@ import SpookyText from './SpookyText';
 import ExperienceComparison from './ExperienceComparison';
 import { getResearchToken, logResearchEvent, sha256Hex } from '@/lib/research-log';
 import { RESEARCH_PROMPT_VERSION } from '@/lib/research-versions';
+import { PROJECT_SITE_URL, storeDemoKeepsake } from '@/lib/demo-keepsake';
 
 const compressImage = (dataUrl: string, maxSize = 512, quality = 0.6): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -265,11 +267,17 @@ function FogGenerationCanvas({ apiDoneRef }: { apiDoneRef: React.RefObject<boole
 
 export default function Phase3Reveal() {
     const { state, goToPhase, setNarrative, setGeneratedImage, setImageFeedback, completeImageGeneration, setTicketId, resetState } = useApp();
+    // /demo runs the whole experience on the participant's own phone: there is
+    // no shared terminal to hand back, so nothing resets on idle.
+    const isDemo = usePathname()?.startsWith('/demo') ?? false;
     const resetToReception = useCallback(() => {
-        const suffix = state.locale === 'en' ? '?lang=en' : '';
-        window.history.replaceState(null, '', `/generator${suffix}`);
+        if (!isDemo) {
+            const suffix = state.locale === 'en' ? '?lang=en' : '';
+            window.history.replaceState(null, '', `/generator${suffix}`);
+        }
         resetState();
-    }, [resetState, state.locale]);
+    }, [isDemo, resetState, state.locale]);
+    const exitSurveyHref = `/survey/exit?id=${state.ticketId}${state.locale === 'en' ? '&lang=en' : ''}${isDemo ? '&from=demo' : ''}`;
     const isEnglish = state.locale === 'en';
     const copy = isEnglish ? {
         generating: 'Bringing the presence into an image...', imageError: 'We could not generate the image.', remake: 'Try again', back: 'Back to appearance', saved: 'Your record was saved.', feedbackSaved: 'Your notes were saved.', feedbackLocal: 'Your notes are kept for this session.', saveNotes: 'Save these notes', continueWithoutSaving: 'Continue without saving notes', imageAlt: 'Yokai', story: 'A short story for this yokai', saveStory: 'Save story', saveError: 'We could not save the text', kept: 'What fits this image? (optional)', changed: 'What differs from your experience? (optional)', keptPlaceholder: 'For example: it remains, a misty shape', changedPlaceholder: 'For example: it does not chase me; it is more annoying than scary', remakeWithFeedback: (remaining: number) => `Remake with these notes (${remaining} left)`, limit: 'The image remake limit has been reached', survey: 'Continue to the survey', thanks: 'Thank you, whether or not you continue to the survey.', redraw: 'Edit or remake', chooseConcept: 'Choose a concept again', home: 'Return to the start', idle: 'There has been no activity. Returning to the start soon…',
@@ -462,6 +470,7 @@ export default function Phase3Reveal() {
                 blobUrlRef.current = blobUrl;
                 setImageDataUrl(blobUrl);
                 setGeneratedImage(blobUrl);
+                if (isDemo) storeDemoKeepsake({ name: state.selectedConcept.name, image: `data:${data.imageMimeType};base64,${data.imageBase64}` });
             } else if (!state.generatedImageUrl) {
                 setImageDataUrl('');
             }
@@ -579,6 +588,7 @@ export default function Phase3Reveal() {
         }
     }, [
         abortCurrentRequest,
+        isDemo,
         state.selectedConcept,
         state.artStyle,
         state.visualInput,
@@ -627,7 +637,7 @@ export default function Phase3Reveal() {
     }, [clearIdleTimers, resetToReception]);
 
     useEffect(() => {
-        if (!showActions) return;
+        if (!showActions || isDemo) return;
         startIdleTimers();
         const restart = () => startIdleTimers();
         window.addEventListener('pointerdown', restart);
@@ -639,7 +649,7 @@ export default function Phase3Reveal() {
             window.removeEventListener('pointermove', restart);
             window.removeEventListener('keydown', restart);
         };
-    }, [showActions, startIdleTimers, clearIdleTimers]);
+    }, [showActions, isDemo, startIdleTimers, clearIdleTimers]);
 
 
 
@@ -806,6 +816,11 @@ export default function Phase3Reveal() {
                                 {saveError}
                             </p>
                         )}
+                        {isDemo && imageDataUrl && (
+                            <a className="button" href={imageDataUrl} download={`${state.yokaiName || 'yokai'}.png`} style={{ textDecoration: 'none', textAlign: 'center' }}>
+                                {isEnglish ? 'Save image' : '画像を保存する'}
+                            </a>
+                        )}
                         <ExperienceComparison />
                         <div style={{ width: '100%', maxWidth: 520, display: 'flex', flexDirection: 'column', gap: 8 }}>
                             <label className="label">{copy.story}</label>
@@ -833,7 +848,7 @@ export default function Phase3Reveal() {
                             </button>
                         </div>
                         <a
-                            href={`/survey/exit?id=${state.ticketId}${state.locale === 'en' ? '&lang=en' : ''}`}
+                            href={exitSurveyHref}
                             onClick={async event => {
                                 event.preventDefault();
                                 const href = event.currentTarget.href;
@@ -852,7 +867,7 @@ export default function Phase3Reveal() {
                             {copy.survey}
                         </a>
                         {feedbackSaveError && (
-                            <a href={`/survey/exit?id=${state.ticketId}${state.locale === 'en' ? '&lang=en' : ''}`} className="button" style={{ textDecoration: 'none', textAlign: 'center' }}>
+                            <a href={exitSurveyHref} className="button" style={{ textDecoration: 'none', textAlign: 'center' }}>
                                 {copy.continueWithoutSaving}
                             </a>
                         )}
@@ -881,6 +896,17 @@ export default function Phase3Reveal() {
                                 {copy.home}
                             </button>
                         </div>
+
+                        {isDemo && (
+                            <a href="/collection" target="_blank" rel="noopener noreferrer" className="button" style={{ textDecoration: 'none', textAlign: 'center' }}>
+                                {isEnglish ? 'See the yokai others have made' : 'ほかの人が作った妖怪を見る'}
+                            </a>
+                        )}
+                        {isDemo && (
+                            <a href={PROJECT_SITE_URL} target="_blank" rel="noopener noreferrer" style={{ fontFamily: 'var(--font-main)', fontSize: 12, letterSpacing: '0.1em', color: 'var(--text-dim)' }}>
+                                {isEnglish ? 'About the project: bakebake.org' : 'プロジェクトについて：bakebake.org'}
+                            </a>
+                        )}
 
                         {showIdlePrompt && (
                             <p className="voice float-up" style={{

@@ -9,11 +9,12 @@ import YokaiOverlay from '@/components/YokaiOverlay';
 
 export default function ClientShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const isGenerator = pathname?.startsWith('/generator');
+  // /demo is the same generator carried on the participant's own phone.
+  const isGenerator = pathname?.startsWith('/generator') || pathname?.startsWith('/demo');
 
   return (
     <AppProvider>
-      <YokaiOverlay />
+      {pathname !== '/map' && <YokaiOverlay />}
       {isGenerator && <FogBackground />}
       {isGenerator && <ThemeEngine />}
       {children}

@@ -3,8 +3,12 @@ import { NextRequest, NextResponse } from 'next/server';
 /**
  * PIN-based protection for /admin and /generator routes.
  * Checks for a valid auth cookie; redirects to /auth if missing.
+ *
+ * /collection is a public gallery of the yokai people have made. Only its
+ * staff view (/collection?staff=1), which adds the survey answers, is protected.
  */
-const PROTECTED_PATHS = ['/admin', '/generator', '/collection'];
+const PROTECTED_PATHS = ['/admin', '/generator'];
+const STAFF_VIEW_PATH = '/collection';
 
 export function proxy(req: NextRequest) {
     const { pathname } = req.nextUrl;
@@ -13,7 +17,9 @@ export function proxy(req: NextRequest) {
     const isProtected = PROTECTED_PATHS.some(
         (p) => pathname === p || pathname.startsWith(p + '/')
     );
-    if (!isProtected) return NextResponse.next();
+    const isStaffView = (pathname === STAFF_VIEW_PATH || pathname.startsWith(STAFF_VIEW_PATH + '/'))
+        && req.nextUrl.searchParams.has('staff');
+    if (!isProtected && !isStaffView) return NextResponse.next();
 
     // Check auth cookie
     const authCookie = req.cookies.get('yokai-auth');

@@ -20,6 +20,7 @@ CREATE TABLE public.surveys (
     post_completed_at timestamp with time zone NULL,
     post_theme text NULL,
     post_impression text NULL,
+    post_past_yokai_impression text NULL,
     post_selections text[] NULL,       -- A-G forced-choice (max 2)
     post_action integer NULL,          -- 1-5 behavioral intention
     post_yokai_perception text NULL,   -- 'character' | 'culture' | 'psychology' | 'none' (mirror of pre)

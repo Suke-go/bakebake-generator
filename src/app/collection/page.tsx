@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { Suspense, useEffect, useState, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import '@/app/globals.css';
 import './collection.css'; // We will create this next for specific styles
@@ -12,16 +13,20 @@ type SurveyRecord = {
     yokai_name: string | null;
     yokai_desc: string | null;
     yokai_image_b64: string | null;
-    pre_origin: string | null;
-    pre_age: string | null;
-    pre_gender: string | null;
-    pre_familiarity: number | null;
-    pre_yokai_perception: string | null;
-    post_impression: string | null;
-    post_theme: string | null;
-    post_action: number | null;
-    post_completed: boolean;
+    // Survey answers: loaded and shown in the staff view only.
+    pre_origin?: string | null;
+    pre_age?: string | null;
+    pre_gender?: string | null;
+    pre_familiarity?: number | null;
+    pre_yokai_perception?: string | null;
+    post_impression?: string | null;
+    post_theme?: string | null;
+    post_action?: number | null;
+    post_completed?: boolean;
 };
+
+// The public gallery shows the yokai only.
+const PUBLIC_COLUMNS = 'id, created_at, yokai_name, yokai_desc, yokai_image_b64';
 
 // Map perception types to Japanese strings
 const PERCEPTION_MAP: Record<string, string> = {
@@ -31,7 +36,9 @@ const PERCEPTION_MAP: Record<string, string> = {
     none: 'とくにない',
 };
 
-export default function CollectionPage() {
+function CollectionContent() {
+    // /collection?staff=1 sits behind the PIN (see proxy.ts) and adds the survey answers.
+    const isStaffView = useSearchParams().has('staff');
     const [surveys, setSurveys] = useState<SurveyRecord[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -44,12 +51,12 @@ export default function CollectionPage() {
                 // We only want to show ones that actually have a Yokai generated
                 const { data, error } = await supabase
                     .from('surveys')
-                    .select('*')
+                    .select(isStaffView ? '*' : PUBLIC_COLUMNS)
                     .not('yokai_name', 'is', null)
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
-                if (data) setSurveys(data);
+                if (data) setSurveys(data as unknown as SurveyRecord[]);
             } catch (err: any) {
                 console.error(err);
                 setError(err.message);
@@ -89,7 +96,7 @@ export default function CollectionPage() {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, []);
+    }, [isStaffView]);
 
     const openModal = useCallback((yokai: SurveyRecord) => {
         setSelectedYokai(yokai);
@@ -169,7 +176,7 @@ export default function CollectionPage() {
                                     </p>
                                 </div>
 
-                                <div className="info-section survey-results">
+                                {isStaffView && <div className="info-section survey-results">
                                     <h3 className="section-label">【 来訪者記録 】</h3>
                                     <div className="survey-grid">
                                         <div className="survey-item">
@@ -193,9 +200,9 @@ export default function CollectionPage() {
                                             <span className="survey-val">{PERCEPTION_MAP[selectedYokai.pre_yokai_perception || ''] || selectedYokai.pre_yokai_perception || '—'}</span>
                                         </div>
                                     </div>
-                                </div>
+                                </div>}
 
-                                {selectedYokai.post_completed && (
+                                {isStaffView && selectedYokai.post_completed && (
                                     <div className="info-section survey-results">
                                         <h3 className="section-label">【 体験後記録 】</h3>
                                         {selectedYokai.post_impression && (
@@ -223,4 +230,8 @@ export default function CollectionPage() {
             )}
         </div>
     );
+}
+
+export default function CollectionPage() {
+    return <Suspense fallback={<div className="collection-loading" />}><CollectionContent /></Suspense>;
 }
