@@ -241,8 +241,10 @@ export async function POST(req: Request) {
                     folkloreSummaries = (parsed.folkloreSummaries as unknown[])
                         .filter((item: unknown): item is { folkloreRef: string; summary: string } =>
                             Boolean(item) && typeof item === 'object' && typeof (item as { folkloreRef?: unknown }).folkloreRef === 'string' && typeof (item as { summary?: unknown }).summary === 'string')
-                        .filter((item) => permittedIds.has(item.folkloreRef) && item.summary.trim().length > 0)
-                        .map((item) => ({ folkloreRef: item.folkloreRef, summary: item.summary.trim() }));
+                        // The prompt lists each record as "[id] name: …", and the model
+                        // tends to copy the id with its brackets.
+                        .map((item) => ({ folkloreRef: item.folkloreRef.trim().replace(/^\[|\]$/g, '').trim(), summary: item.summary.trim() }))
+                        .filter((item) => permittedIds.has(item.folkloreRef) && item.summary.length > 0);
                 }
                 // Fallback: try single object
                 if (llmCandidates.length === 0) {
@@ -278,7 +280,14 @@ export async function POST(req: Request) {
 
         return NextResponse.json(
             {
-                concepts: [...dbConcepts, ...llmCandidates],
+                // An English participant reads the archive candidates through their English summary.
+                concepts: [
+                    ...dbConcepts.map((concept) => {
+                        const summary = folkloreSummaries.find((item) => item.folkloreRef === concept.folkloreRef)?.summary;
+                        return summary ? { ...concept, description: summary } : concept;
+                    }),
+                    ...llmCandidates,
+                ],
                 usedModel,
                 ...(folkloreSummaries.length > 0 ? { folkloreSummaries } : {}),
             },

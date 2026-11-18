@@ -137,14 +137,14 @@ export function buildConceptPrompt(
             'You create yokai concepts from a participant’s personal experience.',
             'Return exactly one JSON object with `concepts` and `folkloreSummaries`.',
             '`concepts` is an array of exactly three concepts. Each has `name`, `reading`, `description`, and `type`.',
-            '`folkloreSummaries` is an array with at most one entry for each supplied folklore reference: `folkloreRef` must copy its bracketed id exactly and `summary` is a one- or two-sentence English reading aid based only on that Japanese source. Do not call it an authoritative translation.',
+            '`folkloreSummaries` is an array with at most one entry for each supplied folklore reference: `folkloreRef` must be the id inside the brackets, without the brackets, and `summary` is a one- or two-sentence English reading aid based only on that Japanese source. Do not call it an authoritative translation.',
             'Write name and description in natural English. `reading` may be empty or a romanized Japanese-inspired reading.',
             'Description must be 60–100 English words describing the yokai’s nature, behavior, and a short story.',
             'Preserve only what the participant states. Do not invent pursuit, attack, fear, a clear body, or a supernatural factual cause.',
             'If an ordinary explanation is provided, present the yokai as a creative representation, never the factual cause.',
             '', 'Participant account:', context,
             '', 'Japanese folklore references (do not claim a translation or invent a source):', folkloreRef,
-            '', 'Output example:', '{"concepts":[{"name":"The Room-Stayer","reading":"heya-zumi","description":"...","type":"place_action"}],"folkloreSummaries":[{"folkloreRef":"record-id","summary":"..."}]}',
+            '', 'Output example:', `{"concepts":[{"name":"The Room-Stayer","reading":"heya-zumi","description":"...","type":"place_action"}],"folkloreSummaries":[{"folkloreRef":"${folklore[0]?.id ?? 'record-id'}","summary":"..."}]}`,
         ].join('\n');
     }
 
