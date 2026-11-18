@@ -11,8 +11,8 @@ import GeneratorFlow from '@/components/GeneratorFlow';
  * /demo — the whole experience on one smartphone.
  *
  * language → consent and entry questions → the ofuda opens the door →
- * the yokai-making phases, all on this device. No exhibition terminal, QR
- * scan, or printer is involved.
+ * the yokai-making phases, all on this device. No exhibition terminal or QR
+ * scan is involved; submitting the exit survey prints the yokai at the booth.
  */
 
 type Stage = 'language' | 'survey' | 'door';

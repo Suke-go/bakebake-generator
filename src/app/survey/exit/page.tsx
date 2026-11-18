@@ -41,8 +41,8 @@ function ExitSurveyForm() {
     const searchParams = useSearchParams();
     const id = searchParams.get('id');
     const isEnglish = searchParams.get('lang') === 'en';
-    // Reached from /demo: the participant's own phone, away from the venue
-    // printer and the shared terminal.
+    // Reached from /demo: the participant's own phone. The yokai prints at the
+    // booth once this survey is submitted, and is stuck on the wall there.
     const isDemo = searchParams.get('from') === 'demo';
     const localizedPath = React.useCallback((path: string) => `${path}${isEnglish ? `${path.includes('?') ? '&' : '?'}lang=en` : ''}`, [isEnglish]);
     const returnToStart = React.useCallback(() => {
@@ -155,20 +155,35 @@ function ExitSurveyForm() {
         setIsSubmitting(true);
 
         try {
-            const { error: dbError } = await supabase
+            const otherYokai = pastYokaiImpression.trim();
+            const answers = {
+                post_completed: true,
+                post_completed_at: new Date().toISOString(),
+                post_theme: theme.trim(),
+                post_impression: impression.trim(),
+                post_selections: selections,
+                post_action: actionLog,
+                post_systems: systems,
+                post_yokai_perception: postYokaiPerception || null,
+                // /demo: submitting is what sends the yokai to the booth printer.
+                ...(isDemo ? { print_triggered: true } : {}),
+            };
+            let { error: dbError } = await supabase
                 .from('surveys')
-                .update({
-                    post_completed: true,
-                    post_completed_at: new Date().toISOString(),
-                    post_theme: theme.trim(),
-                    post_impression: impression.trim(),
-                    post_past_yokai_impression: pastYokaiImpression.trim() || null,
-                    post_selections: selections,
-                    post_action: actionLog,
-                    post_systems: systems,
-                    post_yokai_perception: postYokaiPerception || null
-                })
+                .update({ ...answers, post_past_yokai_impression: otherYokai || null })
                 .eq('id', id);
+
+            // A database without the post_past_yokai_impression column rejects the whole
+            // update. Keep the answer by filing it under the free-text impression instead.
+            if (dbError && (dbError.code === 'PGRST204' || dbError.code === '42703')) {
+                ({ error: dbError } = await supabase
+                    .from('surveys')
+                    .update({
+                        ...answers,
+                        post_impression: [impression.trim(), otherYokai && `【ほかの妖怪を見て】${otherYokai}`].filter(Boolean).join('\n'),
+                    })
+                    .eq('id', id));
+            }
 
             if (dbError) throw dbError;
 
@@ -288,7 +303,9 @@ function ExitSurveyForm() {
 
                 {showThankBody && isDemo && (
                     <p className="body-text float-up" style={{ fontSize: '1rem', opacity: 0.85, lineHeight: 2.0, letterSpacing: '0.08em', maxWidth: '32rem' }}>
-                        {isEnglish ? <>Your yokai has been recorded.<br />Have a safe journey home.</> : <>あなたの妖怪は記録されました。<br />気をつけてお帰りください。</>}
+                        {isEnglish
+                            ? <>Your yokai is now printing at the booth.<br />Please pick it up and stick it on the wall, beside a yokai that feels close to yours.</>
+                            : <>あなたの妖怪を、ブースのプリンターで印刷しています。<br />受け取って、近いと感じる妖怪のそばに貼ってください。</>}
                     </p>
                 )}
 
@@ -368,7 +385,9 @@ function ExitSurveyForm() {
 
             <p className="body-text" style={{ textAlign: 'center', opacity: 0.8, maxWidth: '600px' }}>
                 {isDemo
-                    ? (isEnglish ? 'To finish, please answer the following questions.' : '最後に、以下の質問にお答えください。')
+                    ? (isEnglish
+                        ? <>To finish, please answer the following questions.<br /><strong>When you submit your answers, your yokai is printed at the booth.</strong></>
+                        : <>最後に、以下の質問にお答えください。<br /><strong>回答を送信すると、ブースのプリンターであなたの妖怪が印刷されます。</strong></>)
                     : (isEnglish ? 'While your record is printing, please answer the following questions.' : 'プリンターから記録が出力されるのを待ちながら、以下の質問にお答えください。')}
             </p>
 
@@ -493,7 +512,9 @@ function ExitSurveyForm() {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                     <label htmlFor="past-yokai-impression" className="body-text">
-                        {isEnglish ? '7. What did you think or feel when you saw the yokai from the past?' : '7. 過去の妖怪を見て、どのようなことを思ったり感じたりしましたか？'}
+                        {isDemo
+                            ? (isEnglish ? '7. What did you think or feel when you looked at the yokai other people have stuck on the wall?' : '7. 壁に貼られているほかの人の妖怪を見て、どのようなことを思ったり感じたりしましたか？')
+                            : (isEnglish ? '7. What did you think or feel when you saw the yokai from the past?' : '7. 過去の妖怪を見て、どのようなことを思ったり感じたりしましたか？')}
                     </label>
                     <textarea
                         id="past-yokai-impression"
@@ -512,7 +533,7 @@ function ExitSurveyForm() {
                     disabled={isSubmitting}
                     style={{ marginTop: '1rem', padding: '1.2rem', fontSize: '1.1rem' }}
                 >
-                    {isSubmitting ? (isEnglish ? 'Saving...' : '記録中...') : (isEnglish ? 'Submit' : '送信する')}
+                    {isSubmitting ? (isEnglish ? 'Saving...' : '記録中...') : isDemo ? (isEnglish ? 'Submit and print' : '送信して印刷する') : (isEnglish ? 'Submit' : '送信する')}
                 </button>
             </form>
         </div>
