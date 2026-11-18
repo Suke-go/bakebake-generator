@@ -383,11 +383,20 @@ export function buildNarrativePrompt(
             '',
         ] : []),
         '## 出力ルール',
-        '- 「〜という。」「〜と伝えられている。」のような伝聞調で書くこと',
+        // The Japanese hearsay endings and character count pull the output into
+        // Japanese, so the English version states its own form.
+        locale === 'en'
+            ? '- 伝聞調で書くこと。英語では "It is said that…", "People say…", "…, so the story goes." のように書く'
+            : '- 「〜という。」「〜と伝えられている。」のような伝聞調で書くこと',
         '- 体験者の場所・知覚・印象を物語の骨格にすること（ここが他の伝承と違う独自性の源）',
         '- 既存伝承の語り口・雰囲気・モチーフは積極的に取り入れてよいが、筋書きをそのまま借用しないこと',
-        '- 2-3文、50-100文字程度の簡潔な伝承記録として出力すること',
-        locale === 'en' ? '- Write the narrative in English.' : '- 日本語で出力すること',
+        locale === 'en'
+            ? '- 2-3 sentences, about 40-70 English words, as a concise folklore record'
+            : '- 2-3文、50-100文字程度の簡潔な伝承記録として出力すること',
+        locale === 'en' ? '' : '- 日本語で出力すること',
         '- 伝承テキストのみを出力すること（前置きや説明は不要）',
+        locale === 'en'
+            ? '\nIMPORTANT: The participant reads English. Write the entire narrative in natural English only. Do not output any Japanese text, even though these instructions and the reference legends are in Japanese.'
+            : '',
     ].filter(Boolean).join('\n');
 }

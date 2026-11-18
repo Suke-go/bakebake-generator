@@ -13,7 +13,7 @@ import {
 const IMAGE_MODEL_CANDIDATES = [
     'gemini-2.5-flash-image',
 ] as const;
-const TEXT_MODEL = 'gemini-2.5-flash';
+const TEXT_MODEL = 'gemini-3.8-flash';
 const IMAGE_CONFIG = {
     aspectRatio: '1:1' as const,
     imageSize: '2K' as const,
