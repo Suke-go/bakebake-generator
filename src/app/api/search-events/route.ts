@@ -1,6 +1,8 @@
 import { createHash } from 'node:crypto';
+import { GoogleGenAI } from '@google/genai';
 import { NextResponse } from 'next/server';
 import { buildSearchQuery, type HandleInfo, type UserAnswers } from '@/lib/prompt-builder';
+import { toErrorMessage } from '@/lib/genai-utils';
 import { searchByEventAndAppraisal, RuriUnavailable, type RankedFolkloreRecord } from '@/lib/event-appraisal-search';
 
 export const runtime = 'nodejs';
@@ -13,7 +15,7 @@ interface SearchEventsResponse {
     ranked: RankedFolkloreRecord[];
     corpusVersion: string;
     branchSizes: { event: number; appraisal: number };
-    paidApiCalls: 0;
+    paidApiCalls: number;
 }
 type CacheEntry = { value: SearchEventsResponse; expiresAt: number };
 
@@ -37,6 +39,40 @@ function setCache(key: string, value: SearchEventsResponse) {
         if (oldestKey) cache.delete(oldestKey);
     }
     cache.set(key, { value, expiresAt: Date.now() + SEARCH_CACHE_TTL_MS });
+}
+
+const JAPANESE = /[぀-ヿ一-鿿]/;
+
+/**
+ * The archive summaries are Japanese, and both the lexical stage and the reranker
+ * read Japanese. An account written in another language shares no words with them
+ * (an English "a" only meets the anonymised "Aさん" of the summaries), so it is
+ * translated before the search. Returns null when no translation is available.
+ */
+async function toJapanese(texts: string[]): Promise<string[] | null> {
+    const prompt = [
+        'Translate each string of the JSON array below into plain, natural Japanese.',
+        'Translate faithfully: add nothing, explain nothing, keep names of places as they are.',
+        'Return only a JSON array of the same length, in the same order.',
+        JSON.stringify(texts),
+    ].join('\n');
+    const apiKeys = [process.env.GEMINI_API_KEY, process.env.GEMINI_SUB_API_KEY].filter(Boolean) as string[];
+    for (const apiKey of apiKeys) {
+        try {
+            const generated = await new GoogleGenAI({ apiKey }).models.generateContent({
+                model: 'gemini-3.8-flash',
+                contents: prompt,
+                config: { responseMimeType: 'application/json' },
+            });
+            const parsed: unknown = JSON.parse(generated.text || '');
+            if (Array.isArray(parsed) && parsed.length === texts.length && parsed.every((item) => typeof item === 'string' && item.trim())) {
+                return parsed as string[];
+            }
+        } catch (error) {
+            console.warn('search-events: translation failed:', toErrorMessage(error));
+        }
+    }
+    return null;
 }
 
 export async function POST(req: Request) {
@@ -85,13 +121,21 @@ export async function POST(req: Request) {
         let promise = inFlight.get(key);
         if (!promise) {
             promise = (async (): Promise<SearchEventsResponse> => {
-                const account = buildSearchQuery(handle, answers);
-                const result = await searchByEventAndAppraisal(account, eventText, appraisalText, resultLimit);
+                let queries = [buildSearchQuery(handle, answers), eventText, appraisalText];
+                let paidApiCalls = 0;
+                if (!JAPANESE.test(eventText + appraisalText)) {
+                    const translated = await toJapanese(queries);
+                    if (translated) {
+                        queries = translated;
+                        paidApiCalls = 1;
+                    }
+                }
+                const result = await searchByEventAndAppraisal(queries[0], queries[1], queries[2], resultLimit);
                 return {
                     ranked: result.ranked,
                     corpusVersion: result.corpusVersion,
                     branchSizes: result.branchSizes,
-                    paidApiCalls: 0,
+                    paidApiCalls,
                 };
             })();
             inFlight.set(key, promise);
