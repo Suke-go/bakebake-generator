@@ -212,3 +212,9 @@
   .primary, .ghost, .choice, .buddy { transition: none; }
   .buddy:hover:not(:disabled) { transform: none; }
 }
+.mapGuide { margin: 4px 0 0; font-size: 0.9rem; line-height: 1.5; }
+.touchGuide { display: none; }
+@media (any-pointer: coarse) {
+  .touchGuide { display: inline; }
+  .mouseGuide { display: none; }
+}

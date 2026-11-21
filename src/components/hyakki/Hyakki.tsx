@@ -605,6 +605,10 @@ export default function Hyakki({ onFinish }: { onFinish?: (log: PlayLog) => void
                             <div className={styles.strip}>
                                 <div className={styles.msg}>
                                     <h1 className={styles.head}>あなたの町をタップ</h1>
+                                    {onFinish && <p className={styles.mapGuide}>
+                                        <span className={styles.mouseGuide}>ドラッグで地図を移動。ホイールで拡大・縮小できます。</span>
+                                        <span className={styles.touchGuide}>指1本でスワイプすると地図が動きます。指2本を広げると拡大できます。</span>
+                                    </p>}
                                 </div>
                                 <div className={`${styles.actions} ${styles.pair}`}>
                                     <button type="button" className={styles.ghost} onClick={() => { setPin(null); setScreen(1); }} disabled={busy}>地方にもどる</button>
