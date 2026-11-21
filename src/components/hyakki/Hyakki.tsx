@@ -116,6 +116,8 @@ export type PlayLog = {
     seconds: number;            // from choosing a region to leaving the line-up
     peeks: number[];            // clouds opened before each of the four invitations
     chosen: string[];           // ids of the five
+    offeredEchoIds: string[];   // available in this parade, including when the call was skipped
+    openedIds: string[];        // distinct cards actually opened in the scroll
     friends: number[];          // how many each of the five drew in
     nearAll: number | null;     // mean likeness of the 95 to their callers
     nearAloud: number | null;   // the same, for those that answered aloud
@@ -232,8 +234,9 @@ async function paintScroll(chosen: Card[], lights: Light[], spots: Spot[], font:
     return canvas;
 }
 
-function Results({ chosen, lights, onRestart, onFinish }: { chosen: Card[]; lights: Light[]; onRestart: () => void; onFinish?: (seen: { opened: number; saved: boolean }) => void }) {
-    const seen = useRef({ opened: new Set<number>(), saved: false });
+type ScrollLog = Pick<PlayLog, 'opened' | 'openedIds' | 'saved'>;
+function Results({ chosen, lights, onRestart, onFinish }: { chosen: Card[]; lights: Light[]; onRestart: () => void; onFinish?: (seen: ScrollLog) => void }) {
+    const seen = useRef({ opened: new Set<string>(), saved: false });
     const sheetRef = useRef<HTMLDivElement>(null);
     const [open, setOpen] = useState<Card | null>(null);
     const [trouble, setTrouble] = useState(false);
@@ -254,10 +257,13 @@ function Results({ chosen, lights, onRestart, onFinish }: { chosen: Card[]; ligh
         return () => { alive = false; };
     }, [tall]);
     const show = (spot: Spot) => {
-        seen.current.opened.add(spots.indexOf(spot));
+        const display = (card: Card) => {
+            seen.current.opened.add(card.id);
+            setOpen(card);
+        };
         setTrouble(false);
-        if (spot.light < 0) { setOpen(chosen[spot.caller]); return; }
-        post<{ card: Card }>({ action: 'meet', id: lights[spot.light].id }).then(res => setOpen(res.card), () => setTrouble(true));
+        if (spot.light < 0) { display(chosen[spot.caller]); return; }
+        post<{ card: Card }>({ action: 'meet', id: lights[spot.light].id }).then(res => display(res.card), () => setTrouble(true));
     };
 
     const download = async () => {
@@ -311,7 +317,7 @@ function Results({ chosen, lights, onRestart, onFinish }: { chosen: Card[]; ligh
                 {onFinish ? (
                     <>
                         <button type="button" className={styles.ghost} onClick={() => { void download(); }}>画像をダウンロード</button>
-                        <button type="button" className={styles.primary} onClick={() => onFinish({ opened: seen.current.opened.size, saved: seen.current.saved })}>アンケートへ</button>
+                        <button type="button" className={styles.primary} onClick={() => onFinish({ opened: seen.current.opened.size, openedIds: [...seen.current.opened], saved: seen.current.saved })}>遊びを終える</button>
                     </>
                 ) : (
                     <>
@@ -489,11 +495,12 @@ export default function Hyakki({ onFinish }: { onFinish?: (log: PlayLog) => void
         });
     };
 
-    const finish = (seen: { opened: number; saved: boolean }) => {
+    const finish = (seen: ScrollLog) => {
         const mean = (xs: number[]) => (xs.length ? Math.round((xs.reduce((a, b) => a + b, 0) / xs.length) * 1000) / 1000 : null);
         onFinish?.({
             region, seconds: Math.round((Date.now() - study.current.t0) / 1000), peeks: study.current.peeks, chosen: chosen.map(c => c.id),
             friends: tally(lights), nearAll: mean(lights.map(l => l.near)), nearAloud: mean(lights.filter(l => l.tease).map(l => l.near)),
+            offeredEchoIds: lights.filter(l => l.tease).map(l => l.id),
             skippedCall: study.current.skippedCall, skippedParade: study.current.skippedParade, ...seen,
         });
     };

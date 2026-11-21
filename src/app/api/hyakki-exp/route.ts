@@ -2,6 +2,7 @@
 // The record holds what the player answered and how the play went; it never holds the player's town.
 import { NextResponse } from 'next/server';
 import { getResearchSupabase } from '@/lib/research-server';
+import { EXHIBIT_VERSION, exhibitRow } from '@/lib/hyakki-exhibit';
 
 const VERSION = 'hyakki-exp-v1';
 const SCALE_KEYS = ['foothold', 'trace', 'collection', 'worldLink', 'worldSpread', 'enjoy', 'again'];
@@ -15,6 +16,13 @@ export async function POST(request: Request) {
 
     let body: Record<string, unknown>;
     try { body = await request.json() as Record<string, unknown>; } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }); }
+    if (!body || typeof body !== 'object') return NextResponse.json({ error: 'Invalid record' }, { status: 400 });
+    if (body.version === EXHIBIT_VERSION) {
+        const row = exhibitRow(body);
+        if (!row) return NextResponse.json({ error: 'Invalid record' }, { status: 400 });
+        const { error } = await supabase.from('hyakki_exp_responses').upsert(row, { onConflict: 'id', ignoreDuplicates: true });
+        return NextResponse.json(error ? { error: 'Could not record' } : { ok: true }, { status: error ? 500 : 200 });
+    }
 
     const scalesIn = (body.scales ?? {}) as Record<string, unknown>;
     const scales = Object.fromEntries(SCALE_KEYS.map(k => [k, point(scalesIn[k])]));

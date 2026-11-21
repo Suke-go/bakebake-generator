@@ -1,157 +1,98 @@
-'use client';
+﻿'use client';
 
-// /hyakki/exp: the same game with a short consent, two questions before, and a short questionnaire after.
-// One anonymous record per play is sent at the end; nothing is sent if the player leaves earlier.
+import { useState } from 'react';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { ANCHORS, EXHIBIT_VERSION, LORE_INTEREST, PX_ITEMS } from '@/lib/hyakki-exhibit';
 import Hyakki, { type PlayLog } from './Hyakki';
 import styles from './HyakkiExp.module.css';
 
-export const EXP_VERSION = 'hyakki-exp-v1';
-const AGES = ['10代', '20代', '30代', '40代', '50代', '60代', '70代以上', '答えない'];
-const GENDERS = ['女性', '男性', 'その他', '答えない'];
+type Step = 'consent' | 'play' | 'story' | 'ratings' | 'done';
+type ExhibitLog = Pick<PlayLog, 'chosen' | 'openedIds' | 'offeredEchoIds' | 'skippedCall' | 'skippedParade'>;
 
-// One statement per element of the design (foothold, trace, collection, world x2), then the overall ones.
-const SCALES: { key: string; text: string }[] = [
-    { key: 'foothold', text: '自分の町の近くの妖怪だと思うと、興味がわいた' },
-    { key: 'trace', text: '雲の一言を見て、続きが知りたくなった' },
-    { key: 'collection', text: '選んだ5体は、自分で集めたものだと感じた' },
-    { key: 'worldLink', text: '集まってきた妖怪と、自分が選んだ妖怪のつながりが分かった' },
-    { key: 'worldSpread', text: '日本のあちこちに、似た話があると感じた' },
-    { key: 'enjoy', text: '楽しかった' },
-    { key: 'again', text: 'もう一度やってみたい' },
-];
-const INTEREST = '妖怪や昔の言い伝えに興味がある';
-
-function Scale({ value, onChange, label }: { value: number | null; onChange: (v: number) => void; label: string }) {
-    return (
-        <fieldset className={styles.scale}>
-            <legend>{label}</legend>
-            <div className={styles.points}>
-                <span>そう思わない</span>
-                {[1, 2, 3, 4, 5].map(n => (
-                    <button key={n} type="button" aria-pressed={value === n} aria-label={`${n}`} onClick={() => onChange(n)}>{n}</button>
-                ))}
-                <span>そう思う</span>
-            </div>
-        </fieldset>
-    );
+function Rating({ label, value, change }: { label: string; value?: number; change: (value?: number) => void }) {
+    return <label className={styles.field}>{label}
+        <select value={value ?? ''} onChange={e => change(e.target.value === '' ? undefined : Number(e.target.value))}>
+            <option value="">回答しない</option>
+            {ANCHORS.map((anchor, i) => <option value={i - 3} key={anchor}>{anchor}</option>)}
+        </select>
+    </label>;
 }
 
 export default function HyakkiExp() {
-    const [step, setStep] = useState<'consent' | 'before' | 'play' | 'after' | 'done'>('consent');
-    const [age, setAge] = useState('');
-    const [gender, setGender] = useState('');
-    const [interestBefore, setInterestBefore] = useState<number | null>(null);
-    const [log, setLog] = useState<PlayLog | null>(null);
-    // Half the players are asked to start from a town they know, half from one they do not: the only way to tell
-    // what the familiar starting point adds. Drawn after mounting, so that server and browser render the same page.
-    const [town, setTown] = useState<'own' | 'unknown' | null>(null);
-    useEffect(() => { setTown(Math.random() < 0.5 ? 'own' : 'unknown'); }, []);
-    const [knownTown, setKnownTown] = useState('');
-    const [scales, setScales] = useState<Record<string, number>>({});
-    const [interestAfter, setInterestAfter] = useState<number | null>(null);
-    const [why, setWhy] = useState('');
-    const [remember, setRemember] = useState('');
+    const [step, setStep] = useState<Step>('consent');
+    const [id, setId] = useState('');
+    const [log, setLog] = useState<ExhibitLog | null>(null);
+    const [retelling, setRetelling] = useState('');
+    const [imagination, setImagination] = useState('');
+    const [ratings, setRatings] = useState<Record<string, number | undefined>>({});
+    const [order, setOrder] = useState([...PX_ITEMS]);
+    const [interest, setInterest] = useState<number>();
     const [sending, setSending] = useState(false);
     const [failed, setFailed] = useState(false);
 
-    if (step === 'play') return <Hyakki onFinish={done => { setLog(done); setStep('after'); }} />;
-
-    const complete = knownTown !== '' && interestAfter !== null && SCALES.every(q => scales[q.key]);
-    const send = async () => {
-        setSending(true); setFailed(false);
+    function start() {
+        setId(crypto.randomUUID());
+        const items = [...PX_ITEMS];
+        for (let i = items.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [items[i], items[j]] = [items[j], items[i]];
+        }
+        setOrder(items);
+        setStep('play');
+    }
+    async function send() {
+        if (sending) return;
+        setSending(true);
+        setFailed(false);
         try {
-            const res = await fetch('/api/hyakki-exp', {
+            const response = await fetch('/api/hyakki-exp', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ version: EXP_VERSION, consent: true, age, gender, interestBefore, town, knownTown, scales, interestAfter, why, remember, log }),
+                body: JSON.stringify({ id, version: EXHIBIT_VERSION, consent: true, retelling, imagination, ratings, loreInterest: interest ?? null, log }),
             });
-            if (!res.ok) throw new Error(String(res.status));
+            if (!response.ok) throw new Error('save');
             setStep('done');
         } catch { setFailed(true); } finally { setSending(false); }
-    };
+    }
 
-    return (
-        <main className={styles.page}>
-            <div className={styles.sheet}>
-                {step === 'consent' && (
-                    <>
-                        <h1>百鬼夜行 ためし遊び</h1>
-                        <p>妖怪の言い伝えを集める遊びを、研究のために試してもらっています。5分ほど遊んで、最後に短いアンケートに答えてください。</p>
-                        <ul>
-                            <li>記録するのは、年代と性別、遊びの中での選び方、アンケートの答えです。</li>
-                            <li>名前や連絡先、地図で選んだ町の場所は記録しません。</li>
-                            <li>記録は、論文や学会での発表に使います。</li>
-                            <li>途中でやめても、何も記録されません。</li>
-                        </ul>
-                        <div className={styles.actions}>
-                            <Link href="/hyakki" className={styles.ghost}>記録なしで遊ぶ</Link>
-                            <button type="button" className={styles.primary} onClick={() => setStep('before')}>同意して始める</button>
-                        </div>
-                    </>
-                )}
+    if (step === 'play') return <Hyakki onFinish={({ chosen, openedIds, offeredEchoIds, skippedCall, skippedParade }) => {
+        setLog({ chosen, openedIds, offeredEchoIds, skippedCall, skippedParade });
+        setStep('story');
+    }} />;
 
-                {step === 'before' && (
-                    <>
-                        <h1>はじめに</h1>
-                        <label className={styles.field}>年代
-                            <select value={age} onChange={e => setAge(e.target.value)}>
-                                <option value="">えらぶ</option>
-                                {AGES.map(a => <option key={a}>{a}</option>)}
-                            </select>
-                        </label>
-                        <label className={styles.field}>性別
-                            <select value={gender} onChange={e => setGender(e.target.value)}>
-                                <option value="">えらぶ</option>
-                                {GENDERS.map(g => <option key={g}>{g}</option>)}
-                            </select>
-                        </label>
-                        <Scale label={INTEREST} value={interestBefore} onChange={setInterestBefore} />
-                        <p className={styles.ask}>
-                            {town === 'unknown'
-                                ? 'このあと地図で町をえらびます。行ったことのない、知らない町をえらんでください。'
-                                : 'このあと地図で町をえらびます。あなたが住んでいる町か、よく知っている町をえらんでください。'}
-                        </p>
-                        <div className={styles.actions}>
-                            <button type="button" className={styles.primary} disabled={!age || !gender || interestBefore === null || !town} onClick={() => setStep('play')}>遊ぶ</button>
-                        </div>
-                    </>
-                )}
-
-                {step === 'after' && (
-                    <>
-                        <h1>アンケート</h1>
-                        <fieldset className={styles.scale}>
-                            <legend>最初にえらんだ町は、よく知っている町ですか</legend>
-                            <div className={styles.points}>
-                                {['はい', 'いいえ'].map(v => <button key={v} type="button" className={styles.wide} aria-pressed={knownTown === v} onClick={() => setKnownTown(v)}>{v}</button>)}
-                            </div>
-                        </fieldset>
-                        {SCALES.map(q => <Scale key={q.key} label={q.text} value={scales[q.key] ?? null} onChange={v => setScales(old => ({ ...old, [q.key]: v }))} />)}
-                        <Scale label={INTEREST} value={interestAfter} onChange={setInterestAfter} />
-                        <label className={styles.field}>集まってきた妖怪は、なぜ集まったのだと思いますか
-                            <textarea value={why} maxLength={500} rows={2} onChange={e => setWhy(e.target.value)} />
-                        </label>
-                        <label className={styles.field}>いちばん覚えている妖怪や話があれば、教えてください
-                            <textarea value={remember} maxLength={500} rows={2} onChange={e => setRemember(e.target.value)} />
-                        </label>
-                        {failed && <p className={styles.failed} role="alert">送れませんでした。通信をたしかめて、もう一度おしてください。</p>}
-                        <div className={styles.actions}>
-                            <button type="button" className={styles.primary} disabled={!complete || sending} onClick={() => { void send(); }}>{sending ? '送っています…' : '送る'}</button>
-                        </div>
-                    </>
-                )}
-
-                {step === 'done' && (
-                    <>
-                        <h1>ありがとうございました</h1>
-                        <p>答えを受けとりました。</p>
-                        <div className={styles.actions}>
-                            <Link href="/hyakki" className={styles.primary}>もう一度遊ぶ</Link>
-                        </div>
-                    </>
-                )}
-            </div>
-        </main>
-    );
+    return <main className={styles.page}><section className={styles.sheet} key={step}>
+        {step === 'consent' && <>
+            <h1>百鬼夜行を呼ぶ</h1>
+            <p>地図で好きな町を選び、気になる妖怪を五体誘ってください。五体がどんな仲間を呼ぶか、絵巻で見届けられます。</p>
+            <h2>展示研究へのご協力</h2>
+            <p>遊び終えたら、覚えている場面をあなたの言葉でお聞かせください。回答は、伝承から妖怪の名前や姿、物語をつくる「妖怪生成装置」の設計と研究発表に使います。</p>
+            <p>送信時に、回答と、選んだ妖怪・応答の候補・絵巻で開いた妖怪・演出を飛ばしたかを記録します。氏名や地図のピン位置は回答に保存しません。質問はどれも任意です。</p>
+            <div className={styles.actions}><Link className={styles.ghost} href="/hyakki">研究に参加せず遊ぶ</Link>
+                <button className={styles.primary} onClick={start}>同意して遊ぶ</button></div>
+        </>}
+        {step === 'story' && <>
+            <h1>あなたの百鬼夜行</h1>
+            <label className={styles.field}>今日の百鬼夜行を、ここにいなかった人に一つだけ話すとしたら、どんな話をしますか？
+                <textarea rows={3} maxLength={800} value={retelling} onChange={e => setRetelling(e.target.value)} /></label>
+            <label className={styles.field}>誘った一体を思い出してください。出会う前にどんな妖怪を想像しましたか？　そう思ったきっかけや、出会って印象が変わったところがあれば教えてください。
+                <textarea rows={3} maxLength={800} value={imagination} onChange={e => setImagination(e.target.value)} /></label>
+            <p>ひとことでも、空欄でも進めます。個人が分かる名前や連絡先は書かずにお答えください。</p>
+            <div className={styles.actions}><a className={styles.ghost} href="/hyakki/exp">送らずに終了</a>
+                <button className={styles.primary} onClick={() => setStep('ratings')}>次へ</button></div>
+        </>}
+        {step === 'ratings' && <>
+            <h1>遊んでみてどうでしたか</h1>
+            <p>いま遊んだゲームについて、気持ちに近い答えを選んでください。答えたい項目だけで送れます。</p>
+            <fieldset className={styles.questions} disabled={sending}>
+                <legend className={styles.groupTitle}>ゲームの体験</legend>
+                {order.map(([key, label]) => <Rating key={key} label={label} value={ratings[key]} change={value => setRatings(old => ({ ...old, [key]: value }))} />)}
+            </fieldset>
+            <fieldset className={styles.questions} disabled={sending}><legend className={styles.groupTitle}>伝承への関心</legend>
+                <Rating label={LORE_INTEREST} value={interest} change={setInterest} /></fieldset>
+            {failed && <p role="alert" className={styles.failed}>送信できませんでした。回答はこの画面に残っています。通信を確認して、もう一度お試しください。</p>}
+            <div className={styles.actions}><button className={styles.ghost} disabled={sending} onClick={() => setStep('story')}>戻る</button>
+                <button className={styles.primary} disabled={sending} onClick={send}>{sending ? '送信中…' : '回答を送る'}</button></div>
+        </>}
+        {step === 'done' && <><h1>ありがとうございました</h1><p>回答を受け取りました。</p>
+            <div className={styles.actions}><a className={styles.primary} href="/hyakki/exp">展示の最初に戻る</a></div></>}
+    </section></main>;
 }
