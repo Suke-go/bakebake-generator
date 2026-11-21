@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Card, HyakkiMapProps, Light, Mist, Point, RegionKey } from '@/lib/hyakki-types';
+import { MAX_EVENTS, type ExhibitTrace, type Track } from '@/lib/hyakki-exhibit';
 import { CALLER_COLORS } from './colors';
 import styles from './Hyakki.module.css';
 
@@ -112,6 +113,7 @@ function Queue({ chosen, lights, lit, called, onCall }: { chosen: Card[]; lights
 
 /** What the study page (/hyakki/exp) receives when a play ends. The player's town is not part of it. */
 export type PlayLog = {
+    trace: ExhibitTrace;
     region: RegionKey | null;
     seconds: number;            // from choosing a region to leaving the line-up
     peeks: number[];            // clouds opened before each of the four invitations
@@ -235,7 +237,7 @@ async function paintScroll(chosen: Card[], lights: Light[], spots: Spot[], font:
 }
 
 type ScrollLog = Pick<PlayLog, 'opened' | 'openedIds' | 'saved'>;
-function Results({ chosen, lights, onRestart, onFinish }: { chosen: Card[]; lights: Light[]; onRestart: () => void; onFinish?: (seen: ScrollLog) => void }) {
+function Results({ chosen, lights, onRestart, onFinish, track }: { chosen: Card[]; lights: Light[]; onRestart: () => void; onFinish?: (seen: ScrollLog) => void; track?: Track }) {
     const seen = useRef({ opened: new Set<string>(), saved: false });
     const sheetRef = useRef<HTMLDivElement>(null);
     const [open, setOpen] = useState<Card | null>(null);
@@ -258,6 +260,7 @@ function Results({ chosen, lights, onRestart, onFinish }: { chosen: Card[]; ligh
     }, [tall]);
     const show = (spot: Spot) => {
         const display = (card: Card) => {
+            track?.('scroll_open', [card.id]);
             seen.current.opened.add(card.id);
             setOpen(card);
         };
@@ -267,6 +270,7 @@ function Results({ chosen, lights, onRestart, onFinish }: { chosen: Card[]; ligh
     };
 
     const download = async () => {
+        track?.('download_request');
         seen.current.saved = true;
         const canvas = await paintScroll(chosen, lights, spots, sheetRef.current ? getComputedStyle(sheetRef.current).fontFamily : 'serif', land, tall);
         canvas?.toBlob(blob => {
@@ -305,9 +309,9 @@ function Results({ chosen, lights, onRestart, onFinish }: { chosen: Card[]; ligh
                         {open.recordName !== open.name && <p className={styles.recordName}>記録の名前: {open.recordName}</p>}
                         <p className={styles.desc}>{open.desc}</p>
                         <p className={styles.loreFoot}>
-                            <a href={open.storyUrl} target="_blank" rel="noopener noreferrer">話のもと</a>
-                            <a href={open.pictureSourceUrl} target="_blank" rel="noopener noreferrer">絵のもと</a>
-                            <button type="button" onClick={() => setOpen(null)}>とじる</button>
+                            <a href={open.storyUrl} onClick={() => track?.('story_link', [open.id])} target="_blank" rel="noopener noreferrer">話のもと</a>
+                            <a href={open.pictureSourceUrl} onClick={() => track?.('image_link', [open.id])} target="_blank" rel="noopener noreferrer">絵のもと</a>
+                            <button type="button" onClick={() => { track?.('scroll_close', [open.id]); setOpen(null); }}>とじる</button>
                         </p>
                     </div>
                 )}
@@ -334,7 +338,29 @@ function Results({ chosen, lights, onRestart, onFinish }: { chosen: Card[]; ligh
 export default function Hyakki({ onFinish }: { onFinish?: (log: PlayLog) => void } = {}) {
     const study = useRef({ t0: 0, round: new Set<string>(), peeks: [] as number[], skippedCall: false, skippedParade: false });
     const [screen, setScreen] = useState(0);
+    const recording = !!onFinish;
+    const timeline = useRef<ExhibitTrace>({ version: 1, events: [], dropped: 0 });
+    const clock = useRef({ start: 0, stage: -1 });
+    const track = useCallback<Track>((kind, ids = []) => {
+        if (!recording) return;
+        const trace = timeline.current;
+        if (trace.events.length >= MAX_EVENTS) { trace.dropped++; return; }
+        trace.events.push({ ms: Math.round(performance.now() - clock.current.start), stage: clock.current.stage, kind, ids });
+    }, [recording]);
+    useEffect(() => {
+        if (!recording || clock.current.stage === screen) return;
+        if (clock.current.stage < 0) clock.current.start = performance.now();
+        clock.current.stage = screen;
+        track('stage');
+    }, [screen, recording, track]);
+    useEffect(() => {
+        if (!recording) return;
+        const visibility = () => track(document.hidden ? 'page_hidden' : 'page_visible');
+        document.addEventListener('visibilitychange', visibility);
+        return () => document.removeEventListener('visibilitychange', visibility);
+    }, [recording, track]);
     const [reduced, setReduced] = useState(false);
+    useEffect(() => { if (reduced) track('reduced_motion'); }, [reduced, track]);
     const [region, setRegion] = useState<RegionKey | null>(null);
     const [pin, setPin] = useState<Point | null>(null);
     const [buddies, setBuddies] = useState<Card[]>([]);
@@ -416,6 +442,7 @@ export default function Hyakki({ onFinish }: { onFinish?: (log: PlayLog) => void
             const res = await post<{ lights: Light[] }>({ action: 'summon', chosen: ids });
             if (!alive()) return;
             const five = cards.map(c => c.card);
+            track('replay');
             const [lat, lon] = (query.get('at') ?? '').split(',').map(Number);
             setPin(Number.isFinite(lat) && Number.isFinite(lon) ? { lat, lon } : { lat: five[0].lat, lon: five[0].lon });
             setChosen(five);
@@ -423,7 +450,7 @@ export default function Hyakki({ onFinish }: { onFinish?: (log: PlayLog) => void
             setCalled([]);
             setScreen(8);
         });
-    }, [run]);
+    }, [run, track]);
 
     const chooseRegion = (key: RegionKey) => { if (!study.current.t0) study.current.t0 = Date.now(); setRegion(key); setPin(null); setScreen(2); };
 
@@ -434,6 +461,7 @@ export default function Hyakki({ onFinish }: { onFinish?: (log: PlayLog) => void
             const res = await api<{ buddies: Card[] }>(`${API}?${query}`);
             if (!alive()) return;
             setBuddies(res.buddies);
+            track('starters_offered', res.buddies.map(card => card.id));
             setScreen(3);
         });
     };
@@ -441,11 +469,13 @@ export default function Hyakki({ onFinish }: { onFinish?: (log: PlayLog) => void
     const pickBuddy = (card: Card) => {
         if (!region) return;
         void run(async alive => {
+            track('invite', [card.id]);
             const res = await post<{ mists: Mist[] }>({ action: 'mists', region, chosen: [card.id], shown: [] });
             if (!alive()) return;
             setChosen([card]);
             study.current.peeks = []; study.current.round = new Set();
             setMists(res.mists);
+            track('mists_offered', res.mists.map(m => m.id));
             setSelected(null); setPeeked([]);
             setScreen(4);
         });
@@ -453,9 +483,11 @@ export default function Hyakki({ onFinish }: { onFinish?: (log: PlayLog) => void
 
     const meet = (id: string) => {
         void run(async alive => {
+            track('invite', [id]);
             const res = await post<{ card: Card }>({ action: 'meet', id });
             if (!alive()) return;
             setMet(res.card);
+            track('revealed', [res.card.id]);
             study.current.peeks.push(study.current.round.size);
             study.current.round = new Set();
             setScreen(6);
@@ -481,6 +513,7 @@ export default function Hyakki({ onFinish }: { onFinish?: (log: PlayLog) => void
             if (!alive()) return;
             setMists(res.mists);
             // Clouds of mists that are still there stay open.
+            track('mists_offered', res.mists.map(m => m.id));
             setPeeked(open => open.filter(id => res.mists.some(m => m.id === id)));
         });
     };
@@ -496,8 +529,10 @@ export default function Hyakki({ onFinish }: { onFinish?: (log: PlayLog) => void
     };
 
     const finish = (seen: ScrollLog) => {
+        track('finish');
         const mean = (xs: number[]) => (xs.length ? Math.round((xs.reduce((a, b) => a + b, 0) / xs.length) * 1000) / 1000 : null);
         onFinish?.({
+            trace: timeline.current,
             region, seconds: Math.round((Date.now() - study.current.t0) / 1000), peeks: study.current.peeks, chosen: chosen.map(c => c.id),
             friends: tally(lights), nearAll: mean(lights.map(l => l.near)), nearAloud: mean(lights.filter(l => l.tease).map(l => l.near)),
             offeredEchoIds: lights.filter(l => l.tease).map(l => l.id),
@@ -519,14 +554,19 @@ export default function Hyakki({ onFinish }: { onFinish?: (log: PlayLog) => void
     // Map callbacks can fire late (a skipped wave still ends), so they only move the screen they belong to.
     const onSummoned = useCallback(() => setScreen(s => (s === 8 ? 9 : s)), []);
     const onParaded = useCallback(() => setScreen(s => (s === 9 ? 10 : s)), []);
-    const onFigure = useCallback((index: number) => setCalled(done => (done.includes(index) ? done : [...done, index])), []);
+    const onFigure = useCallback((index: number) => {
+        if (!chosen[index] || called.includes(index)) return;
+        track('caller', [chosen[index].id]);
+        setCalled(done => done.includes(index) ? done : [...done, index]);
+    }, [chosen, called, track]);
     const onMist = useCallback((id: string) => {
         if (busyRef.current) return;
+        track('peek', [id]);
         setSelected(id);
         study.current.round.add(id);
         setPeeked(open => (open.includes(id) ? open : [...open, id]));
         setScreen(s => (s === 4 || s === 5 ? 5 : s));
-    }, []);
+    }, [track]);
 
     // Memoised: the map rebuilds its parade plan whenever this array's identity changes.
     const figures = useMemo(() => (met ? [...chosen, met] : chosen), [chosen, met]);
@@ -547,7 +587,8 @@ export default function Hyakki({ onFinish }: { onFinish?: (log: PlayLog) => void
         figures,
     };
     if (screen === 1) mapProps.onRegion = chooseRegion;
-    if (screen === 2) mapProps.onPick = setPin;
+    if (screen === 2) mapProps.onPick = point => { track('pin_pick'); setPin(point); };
+    if (recording) mapProps.onTrace = track;
     if (screen >= 2) mapProps.pin = pin;   // the parade ends at the player's town
     if (screen >= 4 && screen <= 6) { mapProps.mists = mists; mapProps.peeked = peeked; if (screen !== 6) mapProps.onMist = onMist; }
     if (lit) {
@@ -659,7 +700,7 @@ export default function Hyakki({ onFinish }: { onFinish?: (log: PlayLog) => void
                                         {peeked.length > 1 && (
                                             <div className={styles.peeks} role="group" aria-label="のぞいたもや">
                                                 {peeked.map((id, i) => (
-                                                    <button key={id} type="button" className={styles.peek} aria-pressed={id === selected} aria-label={`${i + 1}つ目ののぞいたもや`} onClick={() => setSelected(id)}>
+                                                    <button key={id} type="button" className={styles.peek} aria-pressed={id === selected} aria-label={`${i + 1}つ目ののぞいたもや`} onClick={() => { track('peek_again', [id]); setSelected(id); }}>
                                                         <img src={`${API}?silhouette=${encodeURIComponent(id)}`} alt="" />
                                                     </button>
                                                 ))}
@@ -700,7 +741,7 @@ export default function Hyakki({ onFinish }: { onFinish?: (log: PlayLog) => void
                                     <h1 className={styles.head}>{callLine}</h1>
                                 </div>
                                 <div className={styles.actions}>
-                                    <button type="button" className={styles.ghost} onClick={() => { study.current.skippedCall = true; setCalled([0, 1, 2, 3, 4]); setScreen(9); }}>とばす</button>
+                                    <button type="button" className={styles.ghost} onClick={() => { track('skip_call'); study.current.skippedCall = true; setCalled([0, 1, 2, 3, 4]); setScreen(9); }}>とばす</button>
                                 </div>
                             </div>
                         )}
@@ -711,12 +752,12 @@ export default function Hyakki({ onFinish }: { onFinish?: (log: PlayLog) => void
                                     <h1 className={styles.head}>あなたの町へ</h1>
                                 </div>
                                 <div className={styles.actions}>
-                                    <button type="button" className={styles.ghost} onClick={() => { study.current.skippedParade = true; setScreen(10); }}>とばす</button>
+                                    <button type="button" className={styles.ghost} onClick={() => { track('skip_parade'); study.current.skippedParade = true; setScreen(10); }}>とばす</button>
                                 </div>
                             </div>
                         )}
 
-                        {screen === 10 && <Results chosen={chosen} lights={lights} onRestart={restart} onFinish={onFinish && finish} />}
+                        {screen === 10 && <Results chosen={chosen} lights={lights} onRestart={restart} onFinish={onFinish && finish} track={recording ? track : undefined} />}
                     </div>
                 )}
             </div>

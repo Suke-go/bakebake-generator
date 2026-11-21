@@ -31,8 +31,9 @@ export default function HyakkiMap(props: HyakkiMapProps) {
     const [attempt, setAttempt] = useState(0);
 
     // Callbacks live in a ref so the message listener never has to be re-attached.
-    const cb = useRef({ onRegion, onPick, onMist, onFigure, onSummoned, onParaded });
-    useEffect(() => { cb.current = { onRegion, onPick, onMist, onFigure, onSummoned, onParaded }; });
+    const onTrace = props.onTrace;
+    const cb = useRef({ onRegion, onPick, onMist, onFigure, onSummoned, onParaded, onTrace });
+    useEffect(() => { cb.current = { onRegion, onPick, onMist, onFigure, onSummoned, onParaded, onTrace }; });
 
     const post = useCallback((key: string, value: unknown) => {
         frame.current?.contentWindow?.postMessage({ type: 'hyakki-set', key, value }, window.location.origin);
@@ -44,6 +45,12 @@ export default function HyakkiMap(props: HyakkiMapProps) {
             if (event.origin !== window.location.origin || event.source !== frame.current?.contentWindow) return;
             const d = event.data as { type?: string; region?: RegionKey; lat?: number; lon?: number; id?: string; code?: string; index?: number };
             switch (d?.type) {
+                case 'hyakki-drag': cb.current.onTrace?.('map_drag'); break;
+                case 'hyakki-tease':
+                case 'hyakki-echo':
+                    if (typeof d.id === 'string' && /^[\w-]{1,32}$/.test(d.id))
+                        cb.current.onTrace?.(d.type === 'hyakki-echo' ? 'echo_shown' : 'tease_shown', [d.id]);
+                    break;
                 case 'hyakki-ready': window.clearTimeout(timeout); setReady(true); setFailure(null); break;
                 case 'hyakki-error': window.clearTimeout(timeout); setFailure(FAILURES[d.code ?? 'other'] ?? FAILURES.other); break;
                 case 'hyakki-tiles-trouble': setTilesTrouble(true); break;
@@ -65,7 +72,7 @@ export default function HyakkiMap(props: HyakkiMapProps) {
     // first view is placed without a flight, and `view` goes before anything that needs the camera.
     useEffect(() => { if (ready) post('config', { callerColors: CALLER_COLORS, waveMs: WAVE_MS }); }, [ready, post]);
     useEffect(() => { if (ready) post('still', !!still); }, [ready, still, post]);
-    useEffect(() => { if (ready) post('handlers', { region: hasRegion, pick: hasPick, mist: hasMist, figure: hasFigure }); }, [ready, hasRegion, hasPick, hasMist, hasFigure, post]);
+    useEffect(() => { if (ready) post('handlers', { region: hasRegion, pick: hasPick, mist: hasMist, figure: hasFigure, trace: !!onTrace }); }, [ready, hasRegion, hasPick, hasMist, hasFigure, onTrace, post]);
     useEffect(() => { if (ready) post('view', view); }, [ready, view, post]);
     useEffect(() => { if (ready) post('pin', pin ?? null); }, [ready, pin, post]);
     useEffect(() => { if (ready) post('mists', mists ?? []); }, [ready, mists, post]);

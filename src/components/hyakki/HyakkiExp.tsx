@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -7,7 +7,7 @@ import Hyakki, { type PlayLog } from './Hyakki';
 import styles from './HyakkiExp.module.css';
 
 type Step = 'consent' | 'play' | 'story' | 'ratings' | 'done';
-type ExhibitLog = Pick<PlayLog, 'chosen' | 'openedIds' | 'offeredEchoIds' | 'skippedCall' | 'skippedParade'>;
+type ExhibitLog = Pick<PlayLog, 'trace' | 'chosen' | 'openedIds' | 'offeredEchoIds' | 'skippedCall' | 'skippedParade'>;
 
 function Rating({ label, value, change }: { label: string; value?: number; change: (value?: number) => void }) {
     return <label className={styles.field}>{label}
@@ -54,8 +54,8 @@ export default function HyakkiExp() {
         } catch { setFailed(true); } finally { setSending(false); }
     }
 
-    if (step === 'play') return <Hyakki onFinish={({ chosen, openedIds, offeredEchoIds, skippedCall, skippedParade }) => {
-        setLog({ chosen, openedIds, offeredEchoIds, skippedCall, skippedParade });
+    if (step === 'play') return <Hyakki onFinish={({ trace, chosen, openedIds, offeredEchoIds, skippedCall, skippedParade }) => {
+        setLog({ trace, chosen, openedIds, offeredEchoIds, skippedCall, skippedParade });
         setStep('story');
     }} />;
 
@@ -65,7 +65,7 @@ export default function HyakkiExp() {
             <p>地図で好きな町を選び、気になる妖怪を五体誘ってください。五体がどんな仲間を呼ぶか、絵巻で見届けられます。</p>
             <h2>展示研究へのご協力</h2>
             <p>遊び終えたら、覚えている場面をあなたの言葉でお聞かせください。回答は、伝承から妖怪の名前や姿、物語をつくる「妖怪生成装置」の設計と研究発表に使います。</p>
-            <p>送信時に、回答と、選んだ妖怪・応答の候補・絵巻で開いた妖怪・演出を飛ばしたかを記録します。氏名や地図のピン位置は回答に保存しません。質問はどれも任意です。</p>
+            <p>「回答を送る」を押すと、回答と一緒に、画面や妖怪の候補、地図を動かした操作、雲や絵巻を開いた順番、出典リンクや保存ボタンの操作を、開始からの経過時間とともに送ります。途中で閉じるか「送らずに終了」を選ぶと、操作記録も送られません。氏名や地図のピン位置は回答に保存しません。質問はどれも任意です。</p>
             <div className={styles.actions}><Link className={styles.ghost} href="/hyakki">研究に参加せず遊ぶ</Link>
                 <button className={styles.primary} onClick={start}>同意して遊ぶ</button></div>
         </>}

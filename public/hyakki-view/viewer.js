@@ -370,7 +370,12 @@
     // A drag or a pinch from the player: from then on the map is theirs until the next view change.
     let down = null;
     canvas.addEventListener('pointerdown', (e) => { down = { x: e.clientX, y: e.clientY }; });
-    canvas.addEventListener('pointermove', (e) => { if (down && Math.hypot(e.clientX - down.x, e.clientY - down.y) > 6) { userMoved = true; anim = null; } });
+    canvas.addEventListener('pointermove', (e) => {
+      if (down && Math.hypot(e.clientX - down.x, e.clientY - down.y) > 6) {
+        if (!down.dragged && state.handlers.trace) send('hyakki-drag');
+        down.dragged = true; userMoved = true; anim = null;
+      }
+    });
     canvas.addEventListener('pointerup', () => { down = null; });
     canvas.addEventListener('pointercancel', () => { down = null; });
     canvas.addEventListener('wheel', () => { userMoved = true; anim = null; }, { passive: true });
@@ -623,7 +628,7 @@
         if (l.tease) { say = document.createElement('div'); say.className = 'hk-echo'; say.textContent = l.tease; say.style.setProperty('--c', CALLER_CSS[l.caller % 5]); lightsLayer.append(say); }
         lightsLayer.append(el);
         return {
-          lon: l.lon, lat: l.lat, caller: l.caller, order: l.order, tl: 0, slot: 0, seed: hashSeed(`${i}:${l.caller}`),
+          id: l.id, echoReported: false, lon: l.lon, lat: l.lat, caller: l.caller, order: l.order, tl: 0, slot: 0, seed: hashSeed(`${i}:${l.caller}`),
           hx: 0, hy: 0, gx: 0, gy: 0, x: -9999, y: -9999, a: 0, sc: 1, pulse: 0, glow: 0, ta: 0, tx: 0, ty: 0, el, ie, pe, say, sayA: 0, pic: l.picture, pk: 0, pr: false, url: l.silhouette, req: false,
         };
       });
@@ -735,6 +740,7 @@
       inner.append(art, label); el.append(inner);
       el.addEventListener('click', () => { if (state.handlers.mist) send('hyakki-mist', { id }); });
       teaseLayer.append(el);
+      if (state.handlers.trace) send('hyakki-tease', { id });
       return { id, leaving: false, el, inner, art, w: CW, h: CH, x: 0, y: 0, init: false, flip: false };
     }
     function retire(b) {
@@ -1131,6 +1137,9 @@
         if (state.parade && !l.pr && l.pic) { l.pr = true; l.pe.style.backgroundImage = `url("${l.pic}")`; } // fetched as the parade sets off
         l.pe.style.opacity = String(l.pk);
         if (l.say) { l.say.style.opacity = String(l.sayA); if (l.sayA > 0) l.say.style.transform = `translate(${l.hx}px, ${l.hy}px) translate(-50%, -150%)`; }
+        if (state.handlers.trace && l.sayA > 0 && !l.echoReported) {
+          send('hyakki-echo', { id: l.id }); l.echoReported = true;
+        }
         l.ie.style.opacity = String(1 - l.pk); // the shadow gives way to the picture
         l.el.style.opacity = l.a > 0.01 ? String(l.a) : '0';
         if (l.a > 0.01) l.el.style.transform = `translate(${l.x}px, ${l.y}px) scale(${(s * l.sc * (0.6 + 0.4 * l.a)) / 3})`;

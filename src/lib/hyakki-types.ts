@@ -59,6 +59,7 @@ export type Light = Point & {
 // Errors: { error: string } with 400 (bad request) or 503 (data unavailable).
 
 export type HyakkiMapProps = {
+    onTrace?: (kind: 'map_drag' | 'tease_shown' | 'echo_shown', ids?: string[]) => void;
     /** Camera target; the map animates between views. Always straight down, orthographic. */
     view: 'japan' | RegionKey;
     /** Screen 1: regions are tinted and tappable. */
