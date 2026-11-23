@@ -1,8 +1,9 @@
-// POST /api/hyakki-exp: one anonymous record per finished study play (see src/components/hyakki/HyakkiExp.tsx).
-// The record holds what the player answered and how the play went; it never holds the player's town.
+// POST /api/hyakki-exp: one anonymous record per consented study play (see src/components/hyakki/HyakkiExp.tsx).
+// While the play goes on the row holds the operation log so far; sending the answers replaces it with the full record.
+// The record never holds the player's town.
 import { NextResponse } from 'next/server';
 import { getResearchSupabase } from '@/lib/research-server';
-import { exhibitRow, isExhibitVersion } from '@/lib/hyakki-exhibit';
+import { PROGRESS_VERSION, exhibitRow, isExhibitVersion, progressRow } from '@/lib/hyakki-exhibit';
 
 const VERSION = 'hyakki-exp-v1';
 const SCALE_KEYS = ['foothold', 'trace', 'collection', 'worldLink', 'worldSpread', 'enjoy', 'again'];
@@ -17,10 +18,23 @@ export async function POST(request: Request) {
     let body: Record<string, unknown>;
     try { body = await request.json() as Record<string, unknown>; } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }); }
     if (!body || typeof body !== 'object') return NextResponse.json({ error: 'Invalid record' }, { status: 400 });
+    if (body.version === PROGRESS_VERSION) {
+        const row = progressRow(body);
+        if (!row) return NextResponse.json({ error: 'Invalid record' }, { status: 400 });
+        let { error } = await supabase.from('hyakki_exp_responses').insert(row);
+        // The row exists: move it forward only while it is still a log in progress and only with a later save, so a
+        // save that arrives late can undo neither a newer one nor the sent answers.
+        if (error?.code === '23505') {
+            ({ error } = await supabase.from('hyakki_exp_responses').update({ payload: row.payload })
+                .eq('id', row.id).eq('version', PROGRESS_VERSION).lt('payload->seq', row.payload.seq));
+        }
+        if (error) console.error('hyakki-exp progress failed', error.message);
+        return NextResponse.json(error ? { error: 'Could not record' } : { ok: true }, { status: error ? 500 : 200 });
+    }
     if (isExhibitVersion(body.version)) {
         const row = exhibitRow(body);
         if (!row) return NextResponse.json({ error: 'Invalid record' }, { status: 400 });
-        const { error } = await supabase.from('hyakki_exp_responses').upsert(row, { onConflict: 'id', ignoreDuplicates: true });
+        const { error } = await supabase.from('hyakki_exp_responses').upsert(row, { onConflict: 'id' });
         return NextResponse.json(error ? { error: 'Could not record' } : { ok: true }, { status: error ? 500 : 200 });
     }
 

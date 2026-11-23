@@ -115,6 +115,7 @@ function Queue({ chosen, lights, lit, called, onCall }: { chosen: Card[]; lights
  *  the exhibit is designed there and nothing here names its route or its wording. Passing it turns the trace on. */
 export type HyakkiExhibit = {
     onFinish: (log: PlayLog) => void;
+    onProgress?: (log: Pick<PlayLog, 'trace' | 'chosen'>) => void;   // the log so far, at every new screen and invitation
     back: { href: string; label: string };   // the way out while playing; a full page load, so the host starts fresh
     finishLabel: string;                     // the button that ends the play on the scroll
     mapGuide: boolean;                       // explain the map gestures where the town is chosen
@@ -537,6 +538,13 @@ export default function Hyakki({ exhibit }: { exhibit?: HyakkiExhibit } = {}) {
             setScreen(8);
         });
     };
+
+    // The host may keep the log as the play goes (the trace object is the live one, read when it is sent).
+    const onProgress = useRef(exhibit?.onProgress);
+    useEffect(() => { onProgress.current = exhibit?.onProgress; });
+    useEffect(() => {
+        if (screen > 0) onProgress.current?.({ trace: timeline.current, chosen: chosen.map(c => c.id) });
+    }, [screen, chosen]);
 
     const finish = (seen: ScrollLog) => {
         track('finish');

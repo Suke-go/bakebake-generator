@@ -1,8 +1,9 @@
 // miniPXI (Haider et al., 2022), Table 4. Japanese study-team translation.
 // Original item codes and -3 ... +3 anchors are retained for analysis.
 // v3: the same items and anchors as v2, answered on a row of seven buttons where v2 had a drop-down list.
-export const EXHIBIT_VERSION = 'hyakki-exhibit-v3';
-const ACCEPTED_VERSIONS = [EXHIBIT_VERSION, 'hyakki-exhibit-v2'];   // a page loaded before the change can still send
+// v4: the same survey; consent now covers saving the operation log during the play (see PROGRESS_VERSION).
+export const EXHIBIT_VERSION = 'hyakki-exhibit-v4';
+const ACCEPTED_VERSIONS = [EXHIBIT_VERSION, 'hyakki-exhibit-v3', 'hyakki-exhibit-v2'];   // a page loaded before the change can still send
 export const isExhibitVersion = (value: unknown): value is string => typeof value === 'string' && ACCEPTED_VERSIONS.includes(value);
 export const PX_ITEMS = [
     ['CUR_1', 'ゲームがこの先どう展開するのか、知りたかった。'],
@@ -58,9 +59,30 @@ function validTrace(value: unknown): value is ExhibitTrace {
     }) && Object.keys(value).every(k => ['version','events','dropped'].includes(k));
 }
 
+// A consented play saves its operation log as it goes, in a row under this version, so a play that stops before the
+// survey still leaves its trace. Sending the answers replaces that row with the full record (same id).
+export const PROGRESS_VERSION = `${EXHIBIT_VERSION}-progress`;
+export const REACHED = ['play', 'story', 'ratings', 'quit'] as const;   // how far the visitor got; 'quit' = left the survey unsent
+export type Reached = typeof REACHED[number];
+const uuid = (value: unknown): value is string => typeof value === 'string' && /^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i.test(value);
+
+export function progressRow(body: unknown) {
+    if (!object(body) || body.version !== PROGRESS_VERSION || body.consent !== true || !uuid(body.id) ||
+        !Number.isSafeInteger(body.seq) || Number(body.seq) < 1 || !REACHED.includes(body.reached as Reached) || !object(body.log)) return null;
+    const { trace, chosen, openedIds, offeredEchoIds, skippedCall, skippedParade } = body.log;
+    if (!validTrace(trace) || !idList(chosen, 5) || new Set(chosen as string[]).size !== (chosen as string[]).length) return null;
+    // The rest exists only once the play has ended.
+    if ((openedIds !== undefined && !idList(openedIds, 100)) || (offeredEchoIds !== undefined && !idList(offeredEchoIds, 95)) ||
+        (skippedCall !== undefined && typeof skippedCall !== 'boolean') || (skippedParade !== undefined && typeof skippedParade !== 'boolean')) return null;
+    return { id: body.id, version: PROGRESS_VERSION, payload: {
+        seq: Number(body.seq), reached: body.reached as Reached,
+        log: { trace, chosen, openedIds, offeredEchoIds, skippedCall, skippedParade },
+    } };
+}
+
 export function exhibitRow(body: unknown) {
     if (!object(body) || !isExhibitVersion(body.version) || body.consent !== true ||
-        typeof body.id !== 'string' || !/^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i.test(body.id)) return null;
+        !uuid(body.id)) return null;
     const { retelling, imagination, ratings, loreInterest, log } = body;
     if (typeof retelling !== 'string' || typeof imagination !== 'string' || retelling.length > 800 || imagination.length > 800 ||
         !object(ratings) || Object.entries(ratings).some(([key, value]) => !PX_ITEMS.some(([id]) => id === key) || !point(value)) ||

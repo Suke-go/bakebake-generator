@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ANCHORS, EXHIBIT_VERSION, LORE_INTEREST, PX_ITEMS } from '@/lib/hyakki-exhibit';
+import { ANCHORS, EXHIBIT_VERSION, LORE_INTEREST, PROGRESS_VERSION, PX_ITEMS, type Reached } from '@/lib/hyakki-exhibit';
 import Hyakki, { type HyakkiExhibit, type PlayLog } from './Hyakki';
 import styles from './HyakkiExp.module.css';
 
 type Step = 'consent' | 'play' | 'story' | 'ratings' | 'done';
 type ExhibitLog = Pick<PlayLog, 'trace' | 'chosen' | 'openedIds' | 'offeredEchoIds' | 'skippedCall' | 'skippedParade'>;
+type LogSoFar = Pick<ExhibitLog, 'trace' | 'chosen'> & Partial<ExhibitLog>;
 
 // The exhibit's start, and how the play itself looks and reads inside the exhibit. Every way out of the exhibit
 // comes back to HOME, never to /map or the plain /hyakki.
@@ -46,6 +47,27 @@ export default function HyakkiExp() {
     const answered = Object.values(ratings).filter(v => v !== undefined).length + (interest === undefined ? 0 : 1);
     const empty = answered === 0 && !retelling.trim() && !imagination.trim();
 
+    // The operation log is saved as the play goes, apart from the answers, so a visit that ends before the survey
+    // still leaves how it went. `last` holds the newest state; leaving the page sends it once more.
+    const last = useRef<{ reached: Reached; log: LogSoFar } | null>(null);
+    const seq = useRef(0);
+    const save = useCallback((reached: Reached, log?: LogSoFar, leaving = false) => {
+        const state = { reached, log: log ?? last.current?.log };
+        if (!id || !state.log) return;
+        last.current = { reached, log: state.log };
+        fetch('/api/hyakki-exp', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: leaving,
+            body: JSON.stringify({ id, version: PROGRESS_VERSION, consent: true, seq: ++seq.current, ...state }),
+        }).catch(() => undefined);
+    }, [id]);
+    useEffect(() => {
+        const leave = () => { if (last.current) save(last.current.reached, undefined, true); };
+        const hidden = () => { if (document.hidden) leave(); };
+        window.addEventListener('pagehide', leave);
+        document.addEventListener('visibilitychange', hidden);
+        return () => { window.removeEventListener('pagehide', leave); document.removeEventListener('visibilitychange', hidden); };
+    }, [save]);
+
     function start() {
         setId(crypto.randomUUID());
         const items = [...PX_ITEMS];
@@ -68,13 +90,16 @@ export default function HyakkiExp() {
                 body: JSON.stringify({ id, version: EXHIBIT_VERSION, consent: true, retelling, imagination, ratings, loreInterest: interest ?? null, log }),
             });
             if (!response.ok) throw new Error('save');
+            last.current = null;   // the full record is in; nothing more to save
             setStep('done');
         } catch { setFailed(true); } finally { setSending(false); }
     }
 
-    if (step === 'play') return <Hyakki exhibit={{ ...PLAY, onFinish: ({ trace, chosen, openedIds, offeredEchoIds, skippedCall, skippedParade }) => {
-        setLog({ trace, chosen, openedIds, offeredEchoIds, skippedCall, skippedParade });
+    if (step === 'play') return <Hyakki exhibit={{ ...PLAY, onProgress: soFar => save('play', soFar), onFinish: ({ trace, chosen, openedIds, offeredEchoIds, skippedCall, skippedParade }) => {
+        const played = { trace, chosen, openedIds, offeredEchoIds, skippedCall, skippedParade };
+        setLog(played);
         setStep('story');
+        save('story', played);
     } }} />;
 
     return <main className={styles.page}><section className={styles.sheet} key={step}>
@@ -83,7 +108,7 @@ export default function HyakkiExp() {
             <p>地図で好きな町を選び、気になる妖怪を五体誘ってください。五体がどんな仲間を呼ぶか、絵巻で見届けられます。</p>
             <h2>展示研究へのご協力</h2>
             <p>遊び終えたら、覚えている場面をあなたの言葉でお聞かせください。回答は、伝承から妖怪の名前や姿、物語をつくる「妖怪生成装置」の設計と研究発表に使います。</p>
-            <p>「回答を送る」を押すと、回答と一緒に、画面や妖怪の候補、地図を動かした操作、雲や絵巻を開いた順番、出典リンクや保存ボタンの操作を、開始からの経過時間とともに送ります。途中で閉じるか「送らずに終了」を選ぶと、操作記録も送られません。氏名や地図のピン位置は回答に保存しません。質問はどれも任意です。</p>
+            <p>「同意して遊ぶ」を押すと、遊んでいる間の操作を記録します。記録するのは、画面や妖怪の候補、地図を動かした操作、雲や絵巻を開いた順番、出典リンクや保存ボタンの操作と、開始からの経過時間です。途中でやめた場合も、そこまでの操作記録は残ります。アンケートの回答は「回答を送る」を押したときだけ送ります。氏名や地図のピン位置は保存しません。質問はどれも任意です。</p>
             <div className={styles.actions}><Link className={styles.ghost} href="/hyakki">研究に参加せず遊ぶ</Link>
                 <button className={styles.primary} onClick={start}>同意して遊ぶ</button></div>
         </>}
@@ -96,8 +121,8 @@ export default function HyakkiExp() {
             <label className={styles.field}>誘った一体を思い出してください。出会う前にどんな妖怪を想像しましたか？　そう思ったきっかけや、出会って印象が変わったところがあれば教えてください。
                 <textarea rows={3} maxLength={800} value={imagination} onChange={e => setImagination(e.target.value)} /></label>
             <p>ひとことでも、空欄でも進めます。個人が分かる名前や連絡先は書かずにお答えください。</p>
-            <div className={styles.actions}><a className={styles.ghost} href={HOME}>送らずに終了</a>
-                <button className={styles.primary} onClick={() => setStep('ratings')}>次へ</button></div>
+            <div className={styles.actions}><a className={styles.ghost} href={HOME} onClick={() => save('quit', undefined, true)}>答えずに終了</a>
+                <button className={styles.primary} onClick={() => { setStep('ratings'); save('ratings'); }}>次へ</button></div>
         </>}
         {step === 'ratings' && <>
             <p className={styles.progress}>アンケート 2 / 2</p>
