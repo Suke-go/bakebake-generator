@@ -3,11 +3,20 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { ANCHORS, EXHIBIT_VERSION, LORE_INTEREST, PX_ITEMS } from '@/lib/hyakki-exhibit';
-import Hyakki, { type PlayLog } from './Hyakki';
+import Hyakki, { type HyakkiExhibit, type PlayLog } from './Hyakki';
 import styles from './HyakkiExp.module.css';
 
 type Step = 'consent' | 'play' | 'story' | 'ratings' | 'done';
 type ExhibitLog = Pick<PlayLog, 'trace' | 'chosen' | 'openedIds' | 'offeredEchoIds' | 'skippedCall' | 'skippedParade'>;
+
+// The exhibit's start, and how the play itself looks and reads inside the exhibit. Every way out of the exhibit
+// comes back to HOME, never to /map or the plain /hyakki.
+const HOME = '/hyakki/exp';
+const PLAY: Omit<HyakkiExhibit, 'onFinish'> = {
+    back: { href: HOME, label: '← 最初にもどる' },
+    finishLabel: '遊びを終える',
+    mapGuide: true,
+};
 
 function Rating({ label, value, change }: { label: string; value?: number; change: (value?: number) => void }) {
     return <label className={styles.field}>{label}
@@ -54,10 +63,10 @@ export default function HyakkiExp() {
         } catch { setFailed(true); } finally { setSending(false); }
     }
 
-    if (step === 'play') return <Hyakki onFinish={({ trace, chosen, openedIds, offeredEchoIds, skippedCall, skippedParade }) => {
+    if (step === 'play') return <Hyakki exhibit={{ ...PLAY, onFinish: ({ trace, chosen, openedIds, offeredEchoIds, skippedCall, skippedParade }) => {
         setLog({ trace, chosen, openedIds, offeredEchoIds, skippedCall, skippedParade });
         setStep('story');
-    }} />;
+    } }} />;
 
     return <main className={styles.page}><section className={styles.sheet} key={step}>
         {step === 'consent' && <>
@@ -76,7 +85,7 @@ export default function HyakkiExp() {
             <label className={styles.field}>誘った一体を思い出してください。出会う前にどんな妖怪を想像しましたか？　そう思ったきっかけや、出会って印象が変わったところがあれば教えてください。
                 <textarea rows={3} maxLength={800} value={imagination} onChange={e => setImagination(e.target.value)} /></label>
             <p>ひとことでも、空欄でも進めます。個人が分かる名前や連絡先は書かずにお答えください。</p>
-            <div className={styles.actions}><a className={styles.ghost} href="/hyakki/exp">送らずに終了</a>
+            <div className={styles.actions}><a className={styles.ghost} href={HOME}>送らずに終了</a>
                 <button className={styles.primary} onClick={() => setStep('ratings')}>次へ</button></div>
         </>}
         {step === 'ratings' && <>
@@ -93,6 +102,6 @@ export default function HyakkiExp() {
                 <button className={styles.primary} disabled={sending} onClick={send}>{sending ? '送信中…' : '回答を送る'}</button></div>
         </>}
         {step === 'done' && <><h1>ありがとうございました</h1><p>回答を受け取りました。</p>
-            <div className={styles.actions}><a className={styles.primary} href="/hyakki/exp">展示の最初に戻る</a></div></>}
+            <div className={styles.actions}><a className={styles.primary} href={HOME}>展示の最初に戻る</a></div></>}
     </section></main>;
 }

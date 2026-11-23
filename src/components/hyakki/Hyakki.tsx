@@ -111,6 +111,15 @@ function Queue({ chosen, lights, lit, called, onCall }: { chosen: Card[]; lights
     );
 }
 
+/** The exhibit's own version of the play. /hyakki passes none; the study page (HyakkiExp) decides every field, so
+ *  the exhibit is designed there and nothing here names its route or its wording. Passing it turns the trace on. */
+export type HyakkiExhibit = {
+    onFinish: (log: PlayLog) => void;
+    back: { href: string; label: string };   // the way out while playing; a full page load, so the host starts fresh
+    finishLabel: string;                     // the button that ends the play on the scroll
+    mapGuide: boolean;                       // explain the map gestures where the town is chosen
+};
+
 /** What the study page (/hyakki/exp) receives when a play ends. The player's town is not part of it. */
 export type PlayLog = {
     trace: ExhibitTrace;
@@ -237,7 +246,7 @@ async function paintScroll(chosen: Card[], lights: Light[], spots: Spot[], font:
 }
 
 type ScrollLog = Pick<PlayLog, 'opened' | 'openedIds' | 'saved'>;
-function Results({ chosen, lights, onRestart, onFinish, track }: { chosen: Card[]; lights: Light[]; onRestart: () => void; onFinish?: (seen: ScrollLog) => void; track?: Track }) {
+function Results({ chosen, lights, onRestart, onFinish, finishLabel, track }: { chosen: Card[]; lights: Light[]; onRestart: () => void; onFinish?: (seen: ScrollLog) => void; finishLabel?: string; track?: Track }) {
     const seen = useRef({ opened: new Set<string>(), saved: false });
     const sheetRef = useRef<HTMLDivElement>(null);
     const [open, setOpen] = useState<Card | null>(null);
@@ -321,7 +330,7 @@ function Results({ chosen, lights, onRestart, onFinish, track }: { chosen: Card[
                 {onFinish ? (
                     <>
                         <button type="button" className={styles.ghost} onClick={() => { void download(); }}>画像をダウンロード</button>
-                        <button type="button" className={styles.primary} onClick={() => onFinish({ opened: seen.current.opened.size, openedIds: [...seen.current.opened], saved: seen.current.saved })}>遊びを終える</button>
+                        <button type="button" className={styles.primary} onClick={() => onFinish({ opened: seen.current.opened.size, openedIds: [...seen.current.opened], saved: seen.current.saved })}>{finishLabel}</button>
                     </>
                 ) : (
                     <>
@@ -335,7 +344,8 @@ function Results({ chosen, lights, onRestart, onFinish, track }: { chosen: Card[
     );
 }
 
-export default function Hyakki({ onFinish }: { onFinish?: (log: PlayLog) => void } = {}) {
+export default function Hyakki({ exhibit }: { exhibit?: HyakkiExhibit } = {}) {
+    const onFinish = exhibit?.onFinish;
     const study = useRef({ t0: 0, round: new Set<string>(), peeks: [] as number[], skippedCall: false, skippedParade: false });
     const [screen, setScreen] = useState(0);
     const recording = !!onFinish;
@@ -606,7 +616,9 @@ export default function Hyakki({ onFinish }: { onFinish?: (log: PlayLog) => void
         <main className={styles.page}>
             <div className={styles.stage} ref={stageRef}>
                 <div className={styles.map} ref={mapRef}><HyakkiMap {...mapProps} /></div>
-                {screen > 0 && <Link href="/map" className={styles.back}>← 地図</Link>}
+                {screen > 0 && (exhibit
+                    ? <a href={exhibit.back.href} className={styles.back}>{exhibit.back.label}</a>
+                    : <Link href="/map" className={styles.back}>← 地図</Link>)}
                 {canFill && (
                     <button type="button" className={styles.fill} onClick={toggleFill} aria-label={filled ? '全画面をやめる' : '全画面にする'} title={filled ? '全画面をやめる' : '全画面にする'}>
                         <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -646,7 +658,7 @@ export default function Hyakki({ onFinish }: { onFinish?: (log: PlayLog) => void
                             <div className={styles.strip}>
                                 <div className={styles.msg}>
                                     <h1 className={styles.head}>あなたの町をタップ</h1>
-                                    {onFinish && <p className={styles.mapGuide}>
+                                    {exhibit?.mapGuide && <p className={styles.mapGuide}>
                                         <span className={styles.mouseGuide}>ドラッグで地図を移動。ホイールで拡大・縮小できます。</span>
                                         <span className={styles.touchGuide}>指1本でスワイプすると地図が動きます。指2本を広げると拡大できます。</span>
                                     </p>}
@@ -757,7 +769,7 @@ export default function Hyakki({ onFinish }: { onFinish?: (log: PlayLog) => void
                             </div>
                         )}
 
-                        {screen === 10 && <Results chosen={chosen} lights={lights} onRestart={restart} onFinish={onFinish && finish} track={recording ? track : undefined} />}
+                        {screen === 10 && <Results chosen={chosen} lights={lights} onRestart={restart} onFinish={onFinish && finish} finishLabel={exhibit?.finishLabel} track={recording ? track : undefined} />}
                     </div>
                 )}
             </div>
