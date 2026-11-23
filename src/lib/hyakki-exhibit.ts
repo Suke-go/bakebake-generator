@@ -1,6 +1,9 @@
 // miniPXI (Haider et al., 2022), Table 4. Japanese study-team translation.
 // Original item codes and -3 ... +3 anchors are retained for analysis.
-export const EXHIBIT_VERSION = 'hyakki-exhibit-v2';
+// v3: the same items and anchors as v2, answered on a row of seven buttons where v2 had a drop-down list.
+export const EXHIBIT_VERSION = 'hyakki-exhibit-v3';
+const ACCEPTED_VERSIONS = [EXHIBIT_VERSION, 'hyakki-exhibit-v2'];   // a page loaded before the change can still send
+export const isExhibitVersion = (value: unknown): value is string => typeof value === 'string' && ACCEPTED_VERSIONS.includes(value);
 export const PX_ITEMS = [
     ['CUR_1', 'ゲームがこの先どう展開するのか、知りたかった。'],
     ['AUT_1', '自分なりのやり方で、自由に遊べた。'],
@@ -56,7 +59,7 @@ function validTrace(value: unknown): value is ExhibitTrace {
 }
 
 export function exhibitRow(body: unknown) {
-    if (!object(body) || body.version !== EXHIBIT_VERSION || body.consent !== true ||
+    if (!object(body) || !isExhibitVersion(body.version) || body.consent !== true ||
         typeof body.id !== 'string' || !/^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i.test(body.id)) return null;
     const { retelling, imagination, ratings, loreInterest, log } = body;
     if (typeof retelling !== 'string' || typeof imagination !== 'string' || retelling.length > 800 || imagination.length > 800 ||
@@ -66,7 +69,7 @@ export function exhibitRow(body: unknown) {
     if (!Array.isArray(chosen) || chosen.length !== 5 || new Set(chosen).size !== 5 || !idList(chosen, 5) ||
         !idList(openedIds, 100) || !idList(offeredEchoIds, 95) || typeof skippedCall !== 'boolean' || typeof skippedParade !== 'boolean') return null;
     if (log.trace !== undefined && !validTrace(log.trace)) return null;
-    return { id: body.id, version: EXHIBIT_VERSION, payload: {
+    return { id: body.id, version: body.version, payload: {
         retelling: retelling.trim(), imagination: imagination.trim(), ratings, loreInterest,
         log: { chosen, openedIds, offeredEchoIds, skippedCall, skippedParade, ...(log.trace ? { trace: log.trace } : {}) },
     } };

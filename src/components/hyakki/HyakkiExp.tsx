@@ -14,17 +14,21 @@ type ExhibitLog = Pick<PlayLog, 'trace' | 'chosen' | 'openedIds' | 'offeredEchoI
 const HOME = '/hyakki/exp';
 const PLAY: Omit<HyakkiExhibit, 'onFinish'> = {
     back: { href: HOME, label: '← 最初にもどる' },
-    finishLabel: '遊びを終える',
+    finishLabel: 'アンケートへ進む',
     mapGuide: true,
 };
 
+// One tap answers an item; tapping the chosen point again takes the answer back, so every item stays optional.
 function Rating({ label, value, change }: { label: string; value?: number; change: (value?: number) => void }) {
-    return <label className={styles.field}>{label}
-        <select value={value ?? ''} onChange={e => change(e.target.value === '' ? undefined : Number(e.target.value))}>
-            <option value="">回答しない</option>
-            {ANCHORS.map((anchor, i) => <option value={i - 3} key={anchor}>{anchor}</option>)}
-        </select>
-    </label>;
+    return <fieldset className={styles.scale}>
+        <legend>{label}</legend>
+        <div className={styles.points}>
+            {ANCHORS.map((anchor, i) => <button type="button" key={anchor} aria-label={anchor} title={anchor} aria-pressed={value === i - 3}
+                onClick={() => change(value === i - 3 ? undefined : i - 3)}>{i + 1}</button>)}
+        </div>
+        <div className={styles.ends}><span>{ANCHORS[0]}</span><span>{ANCHORS[ANCHORS.length - 1]}</span></div>
+        <p className={styles.picked} aria-live="polite">{value === undefined ? '未回答' : `${value + 4}：${ANCHORS[value + 3]}`}</p>
+    </fieldset>;
 }
 
 export default function HyakkiExp() {
@@ -38,6 +42,9 @@ export default function HyakkiExp() {
     const [interest, setInterest] = useState<number>();
     const [sending, setSending] = useState(false);
     const [failed, setFailed] = useState(false);
+    const [askedEmpty, setAskedEmpty] = useState(false);
+    const answered = Object.values(ratings).filter(v => v !== undefined).length + (interest === undefined ? 0 : 1);
+    const empty = answered === 0 && !retelling.trim() && !imagination.trim();
 
     function start() {
         setId(crypto.randomUUID());
@@ -51,6 +58,8 @@ export default function HyakkiExp() {
     }
     async function send() {
         if (sending) return;
+        // Nothing answered yet: say so once. Pressing again sends as it is, because answering is the visitor's choice.
+        if (empty && !askedEmpty) { setAskedEmpty(true); return; }
         setSending(true);
         setFailed(false);
         try {
@@ -79,7 +88,9 @@ export default function HyakkiExp() {
                 <button className={styles.primary} onClick={start}>同意して遊ぶ</button></div>
         </>}
         {step === 'story' && <>
+            <p className={styles.progress}>アンケート 1 / 2</p>
             <h1>あなたの百鬼夜行</h1>
+            <p>遊んでくださってありがとうございます。あと2画面、1〜2分ほどのアンケートにご協力ください。あなたの言葉が、この展示と研究のいちばんの手がかりになります。</p>
             <label className={styles.field}>今日の百鬼夜行を、ここにいなかった人に一つだけ話すとしたら、どんな話をしますか？
                 <textarea rows={3} maxLength={800} value={retelling} onChange={e => setRetelling(e.target.value)} /></label>
             <label className={styles.field}>誘った一体を思い出してください。出会う前にどんな妖怪を想像しましたか？　そう思ったきっかけや、出会って印象が変わったところがあれば教えてください。
@@ -89,14 +100,17 @@ export default function HyakkiExp() {
                 <button className={styles.primary} onClick={() => setStep('ratings')}>次へ</button></div>
         </>}
         {step === 'ratings' && <>
+            <p className={styles.progress}>アンケート 2 / 2</p>
             <h1>遊んでみてどうでしたか</h1>
-            <p>いま遊んだゲームについて、気持ちに近い答えを選んでください。答えたい項目だけで送れます。</p>
+            <p>いま遊んだゲームについて、気持ちに近い数字をタップしてください。1が「{ANCHORS[0]}」、4が「{ANCHORS[3]}」、7が「{ANCHORS[6]}」です。答えたい項目だけで送れます。</p>
             <fieldset className={styles.questions} disabled={sending}>
                 <legend className={styles.groupTitle}>ゲームの体験</legend>
                 {order.map(([key, label]) => <Rating key={key} label={label} value={ratings[key]} change={value => setRatings(old => ({ ...old, [key]: value }))} />)}
             </fieldset>
             <fieldset className={styles.questions} disabled={sending}><legend className={styles.groupTitle}>伝承への関心</legend>
                 <Rating label={LORE_INTEREST} value={interest} change={setInterest} /></fieldset>
+            <p className={styles.count} aria-live="polite">{PX_ITEMS.length + 1}問のうち {answered}問に回答</p>
+            {askedEmpty && empty && <p role="status" className={styles.ask}>まだどの質問にも答えていません。一つだけでも答えていただけると助かります。このまま送る場合は、もう一度「回答を送る」を押してください。</p>}
             {failed && <p role="alert" className={styles.failed}>送信できませんでした。回答はこの画面に残っています。通信を確認して、もう一度お試しください。</p>}
             <div className={styles.actions}><button className={styles.ghost} disabled={sending} onClick={() => setStep('story')}>戻る</button>
                 <button className={styles.primary} disabled={sending} onClick={send}>{sending ? '送信中…' : '回答を送る'}</button></div>
