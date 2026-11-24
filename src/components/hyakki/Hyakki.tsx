@@ -90,7 +90,11 @@ function Queue({ chosen, lights, lit, called, onCall }: { chosen: Card[]; lights
     const totals = useMemo(() => tally(lights), [lights]);
     const counts = totals.map((n, k) => (called.includes(k) ? n : 0));
 
+    // While calling, the five are the buttons, so the row says so: a line above it and a label on each one not yet tapped.
+    const waiting = onCall ? chosen.filter((_, i) => !called.includes(i)).length : 0;
     return (
+        <>
+        {waiting > 0 && <p className={styles.callGuide}><span aria-hidden="true">▼</span> 光っている妖怪を1体ずつタップ(あと{waiting}体)</p>}
         <ol className={onCall ? `${styles.queue} ${styles.calling}` : styles.queue} aria-label="行列">
             {Array.from({ length: TEAM }, (_, i) => {
                 const card = chosen[i];
@@ -101,13 +105,14 @@ function Queue({ chosen, lights, lit, called, onCall }: { chosen: Card[]; lights
                         aria-label={card ? `${i + 1}番目 ${card.name}${lit ? `、よんだ仲間 ${count}体` : ''}` : `${i + 1}番目 まだいません`}>
                         {card ? <img src={card.picture} alt="" /> : <span aria-hidden="true">{i + 1}</span>}
                         {card && onCall && !called.includes(i) && (
-                            <button type="button" className={styles.call} style={{ color: CALLER_COLORS[i] }} aria-label={`${card.name}に仲間をよんでもらう`} onClick={() => onCall(i)} />
+                            <button type="button" className={styles.call} style={{ color: CALLER_COLORS[i] }} aria-label={`${card.name}に仲間をよんでもらう`} onClick={() => onCall(i)}><span>タップ</span></button>
                         )}
-                        {card && lit && <span className={styles.count} style={{ color: CALLER_COLORS[i] }}>+{count}</span>}
+                        {card && lit && !(onCall && !called.includes(i)) && <span className={styles.count} style={{ color: CALLER_COLORS[i] }}>+{count}</span>}
                     </li>
                 );
             })}
         </ol>
+        </>
     );
 }
 

@@ -204,10 +204,16 @@
 /* The tap target over a slot while the five are calling: a ring in the caller's colour that breathes until tapped. */
 .call { position: absolute; inset: 0; padding: 0; border: 0; border-radius: 50%; background: none; cursor: pointer; box-shadow: inset 0 0 0 2px currentColor; animation: callPulse 1.2s ease-in-out infinite; }
 @keyframes callPulse { 50% { box-shadow: inset 0 0 0 2px currentColor, inset 0 0 14px 4px currentColor; } }
+/* What to do while calling: one line over the row, and "tap" written on each yokai that has not called yet. */
+.callGuide { flex: none; margin: 0; padding: 7px var(--s3) 0; text-align: center; background: var(--bar); border-top: 1px solid var(--rule); font-size: var(--fs-small); font-weight: 700; color: var(--text); animation: fade 0.5s ease both; }
+.callGuide span { display: inline-block; animation: callNudge 1s ease-in-out infinite; }
+.callGuide + .queue { border-top: 0; }
+.call span { position: absolute; left: 0; right: 0; bottom: 0; padding: 1px 0 4px; background: #0f0d18d9; color: #fff; font-size: var(--fs-fine); line-height: 1.35; font-weight: 700; }
+@keyframes callNudge { 50% { transform: translateY(3px); } }
 .count { position: absolute; left: 0; right: 0; bottom: 0; text-align: center; background: #0f0d18d9; font-size: var(--fs-fine); line-height: 1.35; font-weight: 700; }
 
 @media (prefers-reduced-motion: reduce) {
-  .introFall, .title, .introSub, .panel > *, .back, .queue, .slot img, .mapLoading, .call, .metPicture, .metName, .joined, .scroll::before, .panel.reveal, .lore { animation: none; }
+  .introFall, .title, .introSub, .panel > *, .back, .queue, .slot img, .mapLoading, .call, .callGuide, .callGuide span, .metPicture, .metName, .joined, .scroll::before, .panel.reveal, .lore { animation: none; }
   .walker { transition: none; }
   .primary, .ghost, .choice, .buddy { transition: none; }
   .buddy:hover:not(:disabled) { transform: none; }
