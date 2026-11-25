@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>妖怪マップ</title>
+  <link rel="stylesheet" href="https://cesium.com/downloads/cesiumjs/releases/1.146/Build/Cesium/Widgets/widgets.css">
+  <link rel="stylesheet" href="viewer.css">
+  <script defer src="https://cesium.com/downloads/cesiumjs/releases/1.146/Build/Cesium/Cesium.js"></script>
+  <script defer src="marker-layout.js"></script>
+  <script defer src="heatmap.js"></script>
+  <script defer src="viewer.js"></script>
+</head>
+<body>
+  <div id="map"></div>
+  <canvas id="density" aria-hidden="true"></canvas>
+  <div id="markers" aria-label="地図上の妖怪"></div>
+  <details class="controls" hidden aria-hidden="true">
+    <summary>背景・古地図</summary><div class="control-options">
+    <label>背景 <select id="background"><option value="seamlessphoto">航空写真</option><option value="osm">OSM</option><option value="std">地理院地図</option></select></label>
+    <label>視点 <select id="perspective"><option value="-90">真上</option><option value="-45">斜め</option></select></label>
+    <label><input id="buildings" type="checkbox">PLATEAU（港区）</label>
+    <label><input id="edo" type="checkbox">江戸切絵図（1850）</label>
+    <label class="opacity" hidden>古地図の濃さ <input id="edo-opacity" type="range" min="0" max="100" value="75"><output id="edo-opacity-value" for="edo-opacity">75%</output></label>
+    </div>
+  </details>
+  <p id="status" role="status">地図を読み込み中…</p>
+  <details class="note"><summary>操作について</summary><p>ドラッグで移動 · 右ドラッグで拡大縮小 · Ctrl＋ドラッグで傾斜</p><p>点は資料の代表位置です。建物との位置関係は出現場所を示しません。</p><span id="edo-credit" hidden>古地図：<a href="https://mapwarper.h-gis.jp/maps/4907" target="_blank" rel="noopener">芝愛宕下絵図（日本版Map Warper）</a> · <a href="https://dl.ndl.go.jp/pid/1286662" target="_blank" rel="noopener">国立国会図書館</a>。位置合わせには誤差があります。</span></details>
+</body>
+</html>

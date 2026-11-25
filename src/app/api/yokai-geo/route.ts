@@ -46,7 +46,9 @@ export async function GET(req: Request) {
             geoLevel: parseGeoLevelParam(url.searchParams),
             terrainClass: parseCsvParam(url.searchParams, 'terrain_class'),
             limit: parseLimit(url.searchParams),
+            offset: Math.max(0, Number(url.searchParams.get('offset')) || 0),
             includeSummary: parseSummaryParam(url.searchParams),
+            compact: ['1', 'true'].includes(url.searchParams.get('compact') ?? ''),
         });
 
         return NextResponse.json(featureCollection, {

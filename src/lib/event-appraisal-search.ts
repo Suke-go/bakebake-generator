@@ -65,6 +65,7 @@ async function branchRank(
     account: string,
     branchQuery: string,
     records: RecordEntry[],
+    rerank: typeof ruriRerank = ruriRerank,
 ): Promise<{ rank: Map<string, number>; pool: Array<{ id: string; text: string }> }> {
     const scores = lexicalScores(branchQuery, records);
     const topDocIdx = sorted(scores, records, true).slice(0, CANDIDATE_BUDGET);
@@ -72,8 +73,8 @@ async function branchRank(
     if (pool.length === 0) return { rank: new Map(), pool: [] };
 
     const [accountScored, branchScored] = await Promise.all([
-        ruriRerank(account, pool),
-        ruriRerank(branchQuery, pool),
+        rerank(account, pool),
+        rerank(branchQuery, pool),
     ]);
     const rQ = rankById(accountScored);
     const rBranch = rankById(branchScored);
@@ -91,13 +92,14 @@ export async function searchByEventAndAppraisal(
     eventText: string,
     appraisalText: string,
     limit = 5,
+    rerank: typeof ruriRerank = ruriRerank,
 ): Promise<EventAppraisalSearchResult> {
     const { records, manifest } = await loadExperienceCorpus();
     const recordById = new Map(records.map((r) => [r.id, r]));
 
     const [eventBranch, appraisalBranch] = await Promise.all([
-        branchRank(account, eventText, records),
-        branchRank(account, appraisalText, records),
+        branchRank(account, eventText, records, rerank),
+        branchRank(account, appraisalText, records, rerank),
     ]);
 
     // Combined condition: take each record's better (lower) rank across the

@@ -13,7 +13,10 @@ export type YokaiGeoQuery = {
     geoLevel?: string[];
     terrainClass?: string[];
     limit?: number;
+    offset?: number;
     includeSummary?: boolean;
+    /** Leave out empty fields and the provenance fields the map never shows. */
+    compact?: boolean;
 };
 
 export type GeoJsonPoint = {
@@ -36,6 +39,7 @@ export type YokaiGeoFeatureCollection = {
         total_records: number;
         returned_features: number;
         limit: number;
+        next_offset: number | null;
         filters: {
             category: string[] | null;
             geo_level: string[] | null;
@@ -180,7 +184,9 @@ async function loadRecords(): Promise<JsonRecord[]> {
     return loadingRecords;
 }
 
-function toFeature(record: JsonRecord, includeSummary: boolean): YokaiGeoFeature | null {
+const COMPACT_DROPS = ['geocode_method', 'geocode_source', 'terrain_coord_only', 'terrain_text_aware', 'river_source', 'lake_source', 'coastline_source'];
+
+function toFeature(record: JsonRecord, includeSummary: boolean, compact = false): YokaiGeoFeature | null {
     const coordinates = getCoordinates(record);
     if (!coordinates) return null;
 
@@ -193,6 +199,9 @@ function toFeature(record: JsonRecord, includeSummary: boolean): YokaiGeoFeature
     const properties: YokaiGeoFeature['properties'] = {
         id,
         name: firstString(record, ['name', 'name_kanji']),
+        name_reading: firstString(record, ['name_reading']),
+        // Only the image stored on this record; never infer an image from its name.
+        primary_image_url: firstString(record, ['primary_image_url']),
         major_category: majorCategory,
         phenomenon: firstString(record, ['phenomenon']),
         geo_level: geoLevel,
@@ -228,7 +237,13 @@ function toFeature(record: JsonRecord, includeSummary: boolean): YokaiGeoFeature
     };
 
     if (includeSummary && summary) {
-        properties.summary = summary.slice(0, 100);
+        properties.summary = summary;
+    }
+    if (compact) {
+        // The map loads every record; null fields and unused provenance are most of the payload.
+        const slim = properties as Record<string, unknown>;
+        for (const key of COMPACT_DROPS) delete slim[key];
+        for (const key of Object.keys(slim)) if (slim[key] === null && key !== 'id' && key !== 'name') delete slim[key];
     }
 
     return {
@@ -255,6 +270,8 @@ export async function getYokaiGeoFeatureCollection(
     const geoLevels = query.geoLevel?.includes('all') ? null : toSet(query.geoLevel);
     const terrainClasses = toSet(query.terrainClass);
     const limit = normalizeYokaiGeoLimit(query.limit);
+    const offset = Math.max(0, Math.trunc(query.offset ?? 0));
+    let eligibleCount = 0;
     const features: YokaiGeoFeature[] = [];
     const matchedRecords: JsonRecord[] = [];
 
@@ -264,12 +281,10 @@ export async function getYokaiGeoFeatureCollection(
         if (!valueMatches(record, ['_terrain_class', 'terrain_class', 'terrainClass'], terrainClasses)) continue;
 
         matchedRecords.push(record);
-        if (features.length < limit) {
-            const feature = toFeature(record, query.includeSummary === true);
-            if (feature) {
-                features.push(feature);
-            }
-        }
+        const feature = toFeature(record, query.includeSummary === true, query.compact === true);
+        if (!feature) continue;
+        if (eligibleCount >= offset && features.length < limit) features.push(feature);
+        eligibleCount++;
     }
 
     return {
@@ -280,6 +295,7 @@ export async function getYokaiGeoFeatureCollection(
             total_records: records.length,
             returned_features: features.length,
             limit,
+            next_offset: limit > 0 && offset + features.length < eligibleCount ? offset + features.length : null,
             filters: {
                 category: query.category ?? null,
                 geo_level: query.geoLevel ?? null,

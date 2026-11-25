@@ -1,0 +1,44 @@
+@import url('https://fonts.googleapis.com/css2?family=Kaisei+Tokumin:wght@400;500;700;800&display=swap');
+html, body, #map { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+#density, #markers { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+#markers .yokai-orb { position: absolute; transform: translate(-50%, -50%); width: 88px; height: 88px; padding: 0; pointer-events: auto; border: 2px solid #fff; border-radius: 50%; background: #f3eddc; box-shadow: 0 1px 4px #0005; color: #333; }
+.yokai-orb img { width: 100%; height: 100%; object-fit: contain; border-radius: 50%; }
+.yokai-orb span { position: absolute; left: 50%; top: calc(100% + 4px); transform: translateX(-50%); max-width: 112px; width: max-content; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 2px 3px; font: 500 11px/1.35 "Kaisei Tokumin", serif; color: #333; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 0 0 3px #fff, 0 0 5px #fff; }
+.yokai-orb:hover span, .yokai-orb:focus-visible span { background: #fffffff2; border-radius: 3px; }
+#markers .no-image { width: 17px; height: 17px; background: #d7ba79; }
+body { font: 13px "Kaisei Tokumin", serif; background: #171914; color: #f2efe7; }
+.controls { position:absolute; top:10px; left:10px; max-width:calc(100% - 40px); background:#171914ed; padding:10px; border:1px solid #615b4e; border-radius:8px; }
+.controls summary,.note summary { cursor:pointer; }
+.control-options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:12px; max-width:340px; }
+.control-options label { font-size:12px; }
+label { display: inline-flex; align-items: center; gap: 5px; }
+[hidden] { display: none !important; }
+.opacity input { width: 85px; }
+.opacity output { width: 32px; }
+a { color: #f4dda8; }
+button, select { font: inherit; color: inherit; background: #38382e; border: 1px solid #77705d; padding: 7px; border-radius: 6px; cursor: pointer; }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid #ffdf94; outline-offset: 3px; }
+#status { position: absolute; top: var(--controls-bottom, 150px); left: 10px; right: 10px; padding: 8px; border-radius: 6px; background: #171914e8; pointer-events: none; }
+#status:empty { display: none; }
+.note { position:absolute; bottom:27px; left:10px; max-width:calc(100% - 40px); background:#171914d9; padding:8px; border-radius:6px; font-size:11px; }
+.note a { pointer-events: auto; }
+@media (max-width: 500px) { .controls { gap: 6px; font-size: 12px; } .note { bottom: 40px; } }
+.journey-active .controls{left:370px}
+@media(max-width:860px){.journey-active .controls{left:10px}}
+
+#race-lines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+#race-lines line { stroke: #7fd3ff; stroke-width: 1.5; stroke-opacity: .85; }
+#race-cards { position: absolute; inset: 0; pointer-events: none; }
+.race-card { position: absolute; width: 196px; pointer-events: auto; display: flex; flex-direction: column; gap: 3px; text-align: left; padding: 7px 9px; border-radius: 10px; border: 1px solid #b9cbd6; background: #f4f8faf0; color: #2d2a20; font-size: 11.5px; line-height: 1.4; box-shadow: 0 2px 10px #0007; }
+.race-card:hover, .race-card:focus-visible { outline: 2px solid #7fd3ff; outline-offset: 1px; }
+.race-card.target { border-color: #c4473a; background: #fbe9e5f2; }
+.race-card.locked { opacity: .8; cursor: not-allowed; }
+.race-card .head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 6px; }
+.race-card .letter { width: 18px; height: 18px; border-radius: 50%; display: inline-grid; place-items: center; font-size: 11px; font-weight: 700; color: #eaf7ff; background: #10283a; }
+.race-card strong { font-size: 13px; }
+.race-card .place { font-size: 11px; color: #1f5a78; }
+.race-card .detour { white-space: nowrap; font-size: 10px; padding: 0 6px; border-radius: 999px; background: #f0a030; color: #2d2008; }
+.race-card .note-line { font-weight: 700; color: #a3322a; }
+.race-card .text { color: #4a473c; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.race-card mark { background: #ffe08a; color: inherit; padding: 0 1px; border-radius: 2px; }
+.race-card .landscape { font-size: 11px; color: #1f5a78; }
