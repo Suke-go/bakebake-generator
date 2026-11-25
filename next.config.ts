@@ -25,7 +25,7 @@ const localSearchExcludes = [
 const nextConfig: NextConfig = {
   serverExternalPackages: ['@huggingface/transformers', 'onnxruntime-node'],
   outputFileTracingIncludes: {
-    '/api/yokai-geo': ['./data/nichibun/nichibun_enriched.json'],
+    '/api/yokai-geo': ['./data/nichibun/nichibun_enriched.json', './data/nichibun/nichibun_enriched.json.gz'],
     '/api/archive-race': ['./data/archive-race/race-runtime.json', './data/archive-race/levels.json'],
     '/api/hyakki': ['./data/hyakki/**', './data/geo/gadm41_JPN_2.json'],
     '/api/experience-search': ['./data/experience-search/records.json.gz', './data/experience-search/manifest.json'],

@@ -1,7 +1,11 @@
 import { promises as fs } from 'fs';
 import path from 'path';
+import { gunzipSync } from 'zlib';
 
 const DATASET_PATH = path.join(process.cwd(), 'data', 'nichibun', 'nichibun_enriched.json');
+// The repository holds the dataset compressed; the uncompressed working file is used when it is there.
+// After regenerating the dataset, refresh the copy: gzip -9nkf data/nichibun/nichibun_enriched.json
+const DATASET_GZIP_PATH = `${DATASET_PATH}.gz`;
 const DATASET_PUBLIC_ID = 'data/nichibun/nichibun_enriched.json';
 const DEFAULT_LIMIT = 5000;
 const MAX_LIMIT = 10000;
@@ -163,11 +167,24 @@ function parseRecords(data: unknown): JsonRecord[] {
     return [];
 }
 
+function isMissingFile(error: unknown): boolean {
+    return typeof error === 'object' && error !== null && 'code' in error && error.code === 'ENOENT';
+}
+
+async function readDataset(): Promise<string> {
+    try {
+        return await fs.readFile(DATASET_PATH, 'utf-8');
+    } catch (error) {
+        if (!isMissingFile(error)) throw error;
+        return gunzipSync(await fs.readFile(DATASET_GZIP_PATH)).toString('utf-8');
+    }
+}
+
 async function loadRecords(): Promise<JsonRecord[]> {
     if (cachedRecords) return cachedRecords;
     if (loadingRecords) return loadingRecords;
 
-    loadingRecords = fs.readFile(DATASET_PATH, 'utf-8')
+    loadingRecords = readDataset()
         .then((raw) => {
             const records = parseRecords(JSON.parse(raw));
             cachedRecords = records;
@@ -175,7 +192,7 @@ async function loadRecords(): Promise<JsonRecord[]> {
         })
         .catch((error: unknown) => {
             loadingRecords = null;
-            if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'ENOENT') {
+            if (isMissingFile(error)) {
                 throw new YokaiGeoDatasetNotFoundError();
             }
             throw error;
