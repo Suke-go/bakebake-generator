@@ -25,13 +25,20 @@ export interface FolkloreResult {
   sourceUrl?: string;
   sameSummaryIds?: string[];
   englishSummary?: string;
+  /** Hepburn romanization of kaiiName, for English sessions. */
+  nameReading?: string;
+  /** Short English rendering of kaiiName, for English sessions. */
+  nameGloss?: string;
+  /** Which search the record came through when an interpretation was chosen. */
+  route?: 'event' | 'appraisal' | 'both';
 }
 
 export interface AppraisalOption {
   id: string;
   text: string;
   sourceSpan: string;
-  basis: 'grounded' | 'interpretation';
+  /** 'own' is an interpretation the participant wrote themselves. */
+  basis: 'grounded' | 'interpretation' | 'own';
 }
 
 export interface YokaiConcept {

@@ -2,8 +2,11 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useApp, YokaiConcept } from '@/lib/context';
-import { searchFolklore, generateConcepts } from '@/lib/api-client';
+import { searchFolklore, generateConcepts, translateFolklore } from '@/lib/api-client';
 import type { SearchResult } from '@/lib/folklore-search';
+import type { FolkloreResult } from '@/lib/context';
+
+type FolkloreItem = FolkloreResult & { source: string; englishLocation?: string };
 import { logResearchEvent } from '@/lib/research-log';
 import { RESEARCH_PROMPT_VERSION } from '@/lib/research-versions';
 import ProgressDots from './ProgressDots';
@@ -27,9 +30,14 @@ export default function Phase2() {
     const isEnglish = state.locale === 'en';
     const copy = isEnglish ? {
         loading: 'Searching folklore records...', wait: 'Please wait a few seconds', error: 'We could not search the records.', retrying: 'Retrying...', retry: 'Try again', searched: 'We searched the folklore archive using your experience.', related: 'These are candidates for exploring possible points of connection.', generating: 'Creating name ideas...', relatedLabel: 'Folklore candidates to consider', source: 'Source', conceptsReady: 'We created some name ideas.', concepts: 'Name ideas', nameYourself: 'Name it yourself', customPrompt: 'Enter the name that feels right to you', customPlaceholder: 'For example: Shadow Crosser', useName: 'Use this name', customDescription: 'A yokai you named yourself',
+        original: 'Show the Japanese original', translationNote: 'The English above is a machine translation of this Japanese record.', noTranslation: 'An English translation could not be prepared for this record, so the Japanese original is shown.',
     } : {
         loading: '伝承の記録を検索しています...', wait: '数秒お待ちください', error: '記録の検索に失敗しました。', retrying: '再試行中...', retry: '再試行', searched: '体験内容をもとに、伝承データベースを検索しました。', related: '接点を探すための伝承候補です。', generating: '名前の候補を生成しています...', relatedLabel: '参考にする伝承候補', source: '出典', conceptsReady: '名前の候補を生成しました。', concepts: '名前の候補', nameYourself: '自分で名付ける', customPrompt: 'あなたが感じた名前を入力してください', customPlaceholder: '例: 影渡り', useName: 'この名前で記録する', customDescription: 'あなた自身が名付けた妖怪',
+        original: '', translationNote: '', noTranslation: '',
     };
+    const ROUTE_LABELS: Record<'event' | 'appraisal' | 'both', string> = isEnglish
+        ? { event: 'Similar event', appraisal: 'Similar to your interpretation', both: 'Similar event and interpretation' }
+        : { event: '出来事が似ている', appraisal: '解釈が似ている', both: '出来事も解釈も似ている' };
     const [stage, setStage] = useState<'loading' | 'intro' | 'folklore' | 'concepts' | 'error'>('loading');
     const [showLine1, setShowLine1] = useState(false);
     const [showLine2, setShowLine2] = useState(false);
@@ -45,16 +53,7 @@ export default function Phase2() {
     const [customName, setCustomName] = useState('');
     const [showCustomInput, setShowCustomInput] = useState(false);
 
-    const [folkloreData, setFolkloreData] = useState<Array<{
-        id: string;
-        kaiiName: string;
-        content: string;
-        location: string;
-        similarity: number;
-        source?: string;
-        sourceUrl?: string;
-        sameSummaryIds?: string[];
-    }>>([]);
+    const [folkloreData, setFolkloreData] = useState<FolkloreItem[]>([]);
     const [conceptData, setConceptData] = useState<YokaiConcept[]>([]);
 
     const inFlightRef = useRef(false);
@@ -182,6 +181,28 @@ export default function Phase2() {
             setIsGeneratingConcepts(true);
             setStage('intro');
 
+            // An English participant reads every candidate record in English, so
+            // all of them are translated, alongside the concept request.
+            const isSuperseded = () => !mountedRef.current || requestId !== requestSeqRef.current || controller.signal.aborted;
+            const translationPromise = isEnglish
+                ? translateFolklore(
+                    folklore.map(({ id, kaiiName, content, location }) => ({ id, kaiiName, content, location })),
+                    controller.signal,
+                ).catch((translationErr) => {
+                    console.warn('Phase 2 translation failed:', translationErr);
+                    return null;
+                })
+                : Promise.resolve(null);
+            const applyTranslations = async (items: FolkloreItem[]): Promise<FolkloreItem[]> => {
+                const translated = await translationPromise;
+                if (!translated) return items;
+                const byId = new Map(translated.translations.map((t) => [t.id, t]));
+                return items.map((item) => {
+                    const t = byId.get(item.id);
+                    return t ? { ...item, englishSummary: t.summary, nameReading: t.reading, nameGloss: t.gloss, englishLocation: t.place } : item;
+                });
+            };
+
             try {
                 const conceptResult = await generateConcepts(
                     folklore,
@@ -191,10 +212,11 @@ export default function Phase2() {
                     state.locale,
                 );
                 const summariesById = new Map((conceptResult.folkloreSummaries ?? []).map((item) => [item.folkloreRef, item.summary]));
-                const folkloreWithSummaries = folklore.map((item) => ({
+                const folkloreWithSummaries = await applyTranslations(folklore.map((item) => ({
                     ...item,
                     ...(summariesById.has(item.id) ? { englishSummary: summariesById.get(item.id) } : {}),
-                }));
+                })));
+                if (isSuperseded()) return;
                 setFolkloreData(folkloreWithSummaries);
                 setFolkloreResults(folkloreWithSummaries);
                 setConceptData(conceptResult.concepts as YokaiConcept[]);
@@ -211,6 +233,8 @@ export default function Phase2() {
                     },
                 });
             } catch (conceptErr) {
+                // A superseded request (unmount, retry) must not overwrite the live one with fallback data.
+                if (isSuperseded()) return;
                 console.warn('Phase 2 concept error, fallback applied:', conceptErr);
                 void logResearchEvent(state.ticketId, {
                     eventType: 'concept_generation_failed',
@@ -229,14 +253,15 @@ export default function Phase2() {
                 setConceptData(conceptFallback as YokaiConcept[]);
                 setConcepts(conceptFallback as YokaiConcept[]);
                 setRetryMsg('');
+                const translatedFolklore = await applyTranslations(folklore);
+                if (isSuperseded()) return;
+                setFolkloreData(translatedFolklore);
+                setFolkloreResults(translatedFolklore);
             }
 
+            if (isSuperseded()) return;
             setIsGeneratingConcepts(false);
             setRetryMsg('');
-
-            if (!mountedRef.current || requestId !== requestSeqRef.current || controller.signal.aborted) {
-                return;
-            }
         } catch (err) {
             if (err instanceof Error && err.name === 'AbortError') {
                 setIsGeneratingConcepts(false);
@@ -481,24 +506,46 @@ export default function Phase2() {
                                         transform: 'none',
                                     }}
                                 >
+                                    {f.route && (
+                                        <p className={`folklore-route folklore-route-${f.route}`}>{ROUTE_LABELS[f.route]}</p>
+                                    )}
                                     <SpookyText
-                                        text={f.kaiiName}
+                                        text={isEnglish && f.nameReading ? f.nameReading : f.kaiiName}
                                         as="p"
                                         className="folklore-name"
                                         mojibake
-                                        mojibakeOptions={{ resolveSpeed: 50, flickerRate: 60, delay: 0, intensity: 0.6 }}
-                                        charSizeVariation={0.15}
+                                        mojibakeOptions={{ resolveSpeed: isEnglish && f.nameReading ? 25 : 50, flickerRate: 60, delay: 0, intensity: 0.6 }}
+                                        charSizeVariation={isEnglish && f.nameReading ? 0 : 0.15}
                                     />
+                                    {isEnglish && f.nameReading && (
+                                        <p className="folklore-subname">
+                                            {f.nameGloss && <span>{f.nameGloss}</span>}
+                                            <span lang="ja">{f.kaiiName}</span>
+                                        </p>
+                                    )}
                                     <SpookyText
-                                        text={f.content}
+                                        text={isEnglish && f.englishSummary ? f.englishSummary : f.content}
                                         as="p"
-                                        className="folklore-content"
+                                        className={isEnglish && f.englishSummary ? 'folklore-content folklore-content-en' : 'folklore-content'}
                                         mojibake
-                                        mojibakeOptions={{ resolveSpeed: 15, flickerRate: 40, delay: 100, intensity: 0.4 }}
-                                        charSizeVariation={0.08}
+                                        // English runs several times longer than the Japanese record and must
+                                        // wrap at word boundaries, so it resolves faster and without per-letter boxes.
+                                        mojibakeOptions={isEnglish && f.englishSummary
+                                            ? { resolveSpeed: 4, flickerRate: 40, delay: 100, intensity: 0.4 }
+                                            : { resolveSpeed: 15, flickerRate: 40, delay: 100, intensity: 0.4 }}
+                                        charSizeVariation={isEnglish && f.englishSummary ? 0 : 0.08}
                                     />
-                                    <p className="folklore-meta">{f.location}</p>
-                                    {f.source && (
+                                    {isEnglish && (f.englishSummary ? (
+                                        <details className="folklore-original">
+                                            <summary>{copy.original}</summary>
+                                            <p lang="ja">{f.content}</p>
+                                            <p className="folklore-note">{copy.translationNote}</p>
+                                        </details>
+                                    ) : (
+                                        <p className="folklore-note">{copy.noTranslation}</p>
+                                    ))}
+                                    <p className="folklore-meta">{isEnglish && f.englishLocation ? f.englishLocation : f.location}</p>
+                                    {f.source && !f.route && (
                                         <p className="folklore-meta" style={{ opacity: 0.7 }}>
                                             {copy.source}: {f.sourceUrl ? <a href={f.sourceUrl} target="_blank" rel="noreferrer">{f.source}</a> : f.source}
                                             {(f.sameSummaryIds?.length ?? 1) > 1 ? ` ／ ${f.sameSummaryIds?.length}${isEnglish ? ' records with the same summary' : '資料に同一要約'}` : ''}

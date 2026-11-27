@@ -497,3 +497,20 @@ export async function searchByEventAndAppraisal(
     searchEventsInFlight.set(cacheKey, trackedRequest);
     return withAbortSignal(trackedRequest, signal);
 }
+
+export interface FolkloreTranslationResponse {
+    translations: Array<{ id: string; reading: string; gloss: string; summary: string; place: string }>;
+    usedModel?: string;
+}
+
+/**
+ * English translations of Japanese archive records, for English sessions.
+ * Every displayed record is sent, not only the ones a concept prompt sees.
+ */
+export async function translateFolklore(
+    records: Array<{ id: string; kaiiName: string; content: string; location: string }>,
+    signal?: AbortSignal,
+): Promise<FolkloreTranslationResponse> {
+    throwIfAborted(signal);
+    return withAbortSignal(requestJsonInternal<FolkloreTranslationResponse>('/api/translate-folklore', { records }), signal);
+}

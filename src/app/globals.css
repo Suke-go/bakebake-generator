@@ -401,6 +401,89 @@ body {
   margin-top: 10px;
 }
 
+/* Which search a record came through, when an interpretation was chosen. */
+.folklore-route {
+  display: inline-block;
+  font-family: var(--font-label);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  padding: 2px 9px;
+  margin-bottom: 10px;
+  border-radius: 999px;
+  border: 1px solid hsla(40, 10%, 60%, 0.3);
+  color: var(--text-mid);
+}
+
+.folklore-route-appraisal {
+  border-color: hsla(12, 45%, 52%, 0.5);
+  color: hsl(12, 50%, 68%);
+}
+
+.folklore-route-both {
+  border-color: var(--accent);
+  background: hsla(12, 45%, 52%, 0.1);
+  color: hsl(12, 60%, 74%);
+}
+
+.folklore-content-en {
+  font-size: 16px;
+  letter-spacing: 0.01em;
+  line-height: 1.9;
+  overflow-wrap: break-word;
+}
+
+.folklore-subname {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-family: var(--font-label);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  margin: -2px 0 10px;
+}
+
+.folklore-original {
+  margin-top: 12px;
+  font-family: var(--font-main);
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.folklore-original summary {
+  cursor: pointer;
+  letter-spacing: 0.06em;
+  color: var(--text-mid);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  list-style: none;
+}
+
+.folklore-original summary::-webkit-details-marker {
+  display: none;
+}
+
+.folklore-original p {
+  margin: 10px 0 0;
+  line-height: 2;
+  padding-left: 12px;
+  border-left: 1px solid hsla(40, 10%, 60%, 0.25);
+}
+
+.folklore-original .folklore-note {
+  border-left: none;
+  padding-left: 0;
+}
+
+.folklore-note {
+  font-family: var(--font-label);
+  font-size: 11px;
+  line-height: 1.8;
+  letter-spacing: 0.04em;
+  color: var(--text-ghost);
+  margin-top: 8px;
+}
+
 /* === Concept Card (Phase 2b) === */
 .concept-card {
   padding: 28px 24px;
