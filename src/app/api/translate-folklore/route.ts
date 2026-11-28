@@ -152,9 +152,6 @@ export async function POST(req: Request) {
     if (missing.length === 0) {
         return NextResponse.json({ translations: cached, usedModel: 'cache' }, { headers: { 'x-paid-api-calls': '0' } });
     }
-    if (process.env.PAID_GENERATION_ENABLED !== 'true') {
-        return NextResponse.json({ translations: cached, usedModel: 'paid-api-paused' }, { headers: { 'x-paid-api-calls': '0' } });
-    }
     if (!process.env.GEMINI_API_KEY && !process.env.GEMINI_SUB_API_KEY && !process.env.OPENAI_API_KEY) {
         return NextResponse.json({ translations: cached, usedModel: 'unconfigured' });
     }
